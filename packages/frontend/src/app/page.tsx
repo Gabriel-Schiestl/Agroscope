@@ -1,12 +1,15 @@
-"use client";
+'use client';
 
-import axios from "axios";
-import Image from "next/image";
-import { ChangeEvent, ReactEventHandler, useState } from "react";
+import axios from 'axios';
+import Image from 'next/image';
+import { ChangeEvent, ReactEventHandler, useState } from 'react';
 
 export default function Home() {
   const [file, setFile] = useState<File | undefined>();
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState('');
+  const apiUrl = typeof window === 'undefined' 
+    ? process.env.NEXT_PUBLIC_API_URL  // Ambiente Docker (backend `flask`)
+    : "http://localhost:5000"; 
 
   const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -20,18 +23,14 @@ export default function Home() {
   const onClick = async () => {
     if (!file) return;
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append('image', file);
     try {
-      const result = await axios.post(
-        "http://localhost:5000/predict",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const result = await axios.post(`${apiUrl}/predict`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       console.log(result.data);
     } catch (error) {
-      console.error("Erro ao enviar a imagem:", error);
+      console.error('Erro ao enviar a imagem:', error);
     }
   };
 

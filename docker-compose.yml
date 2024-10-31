@@ -1,0 +1,23 @@
+
+services:
+  frontend:
+    build: ./packages/frontend
+    ports:
+      - '3000:3000'
+    depends_on:
+      - flask
+    networks:
+      - custom_network
+    environment:
+      - NEXT_PUBLIC_API_URL=http://flask:5000
+
+  flask:
+    build: ./packages/IA
+    ports:
+      - '5000:5000'
+    networks:
+      - custom_network
+
+networks:
+  custom_network:
+    driver: bridge

@@ -24,5 +24,12 @@ export class KnowledgeDataRepository implements KnowledgeRepository {
     }
   }
 
-  async save(knowledge: Knowledge): Promise<void | KnowledgeExceptions> {}
+  async save(knowledge: Knowledge): Promise<void | KnowledgeExceptions> {
+    try {
+      const model = KnowledgeMapper.domainToModel(knowledge);
+      await model.save();
+    } catch (e) {
+      throw new TechnicalException(e.message);
+    }
+  }
 }

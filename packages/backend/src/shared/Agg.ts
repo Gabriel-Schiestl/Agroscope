@@ -5,7 +5,7 @@ export class Agg<P> extends AggregateRoot {
   private readonly _id?: string;
   protected readonly props: P;
 
-  constructor(props: P, id?: string) {
+  protected constructor(props: P, id?: string) {
     super();
     this._id = id || uuid();
     this.props = props;

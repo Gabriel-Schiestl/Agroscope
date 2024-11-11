@@ -6,7 +6,7 @@ interface KnowledgeProps {
 }
 
 export class Knowledge extends Agg<KnowledgeProps> {
-  constructor(props: KnowledgeProps, id?: string) {
+  private constructor(props: KnowledgeProps, id?: string) {
     super(props, id);
   }
 

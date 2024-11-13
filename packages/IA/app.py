@@ -5,18 +5,16 @@ from PIL import Image
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/', methods=['GET'])
-def hello():
-    return 'Ola', 200
-
 @app.route('/predict', methods=['POST'])
 def predict():
-    print('Ola')
     file = request.files['image']
-    img = Image.open(file.stream)
+    if not file:
+        return jsonify({'message': 'No file uploaded'}), 400
+
     img = img.resize((224, 224))
     img.save('image.jpg')
-    return jsonify({'message': 'success'})
+
+    return jsonify({'message': 'success'}), 200
 
 
 if __name__ == '__main__':

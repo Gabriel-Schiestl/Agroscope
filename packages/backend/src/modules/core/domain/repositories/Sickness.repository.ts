@@ -10,5 +10,6 @@ export type SicknessExceptions =
 
 export interface SicknessRepository {
   getSickness(id: string): Promise<Sickness | SicknessExceptions>;
+  getSicknessByName(name: string): Promise<Sickness | SicknessExceptions>;
   save(sickness: Sickness): Promise<void | SicknessExceptions>;
 }

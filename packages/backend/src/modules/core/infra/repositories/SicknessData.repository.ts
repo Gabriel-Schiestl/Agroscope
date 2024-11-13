@@ -22,6 +22,23 @@ export class SicknessDataRepository implements SicknessRepository {
     }
   }
 
+  async getSicknessByName(
+    name: string,
+  ): Promise<Sickness | SicknessExceptions> {
+    try {
+      const model = await SicknessModel.createQueryBuilder('sickness')
+        .where('LOWER(sickness.name) = LOWER(:name)', { name })
+        .getOne();
+      if (!model) return new RepositoryNoDataFound('Sickness not found');
+
+      const domain = SicknessMapper.modelToDomain(model);
+
+      return domain;
+    } catch (e) {
+      throw new TechnicalException(e.message);
+    }
+  }
+
   async save(sickness: Sickness): Promise<void | SicknessExceptions> {
     try {
       const model = SicknessMapper.domainToModel(sickness);

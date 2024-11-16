@@ -1,9 +1,8 @@
-
 services:
   frontend:
     build: ./packages/frontend
     ports:
-      - '3000:3000'
+      - "80:80"
     depends_on:
       - flask
     networks:
@@ -14,7 +13,14 @@ services:
   flask:
     build: ./packages/IA
     ports:
-      - '5000:5000'
+      - "5000:5000"
+    networks:
+      - custom_network
+
+  backend:
+    build: ./packages/backend
+    ports:
+      - "3000:3000"
     networks:
       - custom_network
 

@@ -5,11 +5,15 @@ import fs from 'fs';
 
 export const UseFileInterceptor = FileInterceptor('image', {
   storage: diskStorage({
-    destination: path.resolve(process.cwd(), '../../uploads'),
+    destination: (req, file, callback) => {
+      const uploadPath = path.resolve(__dirname, '..', 'uploads');
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      callback(null, uploadPath);
+    },
     filename: (req, file, callback) => {
-      const files = fs.readdirSync(
-        path.resolve(process.cwd(), '../../uploads'),
-      );
+      const files = fs.readdirSync(path.resolve(__dirname, '..', 'uploads'));
       const fileExtName = extname(file.originalname);
       const fileName = `${file.fieldname}-${files.length + 1}${fileExtName}`;
       callback(null, fileName);

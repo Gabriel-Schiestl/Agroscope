@@ -7,8 +7,6 @@ services:
       - flask
     networks:
       - custom_network
-    environment:
-      - NEXT_PUBLIC_API_URL=http://flask:5000
 
   flask:
     build: ./packages/IA
@@ -29,6 +27,23 @@ services:
     env_file:
       - ./packages/backend/.env.local
 
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    networks:
+      - custom_network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: bash -c "chmod -R 777 /var/lib/postgresql/data && docker-entrypoint.sh postgres"
+
 networks:
   custom_network:
     driver: bridge
+
+volumes:
+  postgres_data:

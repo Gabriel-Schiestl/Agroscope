@@ -7,11 +7,11 @@ import {
 import { PredictUseCase } from '../application/usecases/Predict.usecase';
 import { UseFileInterceptor } from '../infra/services/File.interceptor';
 
-@Controller('core')
+@Controller()
 export class CoreController {
   constructor(private readonly predictUseCase: PredictUseCase) {}
 
-  @Post()
+  @Post('predict')
   @UseInterceptors(UseFileInterceptor)
   async predict(@UploadedFile() file: Express.Multer.File) {
     return this.predictUseCase.execute(file);

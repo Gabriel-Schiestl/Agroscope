@@ -10,7 +10,8 @@ def predict():
     file = request.files['image']
     if not file:
         return jsonify({'message': 'No file uploaded'}), 400
-
+    
+    img = Image.open(file.stream)
     img = img.resize((224, 224))
     img.save('image.jpg')
 

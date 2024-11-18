@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -14,6 +15,6 @@ export class CoreController {
   @Post('predict')
   @UseInterceptors(UseFileInterceptor)
   async predict(@UploadedFile() file: Express.Multer.File) {
-    return this.predictUseCase.execute(file);
+    return this.predictUseCase.execute(file.path);
   }
 }

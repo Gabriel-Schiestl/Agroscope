@@ -12,6 +12,7 @@ def predict():
         return jsonify({'message': 'No file uploaded'}), 400
     
     img = Image.open(file.stream)
+    img.show()
     img = img.resize((224, 224))
     img.save('image.jpg')
 

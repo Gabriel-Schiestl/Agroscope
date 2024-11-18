@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
-import FormData from 'form-data';
+import FormData = require('form-data'); // Correção aqui
 import { KnowledgeRepository } from '../../domain/repositories/Knowledge.repository';
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface PredictUseCaseResponse {
   prediction: string;
@@ -17,18 +19,24 @@ export interface UseCasesResponse<T> {
 @Injectable()
 export class PredictUseCase {
   constructor(
+    @Inject('SicknessRepository')
     private readonly sicknessRepository: SicknessRepository,
+    @Inject('KnowledgeRepository')
     private readonly knowledgeRepository: KnowledgeRepository,
   ) {}
 
   async execute(
-    image: Express.Multer.File,
+    imagePath: string,
   ): Promise<UseCasesResponse<PredictUseCaseResponse>> {
+    console.log(imagePath);
     const formData = new FormData();
 
-    formData.append('image', image.buffer, {
-      filename: image.originalname,
-      contentType: image.mimetype,
+    const image = fs.createReadStream(imagePath);
+    console.log(image);
+
+    formData.append('image', image, {
+      filename: path.basename(imagePath),
+      contentType: 'image/*',
     });
 
     try {

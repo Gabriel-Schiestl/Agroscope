@@ -18,7 +18,7 @@ export class SicknessModel extends BaseEntity implements SicknessModelProps {
   @Column({ nullable: true })
   description: string;
 
-  @Column('simple-array')
+  @Column('text', { array: true })
   symptoms: string[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

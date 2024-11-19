@@ -21,27 +21,27 @@ export default function Home() {
   };
 
   return (
-    <body>
+    <div>
       <Navbar />
       
-      <InputQuad>
-        <div className="flex justify-center mb-10">
+      <div className='p-2 bg-green-500'>
+      <div className="flex justify-center mb-10">
           <input type="file" accept="image/*" onChange={onChange} />
         </div>
         <div className="flex justify-center">
           {url && (
             <div className="flex items-center p-3 bg-white text-black rounded shadow-md">
-              <Image src={url} alt="Teste" width={500} height={500} style={{ objectFit: "cover" }} />
+              <Image src={url} alt="Imagem para Analise" width={500} height={500} style={{ objectFit: "cover" }} />
             </div>
             
           )}
         </div>
-      </InputQuad>
+      </div>
 
       {/* Menu Button with Icon */}
       <div className="flex justify-center mt-10">
         
       </div>
-    </body>
+    </div>
   );
 }

@@ -1,4 +1,13 @@
-import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { SicknessModel } from './Sickness.model';
 
 interface KnowledgeModelProps {
   id: string;
@@ -8,11 +17,15 @@ interface KnowledgeModelProps {
 
 @Entity('knowledge')
 export class KnowledgeModel extends BaseEntity implements KnowledgeModelProps {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   sicknessId: string;
+
+  @OneToOne(() => SicknessModel)
+  @JoinColumn({ name: 'sicknessId' })
+  sickness: SicknessModel;
 
   @Column({ type: 'text' })
   handling: string;

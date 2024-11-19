@@ -28,11 +28,9 @@ export class PredictUseCase {
   async execute(
     imagePath: string,
   ): Promise<UseCasesResponse<PredictUseCaseResponse>> {
-    console.log(imagePath);
     const formData = new FormData();
 
     const image = fs.createReadStream(imagePath);
-    console.log(image);
 
     formData.append('image', image, {
       filename: path.basename(imagePath),
@@ -49,6 +47,17 @@ export class PredictUseCase {
           },
         },
       );
+
+      if (result.data.prediction === 'saudavel') {
+        return {
+          data: {
+            prediction: result.data.prediction,
+            handling:
+              'A planta está saudável e não precisa de cuidados especiais',
+          },
+          success: true,
+        };
+      }
 
       const sickness = await this.sicknessRepository.getSicknessByName(
         result.data.prediction,

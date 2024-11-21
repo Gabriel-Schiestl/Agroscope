@@ -1,0 +1,49 @@
+services:
+  frontend:
+    build: ./packages/frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - flask
+    networks:
+      - custom_network
+
+  flask:
+    build: ./packages/IA
+    ports:
+      - "5000:5000"
+    networks:
+      - custom_network
+
+  backend:
+    build: ./packages/backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./packages/backend:/app
+      - ./packages/backend/uploads:/app/uploads
+    networks:
+      - custom_network
+    env_file:
+      - ./packages/backend/.env.local
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    networks:
+      - custom_network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: bash -c "chmod -R 777 /var/lib/postgresql/data && docker-entrypoint.sh postgres"
+
+networks:
+  custom_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

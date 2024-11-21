@@ -3,12 +3,13 @@
 import axios from 'axios';
 import Image from 'next/image';
 import { ChangeEvent, useState } from 'react';
+import Head from 'next/head';
 
-// Componentes
-import InputQuad from './components/InputQuad';
 import Navbar from './components/Navbar';
 
 export default function Home() {
+  const result = 0; // Não é válido!
+
   const [file, setFile] = useState<File | undefined>();
   const [url, setUrl] = useState('');
   const apiUrl =
@@ -41,30 +42,82 @@ export default function Home() {
 
   return (
     <body>
+      <Head>
+        <link rel="shortcut icon" href="/assets/favicon.ico" />{' '}
+        {/*Tem que colocar Favicon*/}
+        <title>AgroScope - Plants Classifications</title>
+      </Head>
+
       <Navbar />
 
-      <InputQuad>
-        <div className="flex justify-center mb-10">
-          <input type="file" accept="image/*" onChange={onChange} />
-        </div>
-        <div className="flex justify-center">
-          {url && (
-            <div className="flex items-center p-3 bg-white text-black rounded shadow-md">
-              <Image
-                src={url}
-                alt="Teste"
-                width={500}
-                height={500}
-                style={{ objectFit: 'cover' }}
+      {/* Container Principal */}
+      <div className="mx-[10%] p-10 min-h-screen">
+        <div className="flex flex-col md:flex-row md:space-x-6 items-top justify-between align-middle mx-40">
+          {' '}
+          {/* Ajustar tamanhos para recursividade! */}
+          {/* Coluna da Esquerda (Imagem de Entrada) */}
+          <div className="w-full md:w-1/2 flex flex-col items-center">
+            <div className="mb-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onChange}
+                className="block w-full px-4 py-2 text-sm text-gray-900 border border-gray-300 rounded cursor-pointer bg-gray-50 focus:outline-none"
               />
             </div>
-          )}
-          <button onClick={onClick}>Predict</button>
-        </div>
-      </InputQuad>
+            {url && (
+              <div
+                className="p-3 bg-white text-black rounded shadow-md"
+                style={{
+                  width: '600px', // Largura padrão
+                  height: '600px', // Altura padrão
+                  overflow: 'hidden'
+                }}
+              >
+                <Image
+                  src={url}
+                  alt="Imagem para Análise"
+                  width={600} // Defina largura padrão
+                  height={600} // Defina altura padrão
+                  style={{ objectFit: 'cover' }} // Corta ou ajusta a imagem para caber
+                  className="rounded"
+                />
+              </div>
+            )}
+          </div>
+          <div id="linha-vertical"></div>
+          {/* Coluna da Direita (Botão e Informações) */}
+          <div className="w-full md:w-1/2 md:items-start bg-white p-4 rounded shadow-md">
+            <button
+              onClick={onClick}
+              className="px-4 py-2 mb-6 bg-blue-500 text-white rounded shadow hover:bg-blue-600"
+            >
+              Analisar
+            </button>
 
-      {/* Menu Button with Icon */}
-      <div className="flex justify-center mt-10"></div>
+            {/*Informações Analisadas*/}
+            <div className="text-left w-full">
+              <h2 className="text-lg font-bold mb-2">Resultados da Análise</h2>
+              <ul className="list-disc pl-6 space-y-2">
+                <li className="text-gray-700">
+                  Classe Predita:{' '}
+                  <span className="font-semibold">
+                    {result.prediction || 'N/A'}
+                  </span>
+                </li>{' '}
+                {/* Verificar! */}
+                <li className="text-gray-700">
+                  Confiança:{' '}
+                  <span className="font-semibold">
+                    {result.handling || 'N/A'}
+                  </span>
+                </li>{' '}
+                {/* Verificar! */}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </body>
   );
 }

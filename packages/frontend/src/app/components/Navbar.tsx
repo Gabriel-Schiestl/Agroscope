@@ -2,19 +2,28 @@
 import { FiMenu } from "react-icons/fi";
 import { BsFillTelephoneFill } from "react-icons/bs";
 import { FaQuestion } from "react-icons/fa";
-
-
+import Image from 'next/image';
+import Button from "./Button";
 
 export default function Navbar() {
     return (
-        <div className="bg-green-600 p-5 text-white flex justify-between shadow-sm shadow-black">
-            <button className="flex items-center p-2 bg-white text-black rounded shadow-md">
-                    <FiMenu/>
-            </button>
+        <div id="navbar">
+            <div className="flex items-center">
+                <Image
+                    src="/assets/logo_agroscope.jpeg" // Tem que colocar a Logo
+                    alt="Logo"
+                    width={42}
+                    height={42}
+                    className="h-12 w-12"
+                />
+                <span className="ml-4 text-white text-lg font-semibold">AgroScope</span>
+            </div>
+
             <div className="ml-auto flex space-x-4">
-                <button className="flex items-center p-2 bg-white text-black rounded shadow-md">Contato <BsFillTelephoneFill/></button>
-                <button className="flex items-center p-2 bg-white text-black rounded shadow-md">Sobre nós <FaQuestion/></button>
-                <button className="flex items-center p-2 bg-white text-black rounded shadow-md">Como funciona? <FaQuestion></FaQuestion></button>
+                <Button>Contato</Button>
+                <Button>Sobre nós</Button>
+                <Button>Como funciona?</Button>
+                <button id="menu_button"><FiMenu/></button>
             </div>
         </div>
     )

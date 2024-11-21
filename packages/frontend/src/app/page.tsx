@@ -7,14 +7,26 @@ import Head from 'next/head';
 
 import Navbar from './components/Navbar';
 
-export default function Home() {
-  const result = 0; // Não é válido!
+interface Data {
+  prediction: string;
+  handling: number;
+}
 
+interface Result {
+  data: Data;
+  success: boolean;
+}
+
+export default function Home() {
   const [file, setFile] = useState<File | undefined>();
+  const [result, setResult] = useState<Data>({
+    prediction: '',
+    handling: 0
+  });
   const [url, setUrl] = useState('');
   const apiUrl =
     typeof window === 'undefined'
-      ? process.env.NEXT_PUBLIC_API_URL // Ambiente Docker (backend `flask`)
+      ? process.env.NEXT_PUBLIC_API_URL
       : 'http://localhost:3000';
 
   const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -31,10 +43,16 @@ export default function Home() {
     const formData = new FormData();
     formData.append('image', file);
     try {
-      const result = await axios.post(`${apiUrl}/predict`, formData, {
+      const result = await axios.post<Result>(`${apiUrl}/predict`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       console.log(result.data);
+      if (result.data.success) {
+        setResult({
+          prediction: result.data.data.prediction,
+          handling: result.data.data.handling
+        });
+      }
     } catch (error) {
       console.error('Erro ao enviar a imagem:', error);
     }
@@ -100,14 +118,14 @@ export default function Home() {
               <h2 className="text-lg font-bold mb-2">Resultados da Análise</h2>
               <ul className="list-disc pl-6 space-y-2">
                 <li className="text-gray-700">
-                  Classe Predita:{' '}
+                  Doença:{' '}
                   <span className="font-semibold">
                     {result.prediction || 'N/A'}
                   </span>
                 </li>{' '}
                 {/* Verificar! */}
                 <li className="text-gray-700">
-                  Confiança:{' '}
+                  Manejo:{' '}
                   <span className="font-semibold">
                     {result.handling || 'N/A'}
                   </span>

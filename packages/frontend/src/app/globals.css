@@ -1,9 +1,9 @@
 :root {
-    --primary-color: #0c7115;
-    --secondary-color: #30a902;
-    --accent-color: #afea04;
-    --background-color: #e2e2e2; /* Fundo claro */
-    --text-color: #142630; /* Texto padrão */
+  --primary-color: #0c7115;
+  --secondary-color: #30a902;
+  --accent-color: #afea04;
+  --background-color: #e2e2e2; /* Fundo claro */
+  --text-color: #142630; /* Texto padrão */
 }
 
 @tailwind base;
@@ -11,91 +11,91 @@
 @tailwind utilities;
 
 @media (max-width: 768px) {
-    button {
-        width: 8vw;
-        height: 2vh;
-        font-size: 5vh;
-        text-align: center;
-        justify-content: center;
-    }
+  button {
+    width: 8vw;
+    height: 2vh;
+    font-size: 5vh;
+    text-align: center;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
-    button {
-        width: 20vw;
-        height: 10vh;
-        font-size: 1vh;
-    }
+  button {
+    width: 20vw;
+    height: 10vh;
+    font-size: 1vh;
+  }
 }
 
 body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    font-family: 'Arial', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: 'Arial', sans-serif;
 }
 
 #div-animada {
-    background-color: var(--background-color);
-    border: 1px solid transparent;
-    transition: all 0.3s ease-in-out; /* Aplica a animação a todas as propriedades */
+  background-color: var(--background-color);
+  border: 1px solid transparent;
+  transition: all 0.3s ease-in-out; /* Aplica a animação a todas as propriedades */
 }
-  
+
 #div-animada:hover {
-    background-color: var(--primary-color);
-    border-color: var(--secondary-color);
-    transform: scale(1.05); /* Leve zoom ao passar o mouse */
+  background-color: var(--primary-color);
+  border-color: var(--secondary-color);
+  transform: scale(1.05); /* Leve zoom ao passar o mouse */
 }
 
 #linha-vertical {
-    height: 50vh;/*Altura da linha*/
-    border-left: 2px solid;/* Adiciona borda esquerda na div como ser fosse uma linha.*/
+  height: 50vh; /*Altura da linha*/
+  border-left: 2px solid; /* Adiciona borda esquerda na div como ser fosse uma linha.*/
 }
 
 #menu_button {
-    width: 1vw;
-    min-width: 4vw;
+  width: 1vw;
+  min-width: 4vw;
 }
 
 #navbar {
-    background-color: var(--primary-color);
-    color: var(--background-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 32px;
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
 
-    padding-left: 10vh;
-    padding-right: 10vh;
+  padding-left: 10vh;
+  padding-right: 10vh;
 }
 
 #navbar button {
-    margin: 0;
-    background-color: var(--background-color);
-    border: 1px solid transparent;
-    transition: all 0.3s ease-in-out;
-    color: black;
-    height: 20px;
-    border-radius: 10px;
-    justify-content: center;
-    box-shadow: black 1px 1px 3px;
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    text-align: center;
-    line-height: 1;
-    font-size: 0.8rem;
-    min-width: 100px;
-    margin-left: 2px;
-    margin-right: 2px;
+  margin: 0;
+  background-color: var(--background-color);
+  border: 1px solid transparent;
+  transition: all 0.3s ease-in-out;
+  color: black;
+  height: 20px;
+  border-radius: 10px;
+  justify-content: center;
+  box-shadow: black 1px 1px 3px;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  line-height: 1;
+  font-size: 0.8rem;
+  min-width: 100px;
+  margin-left: 2px;
+  margin-right: 2px;
 }
 
 #navbar button:hover {
-    background-color: var(--background-color);
+  background-color: var(--background-color);
 }
 
 #navbar button:active {
-    background-color: var(--accent-color);
-    transform: scale(0.95);
-    transition: 15ms linear;
-    background-color: var(--secondary-color);
+  background-color: var(--accent-color);
+  transform: scale(0.95);
+  transition: 15ms linear;
+  background-color: var(--secondary-color);
 }

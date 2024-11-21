@@ -24,7 +24,7 @@ def predict():
 
     model = load_model('SicknessMinder_V3_4_1.keras')
     prediction = model.predict(test_image)
-
+    print(prediction)
     prediction_list = prediction.tolist()
 
     predicted_class = getProbability(prediction)

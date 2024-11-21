@@ -53,8 +53,9 @@ export default function Home() {
       <Navbar />
 
       {/* Container Principal */}
-      <div className="mx-[10%] p-10 bg-white min-h-screen">
-        <div className="flex flex-col md:flex-row md:space-x-6 items-center justify-center mx-32">
+      <div className="mx-[10%] p-10 min-h-screen">
+
+        <div className="flex flex-col md:flex-row md:space-x-6 items-top justify-between align-middle mx-40"> {/* Ajustar tamanhos para recursividade! */}
           
           {/* Coluna da Esquerda (Imagem de Entrada) */}
           <div className="w-full md:w-1/2 flex flex-col items-center">
@@ -70,22 +71,24 @@ export default function Home() {
               <div
                 className="p-3 bg-white text-black rounded shadow-md"
                 style={{
-                  width: "300px", // Largura padrão
-                  height: "300px", // Altura padrão
+                  width: "600px", // Largura padrão
+                  height: "600px", // Altura padrão
                   overflow: "hidden",
                 }}
               >
                 <Image
                   src={url}
                   alt="Imagem para Análise"
-                  width={300} // Defina largura padrão
-                  height={300} // Defina altura padrão
+                  width={600} // Defina largura padrão
+                  height={600} // Defina altura padrão
                   style={{ objectFit: "cover" }} // Corta ou ajusta a imagem para caber
                   className="rounded"
                 />
               </div>
             )}
           </div>
+
+          <div id="linha-vertical"></div>
 
           {/* Coluna da Direita (Botão e Informações) */}
             <div className="w-full md:w-1/2 md:items-start bg-white p-4 rounded shadow-md">
@@ -97,8 +100,8 @@ export default function Home() {
               <div className="text-left w-full">
                 <h2 className="text-lg font-bold mb-2">Resultados da Análise</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                <li className="text-gray-700">Classe Predita: <span className="font-semibold">{result.prediction || "N/A"}</span></li>
-                <li className="text-gray-700">Confiança: <span className="font-semibold">{result.handling || "N/A"}</span></li>
+                <li className="text-gray-700">Classe Predita: <span className="font-semibold">{result.prediction || "N/A"}</span></li> {/* Verificar! */}
+                <li className="text-gray-700">Confiança: <span className="font-semibold">{result.handling || "N/A"}</span></li> {/* Verificar! */}
                 </ul>
               </div>
 

@@ -1,38 +1,101 @@
 :root {
-    --input-bg-color: rgb(202, 202, 202);
-    --input-text-color: rgb(1, 29, 1);
-    --input-hover-text-color: black;
-    --link-text-color: rgb(10, 10, 10);
-    --link-bg-color: rgb(241, 241, 241);
-    --link-hover-bg-color: rgb(202, 202, 202);
-    --box-shadow-color: rgba(0, 0, 0);
+    --primary-color: #0c7115;
+    --secondary-color: #30a902;
+    --accent-color: #afea04;
+    --background-color: #e2e2e2; /* Fundo claro */
+    --text-color: #142630; /* Texto padrão */
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-input {
+@media (max-width: 768px) {
+    button {
+        width: 8vw;
+        height: 2vh;
+        font-size: 5vh;
+        text-align: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    button {
+        width: 20vw;
+        height: 10vh;
+        font-size: 1vh;
+    }
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
+}
+
+#div-animada {
+    background-color: var(--background-color);
+    border: 1px solid transparent;
+    transition: all 0.3s ease-in-out; /* Aplica a animação a todas as propriedades */
+}
+  
+#div-animada:hover {
+    background-color: var(--primary-color);
+    border-color: var(--secondary-color);
+    transform: scale(1.05); /* Leve zoom ao passar o mouse */
+}
+
+#linha-vertical {
+    height: 50vh;/*Altura da linha*/
+    border-left: 2px solid;/* Adiciona borda esquerda na div como ser fosse uma linha.*/
+}
+
+#menu_button {
+    width: 1vw;
+    min-width: 4vw;
+}
+
+#navbar {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+
+    padding-left: 10vh;
+    padding-right: 10vh;
+}
+
+#navbar button {
+    margin: 0;
+    background-color: var(--background-color);
+    border: 1px solid transparent;
+    transition: all 0.3s ease-in-out;
+    color: black;
+    height: 20px;
     border-radius: 10px;
-    background-color: var(--input-bg-color);
-    padding: 10px;
-    color: var(--input-text-color);
-    font-size: 1.2rem;
-    box-shadow: 0 0 2px var(--box-shadow-color);
+    justify-content: center;
+    box-shadow: black 1px 1px 3px;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    line-height: 1;
+    font-size: 0.8rem;
+    min-width: 100px;
+    margin-left: 2px;
+    margin-right: 2px;
 }
 
-input:hover {
-    color: var(--input-hover-text-color);
+#navbar button:hover {
+    background-color: var(--background-color);
 }
 
-a {
-    color: var(--link-text-color);
-    padding: 4px;
-    background-color: var(--link-bg-color);
-    border-radius: 10px;
-    box-shadow: 1px 1px 2px var(--box-shadow-color);
-}
-
-a:hover {
-    background-color: var(--link-hover-bg-color);
+#navbar button:active {
+    background-color: var(--accent-color);
+    transform: scale(0.95);
+    transition: 15ms linear;
+    background-color: var(--secondary-color);
 }

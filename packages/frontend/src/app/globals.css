@@ -1,10 +1,12 @@
 :root {
-  --primary-color: #0c7115;
-  --secondary-color: #30a902;
-  --accent-color: #afea04;
-  --background-color: #e2e2e2; /* Fundo claro */
-  --text-color: #142630; /* Texto padrão */
+  --primary-green: #4CAF50;
+  --secondary-green: #66BB6A;
+  --background-light: #F4F4F4;
+  --text-dark: #2E2E2E;
+  --accent-orange: #FFB74D;
+  --accent-blue: #4FC3F7;
 }
+
 
 @tailwind base;
 @tailwind components;
@@ -29,20 +31,29 @@
 }
 
 body {
-  background-color: var(--background-color);
+  background-color: var(--background-light);
   color: var(--text-color);
-  font-family: 'Arial', sans-serif;
+  font-family: 'Roboto', sans-serif;
+}
+
+h1, h2, h3 {
+  font: bold 1.5rem 'Poppins', sans-serif;
+}
+
+p {
+  font: bold 1.0rem 'Poppins', sans-serif;
+  margin-bottom: 2rem;
 }
 
 #div-animada {
-  background-color: var(--background-color);
+  background-color: var(--background-light);
   border: 1px solid transparent;
   transition: all 0.3s ease-in-out; /* Aplica a animação a todas as propriedades */
 }
 
 #div-animada:hover {
-  background-color: var(--primary-color);
-  border-color: var(--secondary-color);
+  background-color: var(--secondary-green);
+  border-color: var(--accent-orange);
   transform: scale(1.05); /* Leve zoom ao passar o mouse */
 }
 
@@ -57,8 +68,8 @@ body {
 }
 
 #navbar {
-  background-color: var(--primary-color);
-  color: var(--background-color);
+  background-color: var(--primary-green);
+  color: var(--background-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -69,33 +80,39 @@ body {
 }
 
 #navbar button {
-  margin: 0;
-  background-color: var(--background-color);
-  border: 1px solid transparent;
+  background: var(--secondary-green);
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: white;
   transition: all 0.3s ease-in-out;
-  color: black;
-  height: 20px;
-  border-radius: 10px;
-  justify-content: center;
-  box-shadow: black 1px 1px 3px;
+
   display: flex;
+  justify-content: center;
   align-items: center;
-  padding: 0.5rem 1rem;
-  text-align: center;
   line-height: 1;
-  font-size: 0.8rem;
-  min-width: 100px;
-  margin-left: 2px;
-  margin-right: 2px;
-}
+
+  border: var(--background-light) 1px solid;
+} 
 
 #navbar button:hover {
-  background-color: var(--background-color);
+  background-color: var(--background-light);
+  color: var(--text-dark);
 }
 
 #navbar button:active {
-  background-color: var(--accent-color);
+  background-color: var(--accent-blue);
   transform: scale(0.95);
   transition: 15ms linear;
-  background-color: var(--secondary-color);
+}
+
+#card {
+  background: var(--background-light);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  transition: transform 0.2s ease-in-out;
+}
+
+#card:hover {
+  transform: scale(1.05);
 }

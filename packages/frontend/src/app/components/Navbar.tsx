@@ -8,15 +8,15 @@ import Button from './Button';
 export default function Navbar() {
   return (
     <div id="navbar">
-      <div className="flex items-center">
+      <div className="flex items-center bg-secondaryGreen px-2 rounded-lg border ">
         <Image
-          src="/assets/logo.png" // Tem que colocar a Logo
+          src="/assets/logo.png"
           alt="Logo"
           width={42}
           height={42}
           className="h-12 w-12"
         />
-        <span className="ml-4 text-white text-lg font-semibold">AgroScope</span>
+        <span className="ml-4 text-lightGray text-lg font-semibold">AgroScope</span>
       </div>
 
       <div className="ml-auto flex space-x-4">

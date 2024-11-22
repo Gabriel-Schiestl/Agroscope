@@ -3,7 +3,7 @@
 import axios from 'axios';
 import Image from 'next/image';
 import { ChangeEvent, useState } from 'react';
-import Head from 'next/head';
+import { FaSearch } from "react-icons/fa";
 
 import Navbar from './components/Navbar';
 
@@ -60,23 +60,29 @@ export default function Home() {
 
   return (
     <body>
-      <Head>
-        <link rel="shortcut icon" href="/assets/favicon.ico" />{' '}
-        {/*Tem que colocar Favicon*/}
+
+        <link rel="shortcut icon" href="/assets/favicon-16x16.png" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@300;400&display=swap" rel="stylesheet" />
+
         <title>AgroScope - Plants Classifications</title>
-      </Head>
+
 
       <Navbar />
 
       {/* Container Principal */}
-      <div className="mx-[10%] p-10 min-h-screen">
+      <div className="mx-[10%] p-10 min-h-screen ">
+
+        {/* Título Principal */}
+        <h1 className='text-primaryGreen'>Bem-vindo ao AgroScope!</h1>
+        <p>Faça aqui o teste de sua planta!</p>
+
         <div className="flex flex-col md:flex-row md:space-x-6 items-top justify-between align-middle mx-40">
-          {' '}
-          {/* Ajustar tamanhos para recursividade! */}
-          {/* Coluna da Esquerda (Imagem de Entrada) */}
-          <div className="w-full md:w-1/2 flex flex-col items-center">
+  
+          
+        
+          <div className="w-full md:w-1/2 flex flex-col items-center bg-gray-200 rounded shadow-md p-2">
             <div className="mb-4">
-              <input
+              <input id='card'
                 type="file"
                 accept="image/*"
                 onChange={onChange}
@@ -87,8 +93,8 @@ export default function Home() {
               <div
                 className="p-3 bg-white text-black rounded shadow-md"
                 style={{
-                  width: '600px', // Largura padrão
-                  height: '600px', // Altura padrão
+                  width: '480px', // Largura padrão
+                  height: '480px', // Altura padrão
                   overflow: 'hidden'
                 }}
               >
@@ -103,29 +109,32 @@ export default function Home() {
               </div>
             )}
           </div>
-          <div id="linha-vertical"></div>
+
+        
+
+          
           {/* Coluna da Direita (Botão e Informações) */}
-          <div className="w-full md:w-1/2 md:items-start bg-white p-4 rounded shadow-md">
+          <div className="w-full md:w-1/2 md:items-start p-4 rounded shadow-md bg-gray-200">
             <button
               onClick={onClick}
-              className="px-4 py-2 mb-6 bg-blue-500 text-white rounded shadow hover:bg-blue-600"
+              className="flex items-center justify-center px-4 py-2 mb-6 bg-primaryGreen text-white rounded shadow hover:bg-blue-600 w-36"
             >
-              Analisar
+              <strong>Analisar</strong> <FaSearch className='ml-2'/>
             </button>
 
             {/*Informações Analisadas*/}
-            <div className="text-left w-full">
-              <h2 className="text-lg font-bold mb-2">Resultados da Análise</h2>
+            <div className="text-left w-full bg-lightGray p-2 rounded-sm">
+              <h2 className="text-lg font-bold mb-2">Diagnóstico</h2>
               <ul className="list-disc pl-6 space-y-2">
                 <li className="text-gray-700">
-                  Doença:{' '}
+                📋 <strong>Doença:</strong>{' '}
                   <span className="font-semibold">
                     {result.prediction || 'N/A'}
                   </span>
                 </li>{' '}
                 {/* Verificar! */}
                 <li className="text-gray-700">
-                  Manejo:{' '}
+                🌱 <strong>Manejo:</strong>{' '}
                   <span className="font-semibold">
                     {result.handling || 'N/A'}
                   </span>
@@ -133,6 +142,8 @@ export default function Home() {
                 {/* Verificar! */}
               </ul>
             </div>
+
+
           </div>
         </div>
       </div>

@@ -9,7 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "primary-color": "var(--input-bg-color)"
+        primaryGreen: '#4CAF50',
+        secondaryGreen: '#66BB6A',
+        lightGray: '#F4F4F4',
+        darkText: '#2E2E2E',
+        accentOrange: '#FFB74D',
+        accentBlue: '#4FC3F7',
       }
     },
   },

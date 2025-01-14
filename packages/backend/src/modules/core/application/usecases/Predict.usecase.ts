@@ -12,8 +12,9 @@ export interface PredictUseCaseResponse {
 }
 
 export interface UseCasesResponse<T> {
-  data: T | void;
+  data?: T | void;
   success: boolean;
+  exception?: Error;
 }
 
 @Injectable()
@@ -62,12 +63,20 @@ export class PredictUseCase {
       const sickness = await this.sicknessRepository.getSicknessByName(
         result.data.prediction,
       );
-      if (sickness instanceof Error) throw new Error('Sickness not found');
+      if (sickness instanceof Error)
+        return {
+          exception: new Error('Doença não encontrada na base'),
+          success: false,
+        };
 
       const knowledge = await this.knowledgeRepository.getKnowledge(
         sickness.id,
       );
-      if (knowledge instanceof Error) throw new Error('Knowledge not found');
+      if (knowledge instanceof Error)
+        return {
+          exception: new Error('Conhecimento não encontrado na base'),
+          success: false,
+        };
 
       return {
         data: {

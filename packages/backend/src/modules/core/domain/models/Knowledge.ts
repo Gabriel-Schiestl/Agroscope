@@ -24,6 +24,10 @@ export class Knowledge extends Agg<KnowledgeProps> {
     this.props.handling = handling;
   }
 
+  static isKnowledge(value: any): value is Knowledge {
+    return value instanceof Knowledge;
+  }
+
   get sicknessId(): string {
     return this.props.sicknessId;
   }

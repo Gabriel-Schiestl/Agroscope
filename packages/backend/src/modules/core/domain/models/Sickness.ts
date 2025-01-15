@@ -21,6 +21,10 @@ export class Sickness extends Agg<SicknessProps> {
     return instance;
   }
 
+  static isSickness(entity: any): entity is Sickness {
+    return entity instanceof Sickness;
+  }
+
   get name(): string {
     return this.props.name;
   }

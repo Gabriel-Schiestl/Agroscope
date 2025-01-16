@@ -4,12 +4,14 @@ import { PredictUseCase } from './application/usecases/Predict.usecase';
 import { KnowledgeDataRepository } from './infra/repositories/KnowledgeData.repository';
 import { SicknessDataRepository } from './infra/repositories/SicknessData.repository';
 import { HistoryRepositoryImpl } from './infra/repositories/History.repository';
+import { GetHistoryUseCase } from './application/usecases/GetHistory.usecase';
 
 @Module({
     imports: [],
     controllers: [CoreController],
     providers: [
         PredictUseCase,
+        GetHistoryUseCase,
         {
             provide: 'KnowledgeRepository',
             useClass: KnowledgeDataRepository,

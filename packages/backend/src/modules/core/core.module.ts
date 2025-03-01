@@ -1,30 +1,15 @@
 import { Module } from '@nestjs/common';
 import { CoreController } from './controllers/core.controller';
-import { PredictUseCase } from './application/usecases/Predict.usecase';
-import { KnowledgeDataRepository } from './infra/repositories/KnowledgeData.repository';
-import { SicknessDataRepository } from './infra/repositories/SicknessData.repository';
-import { HistoryRepositoryImpl } from './infra/repositories/History.repository';
-import { GetHistoryUseCase } from './application/usecases/GetHistory.usecase';
+import { queries } from './application/query';
+import { ImageMapper } from './infra/mappers/Image.mapper';
+import { useCases } from './application/usecases';
+import { repositories } from './infra/repositories';
+import { mappers } from './infra/mappers';
 
 @Module({
     imports: [],
     controllers: [CoreController],
-    providers: [
-        PredictUseCase,
-        GetHistoryUseCase,
-        {
-            provide: 'KnowledgeRepository',
-            useClass: KnowledgeDataRepository,
-        },
-        {
-            provide: 'SicknessRepository',
-            useClass: SicknessDataRepository,
-        },
-        {
-            provide: 'HistoryRepository',
-            useClass: HistoryRepositoryImpl,
-        },
-    ],
+    providers: [...useCases, ...queries, ...mappers, ...repositories],
     exports: [],
 })
 export class CoreModule {}

@@ -1,0 +1,15 @@
+import { Body, Controller, Post } from '@nestjs/common';
+import { CreateUserDto } from '../application/dto/User.dto';
+import { CreateUserUseCase } from '../application/usecases/user/CreateUser.usecase';
+
+@Controller('user')
+export class UserController {
+    constructor(private readonly createUserCase: CreateUserUseCase) {}
+
+    @Post()
+    async createUser(@Body() user: CreateUserDto) {
+        const result = await this.createUserCase.execute(user);
+
+        return result;
+    }
+}

@@ -1,23 +1,51 @@
-export class Success<T = void> {
-    private readonly _data: T | null;
+import { Exception } from './Exception';
 
-    constructor(data?: T) {
-        this._data = data || null;
+export type Result<E, T> = Success<T> | Failure<E>;
+
+export interface IResult<E, T> {
+    isSuccess(): this is Success<T>;
+    isFailure(): this is Failure<E>;
+}
+
+export class Success<T> implements IResult<never, T> {
+    readonly value: T;
+
+    constructor(value: T) {
+        this.value = value;
     }
 
-    get data(): T {
-        return this._data;
+    isSuccess(): this is Success<T> {
+        return true;
+    }
+
+    isFailure(): this is Failure<never> {
+        return false;
     }
 }
 
-export class Failure<T> {
-    private readonly _error: T;
-
-    constructor(error: T) {
-        this._error = error;
+export class Failure<E> implements IResult<E, never> {
+    readonly error: E;
+    constructor(error: E) {
+        this.error = error;
     }
 
-    get error(): T {
-        return this._error;
+    isSuccess(): this is Success<never> {
+        return false;
+    }
+
+    isFailure(): this is Failure<E> {
+        return true;
+    }
+}
+
+export abstract class Res {
+    static success(): Result<never, void>;
+    static success<T>(value: T): Result<never, T>;
+    static success<T>(value?: T): Result<never, T> {
+        return new Success(value!);
+    }
+
+    static failure<E extends Exception>(error: E): Result<E, never> {
+        return new Failure(error);
     }
 }

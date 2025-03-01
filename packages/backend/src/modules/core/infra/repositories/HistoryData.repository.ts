@@ -9,58 +9,58 @@ import { KnowledgeExceptions } from '../../domain/repositories/Knowledge.reposit
 import { HistoryModel } from '../models/History.model';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
-import { Failure, Success } from 'src/shared/Result';
+import { Failure, Res, Result, Success } from 'src/shared/Result';
 
 @Injectable()
 export class HistoryRepositoryImpl implements HistoryRepository {
-    async save(
-        history: History,
-    ): Promise<Success<void> | Failure<HistoryExceptions>> {
+    async save(history: History): Promise<Result<HistoryExceptions, void>> {
         const model = HistoryMapper.domainToModel(history);
 
         try {
             const result = await model.save();
 
             if (!result) {
-                return new Failure(
+                return Res.failure(
                     new TechnicalException('Error on save history'),
                 );
             }
 
-            return new Success();
+            return Res.success();
         } catch (error) {
-            return new Failure(new TechnicalException('Error on save history'));
+            return Res.failure(new TechnicalException('Error on save history'));
         }
     }
 
-    async getAll(): Promise<Success<History[]> | Failure<HistoryExceptions>> {
+    async getAll(): Promise<Result<HistoryExceptions, History[]>> {
         try {
             const models = await HistoryModel.find();
 
             if (models.length === 0) {
-                return new Failure(new RepositoryNoDataFound('No data found'));
+                return Res.failure(new RepositoryNoDataFound('No data found'));
             }
 
-            return new Success(
+            return Res.success(
                 models.map((model) => HistoryMapper.modelToDomain(model)),
             );
         } catch (error) {
-            throw new TechnicalException('Error on get all histories');
+            return Res.failure(
+                new TechnicalException('Error on get all histories'),
+            );
         }
     }
 
-    async getById(
-        id: string,
-    ): Promise<Success<History> | Failure<HistoryExceptions>> {
+    async getById(id: string): Promise<Result<HistoryExceptions, History>> {
         try {
             const model = await HistoryModel.findOneBy({ id });
             if (!model) {
-                throw new RepositoryNoDataFound('History not found');
+                return Res.failure(
+                    new RepositoryNoDataFound('History not found'),
+                );
             }
 
-            return new Success(HistoryMapper.modelToDomain(model));
+            return Res.success(HistoryMapper.modelToDomain(model));
         } catch (error) {
-            return new Failure(
+            return Res.failure(
                 new TechnicalException('Error on get history by id'),
             );
         }

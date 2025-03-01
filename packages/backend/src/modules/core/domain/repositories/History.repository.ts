@@ -2,7 +2,7 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { History } from '../models/History';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
-import { Failure, Success } from 'src/shared/Result';
+import { Failure, Result, Success } from 'src/shared/Result';
 
 export type HistoryExceptions =
     | RepositoryNoDataFound
@@ -10,7 +10,7 @@ export type HistoryExceptions =
     | TechnicalException;
 
 export interface HistoryRepository {
-    save(history: History): Promise<Success<void> | Failure<HistoryExceptions>>;
-    getAll(): Promise<Success<History[]> | Failure<HistoryExceptions>>;
-    getById(id: string): Promise<Success<History> | Failure<HistoryExceptions>>;
+    save(history: History): Promise<Result<HistoryExceptions, void>>;
+    getAll(): Promise<Result<HistoryExceptions, History[]>>;
+    getById(id: string): Promise<Result<HistoryExceptions, History>>;
 }

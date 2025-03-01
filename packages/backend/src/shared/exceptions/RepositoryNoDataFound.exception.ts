@@ -1,6 +1,8 @@
-export class RepositoryNoDataFound extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'RepositoryNoDataFound';
-  }
+import { Exception } from '../Exception';
+
+export class RepositoryNoDataFound extends Exception {
+    constructor(message: string) {
+        super(message);
+        this.name = 'RepositoryNoDataFound';
+    }
 }

@@ -2,13 +2,16 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { Knowledge } from '../models/Knowledge';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
+import { Result } from 'src/shared/Result';
 
 export type KnowledgeExceptions =
-  | RepositoryNoDataFound
-  | BusinessException
-  | TechnicalException;
+    | RepositoryNoDataFound
+    | BusinessException
+    | TechnicalException;
 
 export interface KnowledgeRepository {
-  getKnowledge(sicknessId: string): Promise<Knowledge | KnowledgeExceptions>;
-  save(knowledge: Knowledge): Promise<void | KnowledgeExceptions>;
+    getKnowledge(
+        sicknessId: string,
+    ): Promise<Result<KnowledgeExceptions, Knowledge>>;
+    save(knowledge: Knowledge): Promise<Result<KnowledgeExceptions, void>>;
 }

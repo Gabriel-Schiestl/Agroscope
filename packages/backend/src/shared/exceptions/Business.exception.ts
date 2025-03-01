@@ -1,6 +1,8 @@
-export class BusinessException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'BusinessException';
-  }
+import { Exception } from '../Exception';
+
+export class BusinessException extends Exception {
+    constructor(message: string) {
+        super(message);
+        this.name = 'BusinessException';
+    }
 }

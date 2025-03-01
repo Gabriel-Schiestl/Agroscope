@@ -11,6 +11,9 @@ import { Knowledge } from '../../domain/models/Knowledge';
 import { HistoryRepository } from '../../domain/repositories/History.repository';
 import { History } from '../../domain/models/History';
 import e = require('express');
+import { SaveImageQuery } from '../query/SaveImage.query';
+import { Res, Result } from 'src/shared/Result';
+import { Exception } from 'src/shared/Exception';
 
 export interface PredictUseCaseResponse {
     prediction: string;
@@ -32,11 +35,12 @@ export class PredictUseCase {
         private readonly knowledgeRepository: KnowledgeRepository,
         @Inject('HistoryRepository')
         private readonly historyRepository: HistoryRepository,
+        private readonly saveImageQuery: SaveImageQuery,
     ) {}
 
     async execute(
         imagePath: string,
-    ): Promise<UseCasesResponse<PredictUseCaseResponse>> {
+    ): Promise<Result<Exception, PredictUseCaseResponse>> {
         const formData = new FormData();
 
         const image = fs.createReadStream(imagePath);
@@ -46,82 +50,60 @@ export class PredictUseCase {
             contentType: 'image/*',
         });
 
-        try {
-            const result = await axios.post(
-                `${process.env.FLASK_API_URL}/predict`,
-                formData,
-                {
-                    headers: {
-                        ...formData.getHeaders(),
-                    },
+        const result = await axios.post(
+            `${process.env.FLASK_API_URL}/predict`,
+            formData,
+            {
+                headers: {
+                    ...formData.getHeaders(),
                 },
-            );
+            },
+        );
 
-            if (result.data.prediction === 'saudavel') {
-                const imageBase64 = await fs.promises.readFile(imagePath, {
-                    encoding: 'base64',
-                });
+        const imageBase64 = await fs.promises.readFile(imagePath, {
+            encoding: 'base64',
+        });
 
-                const history = History.create({
-                    image: imageBase64,
-                    prediction: 'saudavel',
-                });
+        const saveImageResult = await this.saveImageQuery.execute(
+            imageBase64,
+            result.data.prediction,
+        );
 
-                const result = await this.historyRepository.save(history);
-
-                return {
-                    data: {
-                        prediction: 'saudavel',
-                        handling:
-                            'A planta está saudável e não precisa de cuidados especiais',
-                    },
-                    success: true,
-                };
-            }
-
-            const sickness = await this.sicknessRepository.getSicknessByName(
-                result.data.prediction,
-            );
-            if (sickness instanceof Error)
-                return {
-                    exception: new Error('Doença não encontrada na base'),
-                    success: false,
-                };
-
-            const knowledge = await this.knowledgeRepository.getKnowledge(
-                sickness instanceof Sickness && sickness.id,
-            );
-            if (knowledge instanceof Error)
-                return {
-                    exception: new Error('Conhecimento não encontrado na base'),
-                    success: false,
-                };
-
-            const imageBase64 = await fs.promises.readFile(imagePath, {
-                encoding: 'base64',
-            });
-
+        if (result.data.prediction === 'saudavel') {
             const history = History.create({
-                handling: knowledge.handling,
                 image: imageBase64,
-                prediction: result.data.prediction,
+                prediction: 'saudavel',
             });
 
-            const saveHistoryResult =
-                await this.historyRepository.save(history);
+            const result = await this.historyRepository.save(history);
 
-            if (Knowledge.isKnowledge(knowledge)) {
-                return {
-                    data: {
-                        prediction: result.data.prediction,
-                        handling: knowledge.handling,
-                    },
-                    success: true,
-                };
-            }
-        } catch (error) {
-            console.error(error);
-            throw new Error(error.message);
+            return Res.success({
+                prediction: 'saudavel',
+                handling: 'Nenhuma ação necessária',
+            });
         }
+
+        const sickness = await this.sicknessRepository.getSicknessByName(
+            result.data.prediction,
+        );
+        if (sickness.isFailure()) return Res.failure(sickness.error);
+
+        const knowledge = await this.knowledgeRepository.getKnowledge(
+            sickness instanceof Sickness && sickness.id,
+        );
+        if (knowledge.isFailure()) return Res.failure(knowledge.error);
+
+        const history = History.create({
+            handling: knowledge.value.handling,
+            image: imageBase64,
+            prediction: result.data.prediction,
+        });
+
+        const saveHistoryResult = await this.historyRepository.save(history);
+
+        return Res.success({
+            prediction: result.data.prediction,
+            handling: knowledge.value.handling,
+        });
     }
 }

@@ -22,47 +22,16 @@ export class CoreController {
 
     @Post('predict')
     @UseInterceptors(UseFileInterceptor)
-    async predict(
-        @UploadedFile() file: Express.Multer.File,
-        @Res() res: Response,
-    ) {
-        try {
-            const result = await this.predictUseCase.execute(file.path);
+    async predict(@UploadedFile() file: Express.Multer.File) {
+        const result = await this.predictUseCase.execute(file.path);
 
-            if (!result.success) {
-                return res
-                    .status(HttpStatus.BAD_REQUEST)
-                    .json({ message: result.exception?.message });
-            }
-
-            return res.status(HttpStatus.OK).json(result);
-        } catch (e) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                success: false,
-                message: e.message,
-                error: e.stack,
-            });
-        }
+        return result;
     }
 
     @Get('history')
-    async getHistory(@Res() res: Response) {
-        try {
-            const result = await this.getHistoryUseCase.execute();
+    async getHistory() {
+        const result = await this.getHistoryUseCase.execute();
 
-            if (result instanceof Failure) {
-                return res
-                    .status(HttpStatus.BAD_REQUEST)
-                    .json({ message: result.error.message });
-            }
-
-            return res.status(HttpStatus.OK).json(result);
-        } catch (e) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                success: false,
-                message: e.message,
-                error: e.stack,
-            });
-        }
+        return result;
     }
 }

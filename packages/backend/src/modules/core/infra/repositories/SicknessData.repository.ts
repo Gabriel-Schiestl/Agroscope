@@ -8,46 +8,55 @@ import {
 } from '../../domain/repositories/Sickness.repository';
 import { SicknessMapper } from '../mappers/Sickness.mapper';
 import { SicknessModel } from '../models/Sickness.model';
+import { Res, Result } from 'src/shared/Result';
 
 @Injectable()
 export class SicknessDataRepository implements SicknessRepository {
-    async getSickness(id: string): Promise<Sickness | SicknessExceptions> {
+    async getSickness(
+        id: string,
+    ): Promise<Result<SicknessExceptions, Sickness>> {
         try {
             const model = await SicknessModel.findOneBy({ id });
-            if (!model) return new RepositoryNoDataFound('Sickness not found');
+            if (!model)
+                return Res.failure(
+                    new RepositoryNoDataFound('Sickness not found'),
+                );
 
-            return SicknessMapper.modelToDomain(model);
+            return Res.success(SicknessMapper.modelToDomain(model));
         } catch (e) {
-            throw new TechnicalException(e.message);
+            return Res.failure(new TechnicalException(e.message));
         }
     }
 
     async getSicknessByName(
         name: string,
-    ): Promise<Sickness | SicknessExceptions> {
+    ): Promise<Result<SicknessExceptions, Sickness>> {
         try {
             const model = await SicknessModel.createQueryBuilder('sickness')
                 .where('LOWER(sickness.name) = LOWER(:name)', { name })
                 .getOne();
-            if (!model) return new RepositoryNoDataFound('Sickness not found');
+            if (!model)
+                return Res.failure(
+                    new RepositoryNoDataFound('Sickness not found'),
+                );
 
             const domain = SicknessMapper.modelToDomain(model);
 
-            return domain;
+            return Res.success(domain);
         } catch (e) {
-            throw new TechnicalException(e.message);
+            return Res.failure(new TechnicalException(e.message));
         }
     }
 
-    async save(sickness: Sickness): Promise<void | SicknessExceptions> {
+    async save(sickness: Sickness): Promise<Result<TechnicalException, void>> {
         try {
             const model = SicknessMapper.domainToModel(sickness);
 
             const result = await model.save();
 
-            return;
+            return Res.success();
         } catch (e) {
-            throw new TechnicalException(e.message);
+            return Res.failure(new TechnicalException(e.message));
         }
     }
 }

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Failure, Success } from 'src/shared/Result';
+import { Failure, Res, Result, Success } from 'src/shared/Result';
 import { History } from '../../domain/models/History';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
@@ -18,15 +18,13 @@ export class GetHistoryUseCase {
         private readonly historyRepository: HistoryRepository,
     ) {}
 
-    async execute(): Promise<
-        Success<History[]> | Failure<GetHistoryUseCaseExceptions>
-    > {
+    async execute(): Promise<Result<GetHistoryUseCaseExceptions, History[]>> {
         const history = await this.historyRepository.getAll();
 
         if (history instanceof Failure) {
-            return new Failure(history.error);
+            return Res.failure(history.error);
         }
 
-        return new Success(history.data);
+        return Res.success(history.value);
     }
 }

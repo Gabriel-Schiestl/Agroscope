@@ -7,6 +7,7 @@ export interface AuthenticationProps {
     lastLogin?: Date;
     recoveryCode?: string;
     recoveryCodeExpiration?: Date;
+    incorrectPasswordAttempts?: number;
 }
 
 export interface CreateAuthenticationProps extends AuthenticationProps {}
@@ -20,6 +21,7 @@ export class Authentication implements AuthenticationProps {
     #lastLogin?: Date;
     #recoveryCode?: string;
     #recoveryCodeExpiration?: Date;
+    #incorrectPasswordAttempts?: number;
 
     private constructor(props: AuthenticationProps, id?: string) {
         this.#id = id;
@@ -47,6 +49,24 @@ export class Authentication implements AuthenticationProps {
         return new Authentication(props, id);
     }
 
+    comparePassword(password: string): boolean {
+        const isValid = this.#password === password;
+
+        if (!isValid) {
+            this.#incorrectPasswordAttempts++;
+            return isValid;
+        }
+
+        this.#incorrectPasswordAttempts = 0;
+        this.#lastLogin = new Date();
+
+        return isValid;
+    }
+
+    verifyAuthenticationBlocked(): boolean {
+        return this.#incorrectPasswordAttempts >= 5;
+    }
+
     get id() {
         return this.#id;
     }
@@ -69,5 +89,9 @@ export class Authentication implements AuthenticationProps {
 
     get recoveryCodeExpiration() {
         return this.#recoveryCodeExpiration;
+    }
+
+    get incorrectPasswordAttempts() {
+        return this.#incorrectPasswordAttempts;
     }
 }

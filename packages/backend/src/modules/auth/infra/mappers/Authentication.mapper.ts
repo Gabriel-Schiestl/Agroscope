@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Authentication } from '../../domain/models/Authentication';
-import { AuthenticationModel } from '../models/Authentication.model';
+import { Authentication } from '../../../auth/domain/models/Authentication';
+import { AuthenticationModel } from '../../../auth/infra/models/Authentication.model';
 
 @Injectable()
 export class AuthenticationMapper {
@@ -12,6 +12,7 @@ export class AuthenticationMapper {
             lastLogin: authentication.lastLogin,
             recoveryCode: authentication.recoveryCode,
             recoveryCodeExpiration: authentication.recoveryCodeExpiration,
+            incorrectPasswordAttempts: authentication.incorrectPasswordAttempts,
         });
     }
 
@@ -24,6 +25,8 @@ export class AuthenticationMapper {
                 recoveryCode: authenticationModel.recoveryCode,
                 recoveryCodeExpiration:
                     authenticationModel.recoveryCodeExpiration,
+                incorrectPasswordAttempts:
+                    authenticationModel.incorrectPasswordAttempts,
             },
             authenticationModel.id,
         );

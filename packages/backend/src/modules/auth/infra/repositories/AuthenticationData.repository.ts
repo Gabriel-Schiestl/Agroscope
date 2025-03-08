@@ -5,9 +5,9 @@ import {
 } from '../../domain/repositories/Authentication.repository';
 import { Res, Result } from 'src/shared/Result';
 import { Authentication } from '../../domain/models/Authentication';
-import { AuthenticationMapper } from '../mappers/Authentication.mapper';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { AuthenticationModel } from '../models/Authentication.model';
+import { AuthenticationMapper } from '../mappers/Authentication.mapper';
 
 @Injectable()
 export class AuthenticationDataRepository implements AuthenticationRepository {

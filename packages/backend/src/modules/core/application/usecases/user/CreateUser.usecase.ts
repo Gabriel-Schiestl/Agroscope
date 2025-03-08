@@ -7,8 +7,8 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
 import { User } from 'src/modules/core/domain/models/User';
-import { Authentication } from 'src/modules/core/domain/models/Authentication';
-import { AuthenticationRepository } from 'src/modules/core/domain/repositories/Authentication.repository';
+import { Authentication } from 'src/modules/auth/domain/models/Authentication';
+import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/Authentication.repository';
 
 export type CreateUserUseCaseExceptions =
     | RepositoryNoDataFound

@@ -14,7 +14,7 @@ export class UserModel extends BaseEntity implements UserModelProps {
     @Column()
     name: string;
 
-    @Column()
+    @Column({ unique: true })
     email: string;
 
     setProps(props: UserModelProps): this {

@@ -9,7 +9,6 @@ export class UserMapper {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role,
         });
     }
 
@@ -18,7 +17,6 @@ export class UserMapper {
             {
                 email: user.email,
                 name: user.name,
-                role: user.role,
             },
             user.id,
         );

@@ -1,16 +1,10 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
-
-export enum UserRole {
-    User = 'user',
-    Engineer = 'engineer',
-    Admin = 'admin',
-}
+import { v4 as uuid } from 'uuid';
 
 export interface UserProps {
     name: string;
     email: string;
-    role: UserRole;
 }
 
 export interface CreateUserProps extends UserProps {}
@@ -20,13 +14,11 @@ export class User implements UserProps {
     #id: string;
     #name: string;
     #email: string;
-    #role: UserRole;
 
     private constructor(props: UserProps, id?: string) {
-        this.#id = id;
+        this.#id = id || uuid();
         this.#name = props.name;
         this.#email = props.email;
-        this.#role = props.role;
     }
 
     static create(props: CreateUserProps): Result<BusinessException, User> {
@@ -35,9 +27,6 @@ export class User implements UserProps {
         }
         if (!props.email) {
             return Res.failure(new BusinessException('Email is required'));
-        }
-        if (!props.role) {
-            return Res.failure(new BusinessException('Role is required'));
         }
 
         return Res.success(new User(props));
@@ -57,9 +46,5 @@ export class User implements UserProps {
 
     get email() {
         return this.#email;
-    }
-
-    get role() {
-        return this.#role;
     }
 }

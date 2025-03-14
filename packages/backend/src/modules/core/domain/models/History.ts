@@ -1,22 +1,23 @@
 import { v4 as uuid } from 'uuid';
+import { Sickness } from './Sickness';
 
 export interface HistoryProps {
     id: string;
     createdAt: Date;
-    prediction: string;
+    sickness: Sickness;
     handling: string;
     image: string;
 }
 
 export interface CreateHistoryProps {
-    prediction: string;
+    sickness: Sickness;
     handling?: string;
     image: string;
 }
 
 export interface LoadHistoryProps {
     createdAt: Date;
-    prediction: string;
+    sickness: Sickness;
     handling?: string;
     image: string;
 }
@@ -24,14 +25,14 @@ export interface LoadHistoryProps {
 export class History {
     _id: string;
     _createdAt: Date;
-    _prediction: string;
+    _sickness: Sickness;
     _handling: string;
     _image: string;
 
     private constructor(props: CreateHistoryProps, id?: string) {
         this._id = id || uuid();
         this._createdAt = new Date();
-        this._prediction = props.prediction;
+        this._sickness = props.sickness;
         this._handling = props.handling;
         this._image = props.image;
     }
@@ -52,8 +53,8 @@ export class History {
         return this._createdAt;
     }
 
-    get prediction(): string {
-        return this._prediction;
+    get sickness(): Sickness {
+        return this._sickness;
     }
 
     get handling(): string {

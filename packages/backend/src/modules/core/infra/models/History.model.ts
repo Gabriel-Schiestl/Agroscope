@@ -1,9 +1,18 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    BaseEntity,
+    Column,
+    Entity,
+    ManyToOne,
+    OneToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
+import { SicknessModel } from './Sickness.model';
+import { ClientModel } from './Client';
 
 export interface HistoryModelProps {
     id: string;
     createdAt: Date;
-    prediction: string;
+    sickness: SicknessModel;
     handling?: string;
     image: string;
 }
@@ -16,14 +25,17 @@ export class HistoryModel extends BaseEntity {
     @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date;
 
-    @Column()
-    prediction: string;
+    @OneToOne(() => SicknessModel, { onDelete: 'CASCADE' })
+    sickness: SicknessModel;
 
     @Column({ nullable: true })
     handling: string;
 
     @Column('text')
     image: string;
+
+    @ManyToOne(() => ClientModel, (client) => client.predictions)
+    client: ClientModel;
 
     setProps(props: HistoryModelProps): HistoryModel {
         Object.assign(this, props);

@@ -1,14 +1,13 @@
 import { History } from '../../domain/models/History';
-import { Knowledge } from '../../domain/models/Knowledge';
 import { HistoryModel } from '../models/History.model';
-import { KnowledgeModel } from '../models/Knowledge.model';
+import { SicknessMapper } from './Sickness.mapper';
 
 export class HistoryMapper {
     static domainToModel(domain: History): HistoryModel {
         return new HistoryModel().setProps({
             id: domain.id,
             createdAt: domain.createdAt,
-            prediction: domain.prediction,
+            sickness: SicknessMapper.domainToModel(domain.sickness),
             handling: domain.handling,
             image: domain.image,
         });
@@ -18,7 +17,7 @@ export class HistoryMapper {
         return History.load(
             {
                 createdAt: model.createdAt,
-                prediction: model.prediction,
+                sickness: SicknessMapper.modelToDomain(model.sickness),
                 handling: model.handling,
                 image: model.image,
             },

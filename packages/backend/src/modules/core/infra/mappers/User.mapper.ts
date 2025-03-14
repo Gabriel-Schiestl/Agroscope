@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { User } from '../../domain/models/User';
 import { UserModel } from '../models/User.model';
 
-@Injectable()
 export class UserMapper {
-    domainToModel(user: User): UserModel {
+    static domainToModel(user: User): UserModel {
         return new UserModel().setProps({
             id: user.id,
             email: user.email,
@@ -12,7 +11,7 @@ export class UserMapper {
         });
     }
 
-    modelToDomain(user: UserModel): User {
+    static modelToDomain(user: UserModel): User {
         return User.load(
             {
                 email: user.email,

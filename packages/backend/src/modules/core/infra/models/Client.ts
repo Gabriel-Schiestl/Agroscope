@@ -1,4 +1,5 @@
 import {
+    BaseEntity,
     Column,
     Entity,
     JoinColumn,
@@ -9,6 +10,7 @@ import {
 import { Address } from '../../domain/models/Address';
 import { PersonType } from '../../domain/models/Client';
 import { HistoryModel } from './History.model';
+import { AgriculturalEngineerModel } from './AgriculturalEngineer.model';
 
 export interface ClientModelProps {
     name: string;
@@ -22,7 +24,7 @@ export interface ClientModelProps {
 }
 
 @Entity('clients')
-export class ClientModel implements ClientModelProps {
+export class ClientModel extends BaseEntity implements ClientModelProps {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -53,8 +55,17 @@ export class ClientModel implements ClientModelProps {
     @Column('float')
     totalAreaPlanted: number;
 
-    @ManyToOne(() => ClientModel, (client) => client.predictions)
-    agriculturalEngineer: ClientModel;
+    @ManyToOne(
+        () => AgriculturalEngineerModel,
+        (engineer) => engineer.clients,
+        {
+            onDelete: 'CASCADE',
+        },
+    )
+    agriculturalEngineer: AgriculturalEngineerModel;
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    createdAt: Date;
 
     setProps(props: ClientModelProps): ClientModel {
         Object.assign(this, props);

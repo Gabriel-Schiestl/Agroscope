@@ -6,14 +6,12 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 
 @Injectable()
 export class ImageDataRepository implements ImageRepository {
-    constructor(private readonly imageMapper: ImageMapper) {}
-
     async save(
         image: string,
         prediction: string,
     ): Promise<Result<TechnicalException, void>> {
         try {
-            const result = this.imageMapper.domainToModel(image, prediction);
+            const result = ImageMapper.domainToModel(image, prediction);
             await result.save();
 
             return Res.success();

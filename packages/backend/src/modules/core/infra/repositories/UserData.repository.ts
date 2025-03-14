@@ -11,11 +11,9 @@ import { UserModel } from '../models/User.model';
 
 @Injectable()
 export class UserDataRepository implements UserRepository {
-    constructor(private readonly userMapper: UserMapper) {}
-
     async save(user: User): Promise<Result<UserRepositoryExceptions, void>> {
         try {
-            const model = this.userMapper.domainToModel(user);
+            const model = UserMapper.domainToModel(user);
             await model.save();
 
             return Res.success();
@@ -29,7 +27,7 @@ export class UserDataRepository implements UserRepository {
             const models = await UserModel.find();
 
             return Res.success(
-                models.map((model) => this.userMapper.modelToDomain(model)),
+                models.map((model) => UserMapper.modelToDomain(model)),
             );
         } catch (e) {
             return Res.failure(new TechnicalException(e));
@@ -40,7 +38,7 @@ export class UserDataRepository implements UserRepository {
         try {
             const model = await UserModel.findOneBy({ id });
 
-            return Res.success(this.userMapper.modelToDomain(model));
+            return Res.success(UserMapper.modelToDomain(model));
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }
@@ -52,7 +50,7 @@ export class UserDataRepository implements UserRepository {
         try {
             const model = await UserModel.findOneBy({ email });
 
-            return Res.success(this.userMapper.modelToDomain(model));
+            return Res.success(UserMapper.modelToDomain(model));
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }

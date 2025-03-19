@@ -11,11 +11,19 @@ const config: Config = {
       colors: {
         primaryGreen: '#4CAF50',
         secondaryGreen: '#66BB6A',
-        lightGray: '#F4F4F4',
-        darkText: '#2E2E2E',
-        accentOrange: '#FFB74D',
-        accentBlue: '#4FC3F7',
-      }
+        lightGray: '#F0F4F8',
+        mediumGray: '#BCBCBE',
+        lightGreen: '#2E7D32',
+        darkGray: '#424242',
+      },
+      fontSize: {
+        h1: '2.25rem', // 36px
+        h2: '1.875rem', // 30px
+        h3: '1.5rem', // 24px
+      },
+      fontFamily: {
+        inter: ['Inter', 'sans-serif'],
+      },
     },
   },
   plugins: [],

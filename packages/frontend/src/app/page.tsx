@@ -4,9 +4,9 @@ import axios from "axios";
 import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-
 import Navbar from "./components/Navbar";
 import { toast } from "react-toastify";
+import Footer from "./components/Footer";
 
 interface Data {
   prediction: string;
@@ -21,10 +21,7 @@ interface Result {
 
 export default function Home() {
   const [file, setFile] = useState<File | undefined>();
-  const [result, setResult] = useState<Data>({
-    prediction: "",
-    handling: "",
-  });
+  const [result, setResult] = useState<Data>({ prediction: "", handling: "" });
   const [url, setUrl] = useState("");
   const apiUrl =
     typeof window === "undefined"
@@ -61,87 +58,63 @@ export default function Home() {
   };
 
   return (
-    <body>
-      <link rel="shortcut icon" href="/assets/favicon-16x16.png" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@300;400&display=swap"
-        rel="stylesheet"
-      />
-
-      <title>AgroScope - Plants Classifications</title>
-
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <Navbar />
+      <main className="flex-grow container mx-auto py-12 px-4 md:px-12">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-primaryGreen">
+            Bem-vindo ao AgroScope!
+          </h1>
+          <p className="text-gray-700 text-lg">
+            Faça aqui o teste de sua planta!
+          </p>
+        </div>
 
-      {/* Container Principal */}
-      <div className="mx-[10%] p-10 min-h-screen ">
-        {/* Título Principal */}
-        <h1 className="text-primaryGreen">Bem-vindo ao AgroScope!</h1>
-        <p>Faça aqui o teste de sua planta!</p>
-
-        <div className="flex flex-col md:flex-row md:space-x-6 items-top justify-between align-middle mx-40">
-          <div className="w-full md:w-1/2 flex flex-col items-center bg-gray-200 rounded shadow-md p-2">
-            <div className="mb-4">
-              <input
-                id="card"
-                type="file"
-                accept="image/*"
-                onChange={onChange}
-                className="block w-full px-4 py-2 text-sm text-gray-900 border border-gray-300 rounded cursor-pointer bg-gray-50 focus:outline-none"
-              />
-            </div>
+        <div className="flex flex-col md:flex-row justify-center items-center md:space-x-12">
+          {/* Upload de Imagem */}
+          <div className="w-full md:w-1/2 flex flex-col items-center bg-white rounded-lg shadow-lg p-6">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={onChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer"
+            />
             {url && (
-              <div
-                className="p-3 bg-white text-black rounded shadow-md"
-                style={{
-                  width: "480px", // Largura padrão
-                  height: "480px", // Altura padrão
-                  overflow: "hidden",
-                }}
-              >
+              <div className="mt-4 rounded-lg overflow-hidden shadow-lg">
                 <Image
                   src={url}
                   alt="Imagem para Análise"
-                  width={600} // Defina largura padrão
-                  height={600} // Defina altura padrão
-                  style={{ objectFit: "cover" }} // Corta ou ajusta a imagem para caber
-                  className="rounded"
+                  width={400}
+                  height={400}
+                  className="rounded-md"
                 />
               </div>
             )}
           </div>
 
-          {/* Coluna da Direita (Botão e Informações) */}
-          <div className="w-full md:w-1/2 md:items-start p-4 rounded shadow-md bg-gray-200">
+          {/* Resultados e Botão */}
+          <div className="w-full md:w-1/2 bg-white rounded-lg shadow-lg p-6">
             <button
               onClick={onClick}
-              className="flex items-center justify-center px-4 py-2 mb-6 bg-primaryGreen text-white rounded shadow hover:bg-blue-600 w-36"
+              className="w-full flex items-center justify-center px-4 py-3 bg-primaryGreen text-white rounded-md shadow-md hover:bg-green-700"
             >
-              <strong>Analisar</strong> <FaSearch className="ml-2" />
+              <FaSearch className="mr-2" /> <strong>Analisar Imagem</strong>
             </button>
-
-            {/*Informações Analisadas*/}
-            <div className="text-left w-full bg-lightGray p-2 rounded-sm">
-              <h2 className="text-lg font-bold mb-2">Diagnóstico</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li className="text-gray-700">
-                  📋 <strong>Doença:</strong>{" "}
-                  <span className="font-semibold">
-                    {result.prediction || "N/A"}
-                  </span>
-                </li>{" "}
-                {/* Verificar! */}
-                <li className="text-gray-700">
-                  🌱 <strong>Manejo:</strong>{" "}
-                  <span className="font-semibold">
-                    {result.handling || "N/A"}
-                  </span>
-                </li>{" "}
-                {/* Verificar! */}
-              </ul>
+            <div className="mt-6 bg-gray-100 p-4 rounded-md">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Diagnóstico
+              </h2>
+              <p className="text-gray-700 mt-2">
+                <strong>Doença:</strong> {result.prediction || "N/A"}
+              </p>
+              <p className="text-gray-700 mt-2">
+                <strong>Manejo:</strong> {result.handling || "N/A"}
+              </p>
             </div>
           </div>
         </div>
-      </div>
-    </body>
+      </main>
+      <Footer />
+    </div>
   );
 }

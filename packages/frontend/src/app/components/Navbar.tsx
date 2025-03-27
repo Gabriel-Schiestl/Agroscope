@@ -14,7 +14,7 @@ export default function Navbar() {
           height={42}
           className="h-10 w-10"
         />
-        <span className="ml-2 text-white text-lg font-semibold">agroscope</span>
+        <span className="ml-2 text-white text-lg font-semibold">Agroscope</span>
       </div>
 
       {/* Botões no canto direito */}

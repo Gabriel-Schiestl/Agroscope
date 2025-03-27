@@ -10,7 +10,6 @@ export default function DashboardPage() {
     <div className="flex">
       {/* Sidebar */}
       <Sidebar />
-
       {/* Conteúdo do Dashboard */}
       <div className="p-6 flex-1">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h2>

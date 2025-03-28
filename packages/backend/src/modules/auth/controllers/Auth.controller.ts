@@ -26,7 +26,7 @@ export class AuthController {
 
         return res
             .status(result.isSuccess() ? 200 : 401)
-            .json(result.isFailure() ? result.error : result.value);
+            .json(result.isFailure() ? result.error : { token: result.value });
     }
 
     @Get('validate')

@@ -72,7 +72,6 @@ export class PredictUseCase {
         if (result.data.prediction === 'saudavel') {
             const history = History.create({
                 image: imageBase64,
-                prediction: 'saudavel',
             });
 
             const result = await this.historyRepository.save(history);
@@ -96,7 +95,7 @@ export class PredictUseCase {
         const history = History.create({
             handling: knowledge.value.handling,
             image: imageBase64,
-            prediction: result.data.prediction,
+            sickness: sickness.value,
         });
 
         const saveHistoryResult = await this.historyRepository.save(history);

@@ -25,6 +25,6 @@ import { AuthController } from './controllers/Auth.controller';
         ...mappers,
         AuthGuard,
     ],
-    exports: [...repositories],
+    exports: [...repositories, ...services],
 })
 export class AuthModule {}

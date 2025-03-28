@@ -1,6 +1,6 @@
 import { Address } from '../../domain/models/Address';
 import { Client } from '../../domain/models/Client';
-import { ClientModel } from '../models/Client';
+import { ClientModel } from '../models/Client.model';
 import { HistoryMapper } from './History.mapper';
 
 export class ClientMapper {

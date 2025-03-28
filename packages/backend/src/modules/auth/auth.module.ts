@@ -6,6 +6,7 @@ import { usecases } from './application/usecases';
 import { mappers } from './infra/mappers';
 import { CoreModule } from '../core/core.module';
 import { AuthGuard } from './infra/services/Auth.guard';
+import { AuthController } from './controllers/Auth.controller';
 
 @Module({
     imports: [
@@ -16,7 +17,7 @@ import { AuthGuard } from './infra/services/Auth.guard';
         }),
         forwardRef(() => CoreModule),
     ],
-    controllers: [],
+    controllers: [AuthController],
     providers: [
         ...usecases,
         ...services,
@@ -24,6 +25,6 @@ import { AuthGuard } from './infra/services/Auth.guard';
         ...mappers,
         AuthGuard,
     ],
-    exports: [...repositories],
+    exports: [...repositories, ...services],
 })
 export class AuthModule {}

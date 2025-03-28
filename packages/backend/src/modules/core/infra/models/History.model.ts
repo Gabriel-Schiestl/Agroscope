@@ -7,7 +7,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { SicknessModel } from './Sickness.model';
-import { ClientModel } from './Client';
+import { ClientModel } from './Client.model';
 
 export interface HistoryModelProps {
     id: string;

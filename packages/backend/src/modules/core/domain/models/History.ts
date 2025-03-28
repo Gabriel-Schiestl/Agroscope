@@ -10,7 +10,7 @@ export interface HistoryProps {
 }
 
 export interface CreateHistoryProps {
-    sickness: Sickness;
+    sickness?: Sickness;
     handling?: string;
     image: string;
 }

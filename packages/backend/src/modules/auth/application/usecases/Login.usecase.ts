@@ -4,6 +4,7 @@ import { UserRepository } from 'src/modules/core/domain/repositories/User.reposi
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { Res, Result } from 'src/shared/Result';
 import { AuthenticationService } from '../../domain/services/Authentication.service';
+import { EncryptionService } from '../../domain/services/Encryption.service';
 
 export interface LoginUseCaseProps {
     email: string;
@@ -23,6 +24,8 @@ export class LoginUseCase {
         private readonly authenticationRepository: AuthenticationRepository,
         @Inject('AuthenticationService')
         private readonly authenticationService: AuthenticationService,
+        @Inject('EncryptionService')
+        private readonly encryptionService: EncryptionService,
     ) {}
 
     async execute(
@@ -46,16 +49,16 @@ export class LoginUseCase {
                 new UnauthorizedException('Account blocked, contact support'),
             );
 
-        const isPasswordValid = authentication.value.comparePassword(
+        const isPasswordValid = await this.encryptionService.compare(
             props.password,
+            authentication.value.password,
         );
-        if (!isPasswordValid)
+        if (isPasswordValid.isFailure())
             return Res.failure(new UnauthorizedException('Error on login'));
 
         const token = await this.authenticationService.sign({
             email: user.value.email,
             sub: user.value.id,
-            role: user.value.role,
         });
 
         const saveAuthentication = await this.authenticationRepository.save(

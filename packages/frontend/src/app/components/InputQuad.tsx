@@ -1,30 +1,20 @@
-
 import { ReactNode } from "react";
 
-
-
 interface InputQuadProps {
-
   children: ReactNode;
-
+  className?: string;
+  id?: string;
 }
 
-
-
-const InputQuad = ({ children }: InputQuadProps) => {
-
+const InputQuad = ({ children, className = "", id }: InputQuadProps) => {
   return (
-
-    <div className="bg-green-500 rounded-md p-2 flex flex-col justify-start m-10 shadow-md shadow-black ">
-
+    <div
+      id={id}
+      className={`bg-secondary-green rounded-md p-4 flex flex-col justify-start m-10 shadow-md shadow-black ${className}`}
+    >
       {children}
-
     </div>
-
   );
-
 };
-
-
 
 export default InputQuad;

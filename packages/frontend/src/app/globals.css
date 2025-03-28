@@ -1,54 +1,56 @@
 :root {
-  --primary-green: #4CAF50;
-  --secondary-green: #66BB6A;
-  --background-light: #F4F4F4;
-  --text-dark: #2E2E2E;
-  --accent-orange: #FFB74D;
-  --accent-blue: #4FC3F7;
+  --primary-green: #4caf50;
+  --secondary-green: #66bb6a;
+  --background-light: #f4f4f4;
+  --text-dark: #2e2e2e;
+  --accent-orange: #ffb74d;
+  --accent-blue: #4fc3f7;
 }
-
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
 @media (max-width: 768px) {
   button {
-    width: 8vw;
-    height: 2vh;
-    font-size: 5vh;
-    text-align: center;
-    justify-content: center;
+    width: 40%;
+    height: auto;
+    font-size: 1.2rem;
   }
 }
 
 @media (max-width: 480px) {
   button {
-    width: 20vw;
-    height: 10vh;
-    font-size: 1vh;
+    width: 60%;
+    height: auto;
+    font-size: 1rem;
   }
 }
 
 body {
   background-color: var(--background-light);
-  color: var(--text-color);
-  font-family: 'Roboto', sans-serif;
+  color: var(--text-dark);
+  font-family: "Roboto", sans-serif;
 }
 
-h1, h2, h3 {
-  font: bold 1.5rem 'Poppins', sans-serif;
+h1,
+h2,
+h3 {
+  font: bold 1.5rem "Poppins", sans-serif;
 }
 
 p {
-  font: bold 1.0rem 'Poppins', sans-serif;
+  font: bold 1rem "Poppins", sans-serif;
   margin-bottom: 2rem;
 }
 
 #div-animada {
   background-color: var(--background-light);
   border: 1px solid transparent;
-  transition: all 0.3s ease-in-out; /* Aplica a animação a todas as propriedades */
+  transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out,
+    transform 0.3s ease-in-out; /* Aplica a animação a todas as propriedades */
 }
 
 #div-animada:hover {
@@ -75,8 +77,9 @@ p {
   justify-content: space-between;
   height: 56px;
 
-  padding-left: 10vh;
-  padding-right: 10vh;
+  padding-left: 5%;
+  padding-right: 5%;
+  flex-wrap: wrap;
 }
 
 #navbar button {
@@ -92,7 +95,7 @@ p {
   line-height: 1;
 
   border: var(--background-light) 1px solid;
-} 
+}
 
 #navbar button:hover {
   background-color: var(--background-light);
@@ -115,4 +118,73 @@ p {
 
 #card:hover {
   transform: scale(1.05);
+}
+
+
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

@@ -7,20 +7,25 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/login")) {
-    return NextResponse.next();
-  }
-  const cookie = req.cookies.get("agroscope-authentication")?.value;
-  console.log("cookie", cookie);
-  const response = await Validate(cookie);
+  // if (req.nextUrl.pathname.startsWith("/login")) {
+  //   return NextResponse.next();
+  // }
+  // const cookie = req.cookies.get("agroscope-authentication")?.value;
+  // const response = await Validate(cookie);
 
-  // Se não tiver token, redireciona para o login
-  if (!response) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+  // if (!response) {
+  //   return NextResponse.redirect(new URL("/login", req.url));
+  // }
 
-  api.defaults.headers.common["Authorization"] = cookie;
+  // api.defaults.headers.common["Authorization"] = cookie;
 
-  // Caso contrário, continua para a próxima etapa (renderização da página)
+  // if (
+  //   req.nextUrl.pathname.startsWith("/engineer") &&
+  //   typeof response === "object" &&
+  //   !response.isEngineer
+  // ) {
+  //   return NextResponse.redirect(new URL("/", req.url));
+  // }
+
   return NextResponse.next();
 }

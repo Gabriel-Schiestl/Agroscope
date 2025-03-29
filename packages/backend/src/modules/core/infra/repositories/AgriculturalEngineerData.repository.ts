@@ -65,4 +65,23 @@ export class AgriculturalEngineerImpl
             return Res.failure(new TechnicalException(e));
         }
     }
+
+    async getByUserId(
+        userId: string,
+    ): Promise<
+        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
+    > {
+        try {
+            const model = await AgriculturalEngineerModel.findOneBy({ userId });
+            if (!model) {
+                return Res.failure(
+                    new RepositoryNoDataFound('AgriculturalEngineer not found'),
+                );
+            }
+
+            return Res.success(AgriculturalEngineerMapper.modelToDomain(model));
+        } catch (e) {
+            return Res.failure(new TechnicalException(e));
+        }
+    }
 }

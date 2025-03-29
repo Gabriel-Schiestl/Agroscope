@@ -1,3 +1,4 @@
+import { AgriculturalEngineerImpl } from './AgriculturalEngineerData.repository';
 import { HistoryRepositoryImpl } from './HistoryData.repository';
 import { ImageDataRepository } from './ImageData.repository';
 import { KnowledgeDataRepository } from './KnowledgeData.repository';
@@ -24,5 +25,9 @@ export const repositories = [
     {
         provide: 'UserRepository',
         useClass: UserDataRepository,
+    },
+    {
+        provide: 'AgriculturalEngineerRepository',
+        useClass: AgriculturalEngineerImpl,
     },
 ];

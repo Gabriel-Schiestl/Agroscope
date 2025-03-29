@@ -1,16 +1,21 @@
 import api from "../../shared/http/http.config";
 
-export default async function Validate(cookie?: string) {
+export interface ValidateResponse {
+  isEngineer: boolean;
+}
+
+export default async function Validate(
+  cookie?: string
+): Promise<boolean | ValidateResponse> {
   try {
-    const response = await api.get("/auth/validate", {
+    const response = await api.get<ValidateResponse>("/auth/validate", {
       headers: {
         Authorization: `${cookie}`,
       },
     });
-    console.log("BBBBBBBBB", response);
+
     return response.data;
   } catch (e) {
-    console.log("AAAAAAAAAAAA");
     return false;
   }
 }

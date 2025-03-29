@@ -5,7 +5,6 @@ import {
 } from '../application/usecases/Login.usecase';
 import { Response, Request } from 'express';
 import { Public } from 'PublicRoutes';
-import { Res as Result } from 'src/shared/Result';
 
 @Controller('auth')
 export class AuthController {
@@ -31,9 +30,8 @@ export class AuthController {
 
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
-        console.log('cheguei aqui');
-        const role = req.session?.role;
+        const isEngineer: boolean = req.session?.engineer;
 
-        return res.status(200).json({ role });
+        return res.status(200).json({ isEngineer: isEngineer });
     }
 }

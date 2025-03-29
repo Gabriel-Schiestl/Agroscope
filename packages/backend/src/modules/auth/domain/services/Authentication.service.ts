@@ -4,6 +4,8 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 export interface JwtPayload {
     email: string;
     sub: string;
+    engineer?: boolean;
+    admin?: boolean;
 }
 
 export interface AuthenticationService {

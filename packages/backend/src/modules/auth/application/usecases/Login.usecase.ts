@@ -3,8 +3,12 @@ import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/A
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { Res, Result } from 'src/shared/Result';
-import { AuthenticationService } from '../../domain/services/Authentication.service';
+import {
+    AuthenticationService,
+    JwtPayload,
+} from '../../domain/services/Authentication.service';
 import { EncryptionService } from '../../domain/services/Encryption.service';
+import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
 
 export interface LoginUseCaseProps {
     email: string;
@@ -26,6 +30,8 @@ export class LoginUseCase {
         private readonly authenticationService: AuthenticationService,
         @Inject('EncryptionService')
         private readonly encryptionService: EncryptionService,
+        @Inject('AgriculturalEngineerRepository')
+        private readonly agriculturalEngineerRepository: AgriculturalEngineerRepository,
     ) {}
 
     async execute(
@@ -56,10 +62,21 @@ export class LoginUseCase {
         if (isPasswordValid.isFailure())
             return Res.failure(new UnauthorizedException('Error on login'));
 
-        const token = await this.authenticationService.sign({
+        const jwtPayload: JwtPayload = {
             email: user.value.email,
             sub: user.value.id,
-        });
+            engineer: false,
+        };
+
+        const isEngineer =
+            await this.agriculturalEngineerRepository.getByUserId(
+                user.value.id,
+            );
+        if (isEngineer.isSuccess()) {
+            jwtPayload.engineer = true;
+        }
+
+        const token = await this.authenticationService.sign(jwtPayload);
 
         const saveAuthentication = await this.authenticationRepository.save(
             authentication.value,

@@ -19,4 +19,9 @@ export interface AgriculturalEngineerRepository {
     delete(
         id: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, void>>;
+    getByUserId(
+        userId: string,
+    ): Promise<
+        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
+    >;
 }

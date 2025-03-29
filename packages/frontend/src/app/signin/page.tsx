@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import RegisterUser from "../../../api/login/RegisterUser";
 
 export default function Signin() {
   const [formData, setFormData] = useState({
@@ -13,10 +14,18 @@ export default function Signin() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Dados cadastrados:", formData);
-    // Aqui você pode integrar com sua API para cadastrar o usuário
+
+    const response = await RegisterUser({
+      email: formData.email,
+      name: formData.nome,
+      password: formData.senha,
+    });
+
+    if (response) {
+      alert("Cadastro realizado com sucesso!");
+    }
   };
 
   return (

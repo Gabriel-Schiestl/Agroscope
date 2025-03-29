@@ -13,7 +13,12 @@ async function bootstrap() {
 
     app.useGlobalGuards(app.get(AuthGuard));
 
-    app.enableCors();
+    app.enableCors({
+        origin: true,
+        credentials: true,
+        exposedHeaders: ['Authorization'],
+    });
+
     await app.listen(3000);
 }
 bootstrap();

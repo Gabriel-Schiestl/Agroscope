@@ -19,8 +19,8 @@ export class AuthController {
         if (result.isSuccess()) {
             res.cookie('agroscope-authentication', result.value, {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'none',
+                secure: false,
+                sameSite: 'lax',
             });
         }
 
@@ -31,6 +31,7 @@ export class AuthController {
 
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
+        console.log('cheguei aqui');
         const role = req.session?.role;
 
         return res.status(200).json({ role });

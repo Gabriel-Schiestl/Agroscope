@@ -7,6 +7,7 @@ import { Public } from 'PublicRoutes';
 export class UserController {
     constructor(private readonly createUserCase: CreateUserUseCase) {}
 
+    @Public()
     @Post()
     async createUser(@Body() user: CreateUserDto) {
         console.log(user);

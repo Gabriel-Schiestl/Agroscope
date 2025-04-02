@@ -10,6 +10,8 @@ export class HistoryMapper {
             sickness: SicknessMapper.domainToModel(domain.sickness),
             handling: domain.handling,
             image: domain.image,
+            clientId: domain.clientId,
+            userId: domain.userId,
         });
     }
 
@@ -20,6 +22,8 @@ export class HistoryMapper {
                 sickness: SicknessMapper.modelToDomain(model.sickness),
                 handling: model.handling,
                 image: model.image,
+                clientId: model.clientId,
+                userId: model.userId,
             },
             model.id,
         );

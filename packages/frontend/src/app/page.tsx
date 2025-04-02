@@ -7,6 +7,7 @@ import { FaSearch, FaUpload, FaUserPlus } from "react-icons/fa";
 import Navbar from "./components/Navbar";
 import { toast } from "react-toastify";
 import Footer from "./components/Footer";
+import api from "../../shared/http/http.config";
 
 interface Data {
   prediction: string;
@@ -43,7 +44,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append("image", file);
     try {
-      const result = await axios.post<Result>(`${apiUrl}/predict`, formData, {
+      const result = await api.post<Result>(`${apiUrl}/predict`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

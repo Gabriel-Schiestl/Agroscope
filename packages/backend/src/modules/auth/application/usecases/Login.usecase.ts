@@ -59,8 +59,15 @@ export class LoginUseCase {
             props.password,
             authentication.value.password,
         );
-        if (isPasswordValid.isFailure())
+        if (isPasswordValid.isFailure()) {
+            authentication.value.incrementIncorrectPasswordAttempts();
+
+            const saveAuthentication = await this.authenticationRepository.save(
+                authentication.value,
+            );
+
             return Res.failure(new UnauthorizedException('Error on login'));
+        }
 
         const jwtPayload: JwtPayload = {
             email: user.value.email,
@@ -77,6 +84,8 @@ export class LoginUseCase {
         }
 
         const token = await this.authenticationService.sign(jwtPayload);
+
+        authentication.value.applyLogin();
 
         const saveAuthentication = await this.authenticationRepository.save(
             authentication.value,

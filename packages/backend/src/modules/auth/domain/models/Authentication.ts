@@ -53,6 +53,18 @@ export class Authentication implements AuthenticationProps {
         return this.#incorrectPasswordAttempts >= 5;
     }
 
+    applyLogin(): void {
+        this.#lastLogin = new Date();
+        this.#incorrectPasswordAttempts = 0;
+    }
+
+    incrementIncorrectPasswordAttempts(): void {
+        if (!this.#incorrectPasswordAttempts) {
+            this.#incorrectPasswordAttempts = 0;
+        }
+        this.#incorrectPasswordAttempts += 1;
+    }
+
     get id() {
         return this.#id;
     }

@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Failure, Res, Result, Success } from 'src/shared/Result';
-import { History } from '../../domain/models/History';
-import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
+import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
+import { Res, Result } from 'src/shared/Result';
+import { History } from '../../domain/models/History';
 import { HistoryRepository } from '../../domain/repositories/History.repository';
 
 export type GetHistoryUseCaseExceptions =
@@ -18,10 +18,11 @@ export class GetHistoryUseCase {
         private readonly historyRepository: HistoryRepository,
     ) {}
 
-    async execute(): Promise<Result<GetHistoryUseCaseExceptions, History[]>> {
-        const history = await this.historyRepository.getAll();
-
-        if (history instanceof Failure) {
+    async execute(
+        userId: string,
+    ): Promise<Result<GetHistoryUseCaseExceptions, History[]>> {
+        const history = await this.historyRepository.getByUserId(userId);
+        if (history.isFailure()) {
             return Res.failure(history.error);
         }
 

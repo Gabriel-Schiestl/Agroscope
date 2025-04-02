@@ -14,11 +14,6 @@ export class ClientDto {
     @IsString()
     telephone: string;
 
-    @IsOptional()
-    @IsArray()
-    @Type(() => HistoryDto)
-    predictions: HistoryDto[];
-
     @IsString()
     person: PersonType;
 

@@ -34,12 +34,6 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
     @Column()
     telephone: string;
 
-    @OneToMany(() => HistoryModel, (history) => history.client, {
-        nullable: true,
-    })
-    @JoinColumn()
-    predictions?: HistoryModel[];
-
     @Column()
     person: PersonType;
 

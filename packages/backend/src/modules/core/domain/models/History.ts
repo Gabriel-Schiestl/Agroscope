@@ -7,12 +7,16 @@ export interface HistoryProps {
     sickness: Sickness;
     handling: string;
     image: string;
+    clientId?: string;
+    userId?: string;
 }
 
 export interface CreateHistoryProps {
     sickness?: Sickness;
     handling?: string;
     image: string;
+    clientId?: string;
+    userId?: string;
 }
 
 export interface LoadHistoryProps {
@@ -20,6 +24,8 @@ export interface LoadHistoryProps {
     sickness: Sickness;
     handling?: string;
     image: string;
+    clientId?: string;
+    userId?: string;
 }
 
 export class History {
@@ -28,6 +34,8 @@ export class History {
     _sickness: Sickness;
     _handling: string;
     _image: string;
+    _clientId?: string;
+    _userId?: string;
 
     private constructor(props: CreateHistoryProps, id?: string) {
         this._id = id || uuid();
@@ -35,6 +43,8 @@ export class History {
         this._sickness = props.sickness;
         this._handling = props.handling;
         this._image = props.image;
+        this._clientId = props.clientId;
+        this._userId = props.userId;
     }
 
     static create(props: CreateHistoryProps): History {
@@ -63,5 +73,13 @@ export class History {
 
     get image(): string {
         return this._image;
+    }
+
+    get clientId(): string {
+        return this._clientId;
+    }
+
+    get userId(): string {
+        return this._userId;
     }
 }

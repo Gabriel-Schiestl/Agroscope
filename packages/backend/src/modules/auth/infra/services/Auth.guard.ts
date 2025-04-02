@@ -27,10 +27,14 @@ export class AuthGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
 
         const token =
+            request.headers.cookie?.split('=')[1] ||
             request.headers.authorization ||
-            request.cookies['agroscope-authentication'] ||
-            request.headers.cookies;
-        if (!token) throw new UnauthorizedException('Token not found');
+            request.cookies['agroscope-authentication'];
+
+        if (!token) {
+            throw new UnauthorizedException('Token not found');
+            return false;
+        }
 
         const payload = await this.authenticationService.verify(token);
         if (payload.isFailure())

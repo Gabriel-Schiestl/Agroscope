@@ -12,7 +12,6 @@ export enum PersonType {
 export interface ClientProps {
     name: string;
     telephone: string;
-    predictions?: History[];
     person: PersonType;
     document: string;
     address: Address;
@@ -38,7 +37,6 @@ export class Client implements ClientProps {
         this.#id = id || uuid();
         this.#name = props.name;
         this.#telephone = props.telephone;
-        this.#predictions = props.predictions;
         this.#person = props.person;
         this.#document = props.document;
         this.#address = props.address;
@@ -87,10 +85,6 @@ export class Client implements ClientProps {
 
     get telephone() {
         return this.#telephone;
-    }
-
-    get predictions() {
-        return this.#predictions;
     }
 
     get person() {

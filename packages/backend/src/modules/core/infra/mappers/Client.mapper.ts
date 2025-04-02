@@ -8,11 +8,6 @@ export class ClientMapper {
         return new ClientModel().setProps({
             name: client.name,
             telephone: client.telephone,
-            predictions: client.predictions
-                ? client.predictions.map((prediction) =>
-                      HistoryMapper.domainToModel(prediction),
-                  )
-                : [],
             person: client.person,
             document: client.document,
             address: client.address,
@@ -26,11 +21,6 @@ export class ClientMapper {
             {
                 name: client.name,
                 telephone: client.telephone,
-                predictions: client.predictions
-                    ? client.predictions.map((prediction) =>
-                          HistoryMapper.modelToDomain(prediction),
-                      )
-                    : [],
                 person: client.person,
                 document: client.document,
                 address: Address.create(client.address),

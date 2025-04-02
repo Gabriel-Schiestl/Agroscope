@@ -4,11 +4,30 @@ import { useCases } from './application/usecases';
 import { repositories } from './infra/repositories';
 import { AuthModule } from '../auth/auth.module';
 import { controllers } from './controllers';
+import { HttpModule } from '@nestjs/axios';
+import { services } from './infra/services';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
-    imports: [forwardRef(() => AuthModule)],
+    imports: [
+        forwardRef(() => AuthModule),
+        HttpModule,
+        ClientsModule.register([
+            {
+                name: 'RABBITMQ_SERVICE',
+                transport: Transport.RMQ,
+                options: {
+                    urls: [process.env.RABBITMQ_URL],
+                    queue: 'images',
+                    queueOptions: {
+                        durable: false,
+                    },
+                },
+            },
+        ]),
+    ],
     controllers: [...controllers],
-    providers: [...useCases, ...queries, ...repositories],
+    providers: [...useCases, ...queries, ...repositories, ...services],
     exports: [...repositories],
 })
 export class CoreModule {}

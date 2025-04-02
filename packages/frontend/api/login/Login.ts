@@ -6,7 +6,7 @@ export default async function LoginAPI(email: string, password: string) {
       email,
       password,
     });
-    console.log(response);
+
     return true;
   } catch (error) {
     console.error("Erro ao fazer login:", error);

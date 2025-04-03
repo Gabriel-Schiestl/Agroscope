@@ -10,7 +10,7 @@ export class ProducerServiceImpl implements ProducerService {
         @Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy,
     ) {}
 
-    sendMessage(pattern: string, message: string): Observable<any> {
-        return this.client.send(pattern, message);
+    sendMessage(pattern: string, message: string): void {
+        this.client.emit(pattern, message);
     }
 }

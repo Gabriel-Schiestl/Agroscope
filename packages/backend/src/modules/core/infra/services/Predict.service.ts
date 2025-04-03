@@ -32,9 +32,7 @@ export class PredictServiceImpl implements PredictService {
                 this.httpService
                     .post<PredictServiceResponse>(
                         `${process.env.FLASK_API_URL}/predict`,
-                        {
-                            formData,
-                        },
+                        formData,
                         {
                             headers: {
                                 ...formData.getHeaders(),

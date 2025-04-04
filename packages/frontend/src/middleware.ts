@@ -13,20 +13,20 @@ export async function middleware(req: NextRequest) {
   const cookie = req.cookies.get("agroscope-authentication")?.value;
   const response = await Validate(cookie);
 
+  const nextResponse = NextResponse.next();
+
   if (req.nextUrl.pathname.startsWith("/login")) {
     if (response) {
       return NextResponse.redirect(new URL("/", req.url));
-    } else {
-      return NextResponse.next();
     }
+    return nextResponse;
   }
 
   if (req.nextUrl.pathname.startsWith("/signin")) {
     if (!response) {
-      return NextResponse.next();
-    } else {
-      return NextResponse.redirect(new URL("/", req.url));
+      return nextResponse;
     }
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   if (!response) {
@@ -41,5 +41,5 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  return NextResponse.next();
+  return nextResponse;
 }

@@ -1,5 +1,3 @@
-import { Observable } from 'rxjs';
-
 export interface ProducerService {
-    sendMessage(pattern: string, message: string): void;
+    sendMessage<T>(pattern: string, message: T): void;
 }

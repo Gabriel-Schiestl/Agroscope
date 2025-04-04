@@ -101,8 +101,6 @@ export class PredictUseCase {
             image: image,
         };
 
-        const json = JSON.stringify(payload);
-
-        this.producerService.sendMessage('image', json);
+        this.producerService.sendMessage('image', payload);
     }
 }

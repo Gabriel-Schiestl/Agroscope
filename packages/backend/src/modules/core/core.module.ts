@@ -20,7 +20,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
                     urls: [process.env.RABBITMQ_URL],
                     queue: 'images',
                     queueOptions: {
-                        durable: false,
+                        durable: true,
                     },
                 },
             },

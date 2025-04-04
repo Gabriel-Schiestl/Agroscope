@@ -30,7 +30,7 @@ export class AuthController {
 
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
-        const isEngineer: boolean = req.session?.engineer;
+        const isEngineer: boolean = req.user?.engineer;
 
         return res.status(200).json({ isEngineer: isEngineer });
     }

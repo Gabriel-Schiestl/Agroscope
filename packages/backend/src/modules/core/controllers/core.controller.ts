@@ -29,7 +29,7 @@ export class CoreController {
     ) {
         const result = await this.predictUseCase.execute(
             file.path,
-            req['session'].sub,
+            req['user'].sub,
         );
 
         return result;
@@ -37,7 +37,7 @@ export class CoreController {
 
     @Get('history')
     async getHistory(@Req() req: Request) {
-        const result = await this.getHistoryUseCase.execute(req['session'].sub);
+        const result = await this.getHistoryUseCase.execute(req['user'].sub);
 
         return result;
     }

@@ -1,7 +1,7 @@
 import { Address } from '../../domain/models/Address';
 import { Client } from '../../domain/models/Client';
 import { ClientModel } from '../models/Client.model';
-import { HistoryMapper } from './History.mapper';
+import { VisitMapper } from './Visit.mapper';
 
 export class ClientMapper {
     static domainToModel(client: Client): ClientModel {
@@ -13,6 +13,9 @@ export class ClientMapper {
             address: client.address,
             totalArea: client.totalArea,
             totalAreaPlanted: client.totalAreaPlanted,
+            visits: client.visits
+                ? client.visits.map(VisitMapper.domainToModel)
+                : [],
         });
     }
 
@@ -26,6 +29,9 @@ export class ClientMapper {
                 address: Address.create(client.address),
                 totalArea: client.totalArea,
                 totalAreaPlanted: client.totalAreaPlanted,
+                visits: client.visits
+                    ? client.visits.map(VisitMapper.modelToDomain)
+                    : [],
             },
             client.id,
         );

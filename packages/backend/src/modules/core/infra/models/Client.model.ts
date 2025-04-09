@@ -1,6 +1,7 @@
 import {
     BaseEntity,
     Column,
+    CreateDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
@@ -9,18 +10,18 @@ import {
 } from 'typeorm';
 import { Address } from '../../domain/models/Address';
 import { PersonType } from '../../domain/models/Client';
-import { HistoryModel } from './History.model';
 import { AgriculturalEngineerModel } from './AgriculturalEngineer.model';
+import { VisitModel } from './Visit.model';
 
 export interface ClientModelProps {
     name: string;
     telephone: string;
-    predictions?: HistoryModel[];
     person: PersonType;
     document: string;
     address: Address;
     totalArea: number;
     totalAreaPlanted: number;
+    visits?: VisitModel[];
 }
 
 @Entity('clients')
@@ -56,10 +57,17 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
             onDelete: 'CASCADE',
         },
     )
+    @JoinColumn({ name: 'agricultural_engineer_id' })
     agriculturalEngineer: AgriculturalEngineerModel;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
+
+    @OneToMany(() => VisitModel, (visit) => visit.client, {
+        nullable: true,
+        cascade: true,
+    })
+    visits: VisitModel[];
 
     setProps(props: ClientModelProps): ClientModel {
         Object.assign(this, props);

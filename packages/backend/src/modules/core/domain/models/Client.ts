@@ -3,6 +3,7 @@ import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
 import { History } from './History';
 import { Address } from './Address';
+import { Visit } from './Visit';
 
 export enum PersonType {
     CPF = 'PF',
@@ -17,6 +18,7 @@ export interface ClientProps {
     address: Address;
     totalArea: number;
     totalAreaPlanted: number;
+    visits?: Visit[];
 }
 
 export type CreateClientProps = Omit<ClientProps, 'predictions'>;
@@ -26,12 +28,12 @@ export class Client implements ClientProps {
     #id: string;
     #name: string;
     #telephone: string;
-    #predictions?: History[];
     #person: PersonType;
     #document: string;
     #address: Address;
     #totalArea: number;
     #totalAreaPlanted: number;
+    #visits?: Visit[];
 
     private constructor(props: ClientProps, id?: string) {
         this.#id = id || uuid();
@@ -42,6 +44,7 @@ export class Client implements ClientProps {
         this.#address = props.address;
         this.#totalArea = props.totalArea;
         this.#totalAreaPlanted = props.totalAreaPlanted;
+        this.#visits = props.visits;
     }
 
     static create(props: CreateClientProps): Result<BusinessException, Client> {
@@ -105,5 +108,9 @@ export class Client implements ClientProps {
 
     get totalAreaPlanted() {
         return this.#totalAreaPlanted;
+    }
+
+    get visits() {
+        return this.#visits;
     }
 }

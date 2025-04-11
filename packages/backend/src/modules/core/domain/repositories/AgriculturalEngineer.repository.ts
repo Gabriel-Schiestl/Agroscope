@@ -24,4 +24,22 @@ export interface AgriculturalEngineerRepository {
     ): Promise<
         Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
     >;
+    getWithClients(
+        engineerId: string,
+    ): Promise<
+        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
+    >;
+    getVisits(
+        engineerId: string,
+        clientId: string,
+    ): Promise<
+        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
+    >;
+    getReports(
+        engineerId: string,
+        clientId: string,
+        visitId: string,
+    ): Promise<
+        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
+    >;
 }

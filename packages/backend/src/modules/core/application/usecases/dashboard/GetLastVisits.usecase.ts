@@ -6,16 +6,16 @@ import { ClientDto } from '../../dto/Client.dto';
 import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
 import { AgriculturalEngineerAppMapper } from '../../mappers/AgriculturalEngineer.mapper';
 import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
-import e from 'express';
-import { ReportDto } from '../../dto/Report.dto';
-import { ReportAppMapper } from '../../mappers/Report.mapper';
+import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { VisitDto } from '../../dto/Visit.dto';
+import { VisitAppMapper } from '../../mappers/Visit.mapper';
 
-export type GetVisitsUseCaseExceptions =
+export type GetLastVisitsUseCaseExceptions =
     | RepositoryNoDataFound
     | TechnicalException;
 
 @Injectable()
-export class GetReportsUseCase {
+export class GetLastVisitsUseCase {
     constructor(
         @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
@@ -23,25 +23,21 @@ export class GetReportsUseCase {
 
     async execute(
         engineerId: string,
-        clientId: string,
-        visitId: string,
-    ): Promise<Result<GetVisitsUseCaseExceptions, ReportDto[]>> {
+    ): Promise<Result<GetLastVisitsUseCaseExceptions, VisitDto[]>> {
         const engineer = await this.engineerRepository.getByUserId(engineerId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);
         }
 
-        const reports = await this.engineerRepository.getReports(
+        const visits = await this.engineerRepository.getLastVisits(
             engineer.value.id,
-            clientId,
-            visitId,
         );
-        if (reports.isFailure()) {
-            return Res.failure(reports.error);
+        if (visits.isFailure()) {
+            return Res.failure(visits.error);
         }
 
         return Res.success(
-            reports.value.map((report) => ReportAppMapper.toDto(report)),
+            visits.value.map((vist) => VisitAppMapper.toDto(vist)),
         );
     }
 }

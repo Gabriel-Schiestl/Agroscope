@@ -20,6 +20,8 @@ async function bootstrap() {
         exposedHeaders: ['Authorization'],
     });
 
+    app.useLogger(['error', 'warn', 'log', 'debug', 'verbose']);
+
     app.connectMicroservice({
         transport: Transport.RMQ,
         options: {

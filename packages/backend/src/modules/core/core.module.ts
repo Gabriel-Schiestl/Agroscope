@@ -7,6 +7,7 @@ import { controllers } from './controllers';
 import { HttpModule } from '@nestjs/axios';
 import { services } from './infra/services';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { EngineerGuard } from './infra/services/Engineer.guard';
 
 @Module({
     imports: [
@@ -27,7 +28,13 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         ]),
     ],
     controllers: [...controllers],
-    providers: [...useCases, ...queries, ...repositories, ...services],
+    providers: [
+        ...useCases,
+        ...queries,
+        ...repositories,
+        ...services,
+        EngineerGuard,
+    ],
     exports: [...repositories],
 })
 export class CoreModule {}

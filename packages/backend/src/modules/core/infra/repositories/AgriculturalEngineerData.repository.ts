@@ -9,6 +9,12 @@ import { AgriculturalEngineerMapper } from '../mappers/AgriculturalEngineer.mapp
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { AgriculturalEngineerModel } from '../models/AgriculturalEngineer.model';
+import { VisitMapper } from '../mappers/Visit.mapper';
+import { Visit } from '../../domain/models/Visit';
+import { Client } from '../../domain/models/Client';
+import { ClientMapper } from '../mappers/Client.mapper';
+import { ReportMapper } from '../mappers/Report.mapper';
+import { Report } from '../../domain/models/Report';
 
 @Injectable()
 export class AgriculturalEngineerImpl
@@ -87,9 +93,7 @@ export class AgriculturalEngineerImpl
 
     async getWithClients(
         engineerId: string,
-    ): Promise<
-        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
-    > {
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Client[]>> {
         try {
             const model = await AgriculturalEngineerModel.findOne({
                 where: { id: engineerId },
@@ -101,7 +105,17 @@ export class AgriculturalEngineerImpl
                 );
             }
 
-            return Res.success(AgriculturalEngineerMapper.modelToDomain(model));
+            if (!model.clients || model.clients.length === 0) {
+                return Res.failure(
+                    new RepositoryNoDataFound('No clients found'),
+                );
+            }
+
+            return Res.success(
+                model.clients?.map((client) =>
+                    ClientMapper.modelToDomain(client),
+                ),
+            );
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }
@@ -110,11 +124,9 @@ export class AgriculturalEngineerImpl
     async getVisits(
         engineerId: string,
         clientId: string,
-    ): Promise<
-        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
-    > {
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>> {
         try {
-            const model = await AgriculturalEngineerModel.createQueryBuilder(
+            const models = await AgriculturalEngineerModel.createQueryBuilder(
                 'engineer',
             )
                 .leftJoinAndSelect(
@@ -127,14 +139,20 @@ export class AgriculturalEngineerImpl
                 .where('engineer.id = :engineerId', {
                     engineerId,
                 })
-                .getOne();
-            if (!model) {
+                .getRawMany();
+
+            if (!models || models.length === 0) {
                 return Res.failure(
                     new RepositoryNoDataFound('AgriculturalEngineer not found'),
                 );
             }
 
-            return Res.success(AgriculturalEngineerMapper.modelToDomain(model));
+            const domainVisits = models
+                .filter((visit) => visit.visits_id)
+                .map((visit) => VisitMapper.modelToDomain(visit))
+                .filter((visit): visit is Visit => visit !== null);
+
+            return Res.success(domainVisits);
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }
@@ -144,9 +162,7 @@ export class AgriculturalEngineerImpl
         engineerId: string,
         clientId: string,
         visitId: string,
-    ): Promise<
-        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
-    > {
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Report[]>> {
         try {
             const model = await AgriculturalEngineerModel.createQueryBuilder(
                 'engineer',
@@ -169,14 +185,50 @@ export class AgriculturalEngineerImpl
                 .where('engineer.id = :engineerId', {
                     engineerId,
                 })
-                .getOne();
-            if (!model) {
+                .getRawMany();
+
+            if (!model || model.length === 0) {
                 return Res.failure(
                     new RepositoryNoDataFound('AgriculturalEngineer not found'),
                 );
             }
 
-            return Res.success(AgriculturalEngineerMapper.modelToDomain(model));
+            const domainReports = model
+                .filter((report) => report.reports_id)
+                .map((report) => ReportMapper.modelToDomain(report))
+                .filter((report): report is Report => report !== null);
+
+            return Res.success(domainReports);
+        } catch (e) {
+            return Res.failure(new TechnicalException(e));
+        }
+    }
+
+    async getLastVisits(
+        engineerId: string,
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>> {
+        try {
+            const visits = await AgriculturalEngineerModel.createQueryBuilder(
+                'engineer',
+            )
+                .leftJoinAndSelect('engineer.clients', 'clients')
+                .leftJoinAndSelect('clients.visits', 'visits')
+                .where('engineer.id = :engineerId', { engineerId })
+                .orderBy('visits.created_at', 'DESC')
+                .take(5)
+                .getRawMany();
+
+            if (!visits || visits.length === 0) {
+                return Res.failure(
+                    new RepositoryNoDataFound(
+                        'No visits found for the engineer',
+                    ),
+                );
+            }
+
+            return Res.success(
+                visits.map((visit) => VisitMapper.modelToDomain(visit)),
+            );
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }

@@ -21,7 +21,7 @@ export interface ClientProps {
     visits?: Visit[];
 }
 
-export type CreateClientProps = Omit<ClientProps, 'predictions'>;
+export type CreateClientProps = Omit<ClientProps, 'predictions' | 'visits'>;
 export interface LoadClientProps extends ClientProps {}
 
 export class Client implements ClientProps {

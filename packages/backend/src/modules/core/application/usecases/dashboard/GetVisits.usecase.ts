@@ -6,7 +6,8 @@ import { ClientDto } from '../../dto/Client.dto';
 import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
 import { AgriculturalEngineerAppMapper } from '../../mappers/AgriculturalEngineer.mapper';
 import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
-
+import { VisitAppMapper } from '../../mappers/Visit.mapper';
+import { VisitDto } from '../../dto/Visit.dto';
 export type GetVisitsUseCaseExceptions =
     | RepositoryNoDataFound
     | TechnicalException;
@@ -14,30 +15,29 @@ export type GetVisitsUseCaseExceptions =
 @Injectable()
 export class GetVisitsUseCase {
     constructor(
-        @Inject('EngineerRepository')
+        @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
     ) {}
 
     async execute(
         engineerId: string,
         clientId: string,
-    ): Promise<Result<GetVisitsUseCaseExceptions, AgriculturalEngineerDto>> {
-        const engineer = await this.engineerRepository.getVisits(
-            engineerId,
-            clientId,
-        );
+    ): Promise<Result<GetVisitsUseCaseExceptions, VisitDto[]>> {
+        const engineer = await this.engineerRepository.getByUserId(engineerId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);
         }
 
-        if (!engineer.value.clients.length) {
-            return Res.failure(new RepositoryNoDataFound('No clients found'));
+        const visits = await this.engineerRepository.getVisits(
+            engineerId,
+            clientId,
+        );
+        if (visits.isFailure()) {
+            return Res.failure(visits.error);
         }
 
-        if (!engineer.value.clients[0].visits.length) {
-            return Res.failure(new RepositoryNoDataFound('No visits found'));
-        }
-
-        return Res.success(AgriculturalEngineerAppMapper.toDto(engineer.value));
+        return Res.success(
+            visits.value.map((visit) => VisitAppMapper.toDto(visit)),
+        );
     }
 }

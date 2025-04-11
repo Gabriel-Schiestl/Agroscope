@@ -2,6 +2,9 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Result } from 'src/shared/Result';
 import { AgriculturalEngineer } from '../models/AgriculturalEngineer';
+import { Visit } from '../models/Visit';
+import { Client } from '../models/Client';
+import { Report } from '../models/Report';
 
 export type AgriculturalEngineerRepositoryExceptions =
     | RepositoryNoDataFound
@@ -26,20 +29,17 @@ export interface AgriculturalEngineerRepository {
     >;
     getWithClients(
         engineerId: string,
-    ): Promise<
-        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
-    >;
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Client[]>>;
     getVisits(
         engineerId: string,
         clientId: string,
-    ): Promise<
-        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
-    >;
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>>;
     getReports(
         engineerId: string,
         clientId: string,
         visitId: string,
-    ): Promise<
-        Result<AgriculturalEngineerRepositoryExceptions, AgriculturalEngineer>
-    >;
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Report[]>>;
+    getLastVisits(
+        engineerId: string,
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>>;
 }

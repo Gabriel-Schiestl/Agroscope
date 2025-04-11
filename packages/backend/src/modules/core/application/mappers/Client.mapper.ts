@@ -1,5 +1,6 @@
 import { Client } from '../../domain/models/Client';
 import { ClientDto } from '../dto/Client.dto';
+import { VisitAppMapper } from './Visit.mapper';
 
 export class ClientAppMapper {
     static toDto(client: Client): ClientDto {
@@ -12,6 +13,7 @@ export class ClientAppMapper {
             telephone: client.telephone,
             totalArea: client.totalArea,
             totalAreaPlanted: client.totalAreaPlanted,
+            visits: client.visits?.map((visit) => VisitAppMapper.toDto(visit)),
         };
     }
 }

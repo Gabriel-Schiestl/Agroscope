@@ -6,6 +6,8 @@ import { ClientDto } from '../../dto/Client.dto';
 import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
 import { AgriculturalEngineerAppMapper } from '../../mappers/AgriculturalEngineer.mapper';
 import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
+import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { ClientAppMapper } from '../../mappers/Client.mapper';
 
 export type GetClientesUseCaseExceptions =
     | RepositoryNoDataFound
@@ -14,23 +16,27 @@ export type GetClientesUseCaseExceptions =
 @Injectable()
 export class GetClientesUseCase {
     constructor(
-        @Inject('EngineerRepository')
+        @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
     ) {}
 
     async execute(
         engineerId: string,
-    ): Promise<Result<GetClientesUseCaseExceptions, AgriculturalEngineerDto>> {
-        const engineer =
-            await this.engineerRepository.getWithClients(engineerId);
+    ): Promise<Result<GetClientesUseCaseExceptions, ClientDto[]>> {
+        const engineer = await this.engineerRepository.getByUserId(engineerId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);
         }
 
-        if (!engineer.value.clients || engineer.value.clients.length === 0) {
-            return Res.failure(new RepositoryNoDataFound('No clients found'));
+        const clients = await this.engineerRepository.getWithClients(
+            engineer.value.id,
+        );
+        if (clients.isFailure()) {
+            return Res.failure(clients.error);
         }
 
-        return Res.success(AgriculturalEngineerAppMapper.toDto(engineer.value));
+        return Res.success(
+            clients.value.map((client) => ClientAppMapper.toDto(client)),
+        );
     }
 }

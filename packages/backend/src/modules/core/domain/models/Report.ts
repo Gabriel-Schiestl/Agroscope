@@ -23,6 +23,7 @@ export interface CreateReportProps
     content: string;
     status: ReportStatus;
     attachments?: string[];
+    createdAt?: Date;
 }
 
 export interface LoadReportProps extends Omit<ReportProps, 'id'> {
@@ -47,7 +48,7 @@ export class Report implements ReportProps {
         this.#content = props.content;
         this.#status = props.status;
         this.#attachments = props.attachments;
-        this.#createdAt = new Date();
+        this.#createdAt = props.createdAt ?? new Date();
     }
 
     static create(props: CreateReportProps): Result<BusinessException, Report> {

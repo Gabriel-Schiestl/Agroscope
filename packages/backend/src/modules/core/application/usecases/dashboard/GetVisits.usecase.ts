@@ -29,7 +29,7 @@ export class GetVisitsUseCase {
         }
 
         const visits = await this.engineerRepository.getVisits(
-            engineerId,
+            engineer.value.id,
             clientId,
         );
         if (visits.isFailure()) {

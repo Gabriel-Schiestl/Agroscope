@@ -10,11 +10,13 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { AgriculturalEngineerModel } from '../models/AgriculturalEngineer.model';
 import { VisitMapper } from '../mappers/Visit.mapper';
-import { Visit } from '../../domain/models/Visit';
+import { Visit, VisitStatus } from '../../domain/models/Visit';
 import { Client } from '../../domain/models/Client';
 import { ClientMapper } from '../mappers/Client.mapper';
 import { ReportMapper } from '../mappers/Report.mapper';
-import { Report } from '../../domain/models/Report';
+import { Report, ReportStatus } from '../../domain/models/Report';
+import { VisitModel } from '../models/Visit.model';
+import { ReportModel } from '../models/Report.model';
 
 @Injectable()
 export class AgriculturalEngineerImpl
@@ -129,16 +131,18 @@ export class AgriculturalEngineerImpl
             const models = await AgriculturalEngineerModel.createQueryBuilder(
                 'engineer',
             )
-                .leftJoinAndSelect(
-                    'engineer.clients',
-                    'clients',
-                    'clients.id = :clientId',
-                    { clientId },
-                )
+                .leftJoinAndSelect('engineer.clients', 'clients')
                 .leftJoinAndSelect('clients.visits', 'visits')
-                .where('engineer.id = :engineerId', {
-                    engineerId,
-                })
+                .where('engineer.id = :engineerId', { engineerId })
+                .andWhere('clients.id = :clientId', { clientId })
+                .select([
+                    'visits.id',
+                    'visits.scheduledDate',
+                    'visits.status',
+                    'visits.notes',
+                    'visits.created_at',
+                    'visits.updated_at',
+                ])
                 .getRawMany();
 
             if (!models || models.length === 0) {
@@ -147,12 +151,31 @@ export class AgriculturalEngineerImpl
                 );
             }
 
-            const domainVisits = models
-                .filter((visit) => visit.visits_id)
-                .map((visit) => VisitMapper.modelToDomain(visit))
-                .filter((visit): visit is Visit => visit !== null);
+            const validVisits = models.filter(
+                (model) => model.reports_id !== null,
+            );
 
-            return Res.success(domainVisits);
+            if (validVisits.length === 0) {
+                return Res.failure(
+                    new RepositoryNoDataFound('No visits found'),
+                );
+            }
+
+            const formattedVisits: VisitModel[] = validVisits.map((model) =>
+                new VisitModel().setProps({
+                    id: model.visits_id as string,
+                    status: model.visits_status as VisitStatus,
+                    scheduledDate: model.visits_scheduledDate as Date,
+                    notes: model.visits_notes as string,
+                    createdAt: model.visits_created_at as Date,
+                }),
+            );
+
+            return Res.success(
+                formattedVisits.map((visit) =>
+                    VisitMapper.modelToDomain(visit),
+                ),
+            );
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }
@@ -164,41 +187,57 @@ export class AgriculturalEngineerImpl
         visitId: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Report[]>> {
         try {
-            const model = await AgriculturalEngineerModel.createQueryBuilder(
+            const models = await AgriculturalEngineerModel.createQueryBuilder(
                 'engineer',
             )
-                .leftJoinAndSelect(
-                    'engineer.clients',
-                    'clients',
-                    'clients.id = :clientId',
-                    { clientId },
-                )
-                .leftJoinAndSelect(
-                    'clients.visits',
-                    'visits',
-                    'visits.id = :visitId',
-                    {
-                        visitId,
-                    },
-                )
+                .leftJoinAndSelect('engineer.clients', 'clients')
+                .leftJoinAndSelect('clients.visits', 'visits')
                 .leftJoinAndSelect('visits.reports', 'reports')
-                .where('engineer.id = :engineerId', {
-                    engineerId,
-                })
+                .where('engineer.id = :engineerId', { engineerId })
+                .andWhere('clients.id = :clientId', { clientId })
+                .andWhere('visits.id = :visitId', { visitId })
+                .select([
+                    'reports.id',
+                    'reports.title',
+                    'reports.content',
+                    'reports.status',
+                    'reports.attachments',
+                    'reports.created_at',
+                ])
                 .getRawMany();
 
-            if (!model || model.length === 0) {
+            if (!models || models.length === 0) {
                 return Res.failure(
-                    new RepositoryNoDataFound('AgriculturalEngineer not found'),
+                    new RepositoryNoDataFound('No reports found'),
+                );
+            }
+            console.log(models);
+            const validReports = models.filter(
+                (model) => model.reports_id !== null,
+            );
+
+            if (validReports.length === 0) {
+                return Res.failure(
+                    new RepositoryNoDataFound('No reports found'),
                 );
             }
 
-            const domainReports = model
-                .filter((report) => report.reports_id)
-                .map((report) => ReportMapper.modelToDomain(report))
-                .filter((report): report is Report => report !== null);
+            const formattedReports: ReportModel[] = validReports.map((model) =>
+                new ReportModel().setProps({
+                    id: model.reports_id as string,
+                    title: model.reports_title as string,
+                    content: model.reports_content as string,
+                    status: model.reports_status as ReportStatus,
+                    attachments: model.reports_attachments as string[],
+                    createdAt: model.created_at as Date,
+                }),
+            );
 
-            return Res.success(domainReports);
+            return Res.success(
+                formattedReports.map((report) =>
+                    ReportMapper.modelToDomain(report),
+                ),
+            );
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }

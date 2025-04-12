@@ -9,6 +9,7 @@ export class ReportAppMapper {
             content: report.content,
             status: report.status,
             attachments: report.attachments,
+            createdAt: report.createdAt,
         };
     }
 }

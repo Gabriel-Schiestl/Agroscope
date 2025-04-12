@@ -23,7 +23,6 @@ export class ClientDto {
     @IsString()
     document: string;
 
-    @IsString()
     address: Address;
 
     @IsNumber()

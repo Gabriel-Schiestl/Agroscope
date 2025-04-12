@@ -1,12 +1,12 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class Db031743550495995 implements MigrationInterface {
-    name = 'Db031743550495995'
+    name = 'Db031743550495995';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             ALTER TABLE "history"
-            ADD "sicknessId" uuid
+            ADD "sicknessId" uuid NULL
         `);
         await queryRunner.query(`
             ALTER TABLE "history"
@@ -22,5 +22,4 @@ export class Db031743550495995 implements MigrationInterface {
             ALTER TABLE "history" DROP COLUMN "sicknessId"
         `);
     }
-
 }

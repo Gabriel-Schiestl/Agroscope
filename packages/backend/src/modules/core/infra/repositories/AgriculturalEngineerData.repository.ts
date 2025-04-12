@@ -143,7 +143,7 @@ export class AgriculturalEngineerImpl
 
             if (!models || models.length === 0) {
                 return Res.failure(
-                    new RepositoryNoDataFound('AgriculturalEngineer not found'),
+                    new RepositoryNoDataFound('No visits found'),
                 );
             }
 

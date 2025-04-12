@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class Db021743550179236 implements MigrationInterface {
-    name = 'Db021743550179236'
+    name = 'Db021743550179236';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -36,5 +36,4 @@ export class Db021743550179236 implements MigrationInterface {
             ADD CONSTRAINT "FK_82a25a3a3cca8f81d3ee504950e" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     }
-
 }

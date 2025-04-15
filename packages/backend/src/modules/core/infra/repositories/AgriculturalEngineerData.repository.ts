@@ -11,7 +11,7 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { AgriculturalEngineerModel } from '../models/AgriculturalEngineer.model';
 import { VisitMapper } from '../mappers/Visit.mapper';
 import { Visit, VisitStatus } from '../../domain/models/Visit';
-import { Client } from '../../domain/models/Client';
+import { Client, Crop } from '../../domain/models/Client';
 import { ClientMapper } from '../mappers/Client.mapper';
 import { ReportMapper } from '../mappers/Report.mapper';
 import { Report, ReportStatus } from '../../domain/models/Report';
@@ -254,10 +254,27 @@ export class AgriculturalEngineerImpl
                 .leftJoinAndSelect('clients.visits', 'visits')
                 .where('engineer.id = :engineerId', { engineerId })
                 .orderBy('visits.created_at', 'DESC')
+                .select([
+                    'visits.id',
+                    'visits.scheduledDate',
+                    'visits.status',
+                    'visits.notes',
+                    'visits.created_at',
+                ])
                 .take(5)
                 .getRawMany();
 
-            if (!visits || visits.length === 0) {
+            const formattedVisits: VisitModel[] = visits.map((model) =>
+                new VisitModel().setProps({
+                    id: model.visits_id as string,
+                    status: model.visits_status as VisitStatus,
+                    scheduledDate: model.visits_scheduledDate as Date,
+                    notes: model.visits_notes as string,
+                    createdAt: model.visits_created_at as Date,
+                }),
+            );
+
+            if (!formattedVisits || formattedVisits.length === 0) {
                 return Res.failure(
                     new RepositoryNoDataFound(
                         'No visits found for the engineer',
@@ -266,7 +283,40 @@ export class AgriculturalEngineerImpl
             }
 
             return Res.success(
-                visits.map((visit) => VisitMapper.modelToDomain(visit)),
+                formattedVisits.map((visit) =>
+                    VisitMapper.modelToDomain(visit),
+                ),
+            );
+        } catch (e) {
+            return Res.failure(new TechnicalException(e));
+        }
+    }
+
+    async getClientsByCrop(
+        engineerId: string,
+        crop: Crop,
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Client[]>> {
+        try {
+            const model = await AgriculturalEngineerModel.findOne({
+                where: { id: engineerId, clients: { actualCrop: crop } },
+                relations: ['clients'],
+            });
+            if (!model) {
+                return Res.failure(
+                    new RepositoryNoDataFound('No clients found'),
+                );
+            }
+
+            if (!model.clients || model.clients.length === 0) {
+                return Res.failure(
+                    new RepositoryNoDataFound('No clients found'),
+                );
+            }
+
+            return Res.success(
+                model.clients?.map((client) =>
+                    ClientMapper.modelToDomain(client),
+                ),
             );
         } catch (e) {
             return Res.failure(new TechnicalException(e));

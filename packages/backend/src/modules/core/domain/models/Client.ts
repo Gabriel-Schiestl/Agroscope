@@ -1,13 +1,18 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
-import { History } from './History';
 import { Address } from './Address';
 import { Visit } from './Visit';
 
 export enum PersonType {
     CPF = 'PF',
     CNPJ = 'PJ',
+}
+
+export enum Crop {
+    SOYBEAN = 'SOJA',
+    CORN = 'MILHO',
+    WHEAT = 'TRIGO',
 }
 
 export interface ClientProps {
@@ -18,10 +23,12 @@ export interface ClientProps {
     address: Address;
     totalArea: number;
     totalAreaPlanted: number;
+    actualCrop?: Crop;
+    active: boolean;
     visits?: Visit[];
 }
 
-export type CreateClientProps = Omit<ClientProps, 'predictions' | 'visits'>;
+export type CreateClientProps = Omit<ClientProps, 'visits' | 'active'>;
 export interface LoadClientProps extends ClientProps {}
 
 export class Client implements ClientProps {
@@ -33,6 +40,8 @@ export class Client implements ClientProps {
     #address: Address;
     #totalArea: number;
     #totalAreaPlanted: number;
+    #active: boolean = true;
+    #actualCrop?: Crop;
     #visits?: Visit[];
 
     private constructor(props: ClientProps, id?: string) {
@@ -44,6 +53,8 @@ export class Client implements ClientProps {
         this.#address = props.address;
         this.#totalArea = props.totalArea;
         this.#totalAreaPlanted = props.totalAreaPlanted;
+        this.#active = props.active;
+        this.#actualCrop = props.actualCrop;
         this.#visits = props.visits;
     }
 
@@ -71,7 +82,7 @@ export class Client implements ClientProps {
                 new BusinessException('Total area planted is required'),
             );
 
-        return Res.success(new Client(props));
+        return Res.success(new Client({ ...props, active: true }));
     }
 
     static load(props: LoadClientProps, id: string): Client {
@@ -108,6 +119,14 @@ export class Client implements ClientProps {
 
     get totalAreaPlanted() {
         return this.#totalAreaPlanted;
+    }
+
+    get active() {
+        return this.#active;
+    }
+
+    get actualCrop() {
+        return this.#actualCrop;
     }
 
     get visits() {

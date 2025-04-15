@@ -3,7 +3,7 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Result } from 'src/shared/Result';
 import { AgriculturalEngineer } from '../models/AgriculturalEngineer';
 import { Visit } from '../models/Visit';
-import { Client } from '../models/Client';
+import { Client, Crop } from '../models/Client';
 import { Report } from '../models/Report';
 
 export type AgriculturalEngineerRepositoryExceptions =
@@ -42,4 +42,8 @@ export interface AgriculturalEngineerRepository {
     getLastVisits(
         engineerId: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>>;
+    getClientsByCrop(
+        engineerId: string,
+        crop: Crop,
+    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Client[]>>;
 }

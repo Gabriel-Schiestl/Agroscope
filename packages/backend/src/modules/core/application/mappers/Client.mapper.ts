@@ -13,6 +13,8 @@ export class ClientAppMapper {
             telephone: client.telephone,
             totalArea: client.totalArea,
             totalAreaPlanted: client.totalAreaPlanted,
+            active: client.active,
+            actualCrop: client.actualCrop,
             visits: client.visits?.map((visit) => VisitAppMapper.toDto(visit)),
         };
     }

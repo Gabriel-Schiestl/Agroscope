@@ -9,7 +9,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../domain/models/Address';
-import { PersonType } from '../../domain/models/Client';
+import { Crop, PersonType } from '../../domain/models/Client';
 import { AgriculturalEngineerModel } from './AgriculturalEngineer.model';
 import { VisitModel } from './Visit.model';
 
@@ -21,6 +21,8 @@ export interface ClientModelProps {
     address: Address;
     totalArea: number;
     totalAreaPlanted: number;
+    active: boolean;
+    actualCrop?: Crop;
     visits?: VisitModel[];
 }
 
@@ -62,6 +64,12 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
+
+    @Column({ name: 'active', default: true })
+    active: boolean;
+
+    @Column({ nullable: true })
+    actualCrop?: Crop;
 
     @OneToMany(() => VisitModel, (visit) => visit.client, {
         nullable: true,

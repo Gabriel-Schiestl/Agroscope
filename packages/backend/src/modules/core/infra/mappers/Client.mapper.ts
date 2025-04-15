@@ -13,6 +13,8 @@ export class ClientMapper {
             address: client.address,
             totalArea: client.totalArea,
             totalAreaPlanted: client.totalAreaPlanted,
+            active: client.active,
+            actualCrop: client.actualCrop,
             visits: client.visits
                 ? client.visits.map(VisitMapper.domainToModel)
                 : [],
@@ -29,6 +31,8 @@ export class ClientMapper {
                 address: Address.create(client.address),
                 totalArea: client.totalArea,
                 totalAreaPlanted: client.totalAreaPlanted,
+                active: client.active,
+                actualCrop: client.actualCrop,
                 visits: client.visits
                     ? client.visits.map(VisitMapper.modelToDomain)
                     : [],

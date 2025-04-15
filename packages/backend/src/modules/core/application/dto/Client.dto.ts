@@ -1,7 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+    IsArray,
+    IsBoolean,
+    IsNumber,
+    IsOptional,
+    IsString,
+} from 'class-validator';
 import { HistoryDto } from './History.dto';
-import { PersonType } from '../../domain/models/Client';
+import { Crop, PersonType } from '../../domain/models/Client';
 import { Address } from '../../domain/models/Address';
 import { Visit } from '../../domain/models/Visit';
 import { VisitDto } from './Visit.dto';
@@ -31,9 +37,15 @@ export class ClientDto {
     @IsNumber()
     totalAreaPlanted: number;
 
+    @IsBoolean()
+    active: boolean;
+
+    @IsOptional()
+    actualCrop?: Crop;
+
     @IsOptional()
     @Type(() => HistoryDto)
     visits?: VisitDto[];
 }
 
-export class CreateClientDto extends OmitType(ClientDto, ['id']) {}
+export class CreateClientDto extends OmitType(ClientDto, ['id', 'active']) {}

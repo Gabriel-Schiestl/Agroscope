@@ -18,8 +18,9 @@ export class AuthController {
         if (result.isSuccess()) {
             res.cookie('agroscope-authentication', result.value, {
                 httpOnly: true,
-                secure: false,
+                secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
+                maxAge: 1000 * 60 * 60 * 24 * 7,
             });
         }
 
@@ -31,7 +32,17 @@ export class AuthController {
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
         const isEngineer: boolean = req.user?.engineer;
+        const isAdmin: boolean = req.user?.admin;
 
-        return res.status(200).json({ isEngineer: isEngineer });
+        return res
+            .status(200)
+            .json({ isEngineer: isEngineer, isAdmin: isAdmin });
+    }
+
+    @Public()
+    @Get('csrf/token')
+    getCsrfToken(@Req() req: Request, @Res() res: Response) {
+        const csrfToken = req.csrfToken();
+        res.json({ csrfToken });
     }
 }

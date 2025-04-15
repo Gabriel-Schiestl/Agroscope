@@ -7,6 +7,12 @@ export default async function LoginAPI(email: string, password: string) {
       password,
     });
 
+    const csrfResponse = await api.get("/csrf/token");
+    const csrfToken = csrfResponse.data.csrfToken;
+    document.cookie = `csrf-token=${csrfToken}; path=/; secure=${
+      process.env.NODE_ENV === "production"
+    }; samesite=lax`;
+
     return true;
   } catch (error) {
     console.error("Erro ao fazer login:", error);

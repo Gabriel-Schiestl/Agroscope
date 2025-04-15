@@ -7,6 +7,8 @@ export class VisitMapper {
         return new VisitModel().setProps({
             id: visit.id,
             status: visit.status,
+            clientId: visit.clientId,
+            engineerId: visit.engineerId,
             notes: visit.notes,
             scheduledDate: visit.scheduledDate,
             reports: visit.reports
@@ -20,6 +22,8 @@ export class VisitMapper {
         return Visit.load(
             {
                 status: visit.status,
+                engineerId: visit.engineerId,
+                clientId: visit.clientId,
                 notes: visit.notes,
                 scheduledDate: visit.scheduledDate,
                 reports: visit.reports

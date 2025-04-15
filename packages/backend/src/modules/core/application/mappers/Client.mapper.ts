@@ -1,9 +1,14 @@
 import { Client } from '../../domain/models/Client';
+import { Visit } from '../../domain/models/Visit';
 import { ClientDto } from '../dto/Client.dto';
 import { VisitAppMapper } from './Visit.mapper';
 
+export interface ClientAppMapperProps extends Client {
+    visits?: Visit[];
+}
+
 export class ClientAppMapper {
-    static toDto(client: Client): ClientDto {
+    static toDto(client: ClientAppMapperProps): ClientDto {
         return {
             id: client.id,
             name: client.name,

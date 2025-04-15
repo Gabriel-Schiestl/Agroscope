@@ -15,9 +15,6 @@ export class ClientMapper {
             totalAreaPlanted: client.totalAreaPlanted,
             active: client.active,
             actualCrop: client.actualCrop,
-            visits: client.visits
-                ? client.visits.map(VisitMapper.domainToModel)
-                : [],
         });
     }
 
@@ -33,9 +30,6 @@ export class ClientMapper {
                 totalAreaPlanted: client.totalAreaPlanted,
                 active: client.active,
                 actualCrop: client.actualCrop,
-                visits: client.visits
-                    ? client.visits.map(VisitMapper.modelToDomain)
-                    : [],
             },
             client.id,
         );

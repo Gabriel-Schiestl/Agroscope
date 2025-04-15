@@ -25,7 +25,6 @@ export interface ClientProps {
     totalAreaPlanted: number;
     actualCrop?: Crop;
     active: boolean;
-    visits?: Visit[];
 }
 
 export type CreateClientProps = Omit<ClientProps, 'visits' | 'active'>;
@@ -42,7 +41,6 @@ export class Client implements ClientProps {
     #totalAreaPlanted: number;
     #active: boolean = true;
     #actualCrop?: Crop;
-    #visits?: Visit[];
 
     private constructor(props: ClientProps, id?: string) {
         this.#id = id || uuid();
@@ -55,7 +53,6 @@ export class Client implements ClientProps {
         this.#totalAreaPlanted = props.totalAreaPlanted;
         this.#active = props.active;
         this.#actualCrop = props.actualCrop;
-        this.#visits = props.visits;
     }
 
     static create(props: CreateClientProps): Result<BusinessException, Client> {
@@ -127,9 +124,5 @@ export class Client implements ClientProps {
 
     get actualCrop() {
         return this.#actualCrop;
-    }
-
-    get visits() {
-        return this.#visits;
     }
 }

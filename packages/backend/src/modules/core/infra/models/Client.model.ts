@@ -23,7 +23,6 @@ export interface ClientModelProps {
     totalAreaPlanted: number;
     active: boolean;
     actualCrop?: Crop;
-    visits?: VisitModel[];
 }
 
 @Entity('clients')
@@ -70,12 +69,6 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
 
     @Column({ nullable: true })
     actualCrop?: Crop;
-
-    @OneToMany(() => VisitModel, (visit) => visit.client, {
-        nullable: true,
-        cascade: true,
-    })
-    visits: VisitModel[];
 
     setProps(props: ClientModelProps): ClientModel {
         Object.assign(this, props);

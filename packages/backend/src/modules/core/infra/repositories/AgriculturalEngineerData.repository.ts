@@ -124,26 +124,12 @@ export class AgriculturalEngineerImpl
     }
 
     async getVisits(
-        engineerId: string,
         clientId: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>> {
         try {
-            const models = await AgriculturalEngineerModel.createQueryBuilder(
-                'engineer',
-            )
-                .leftJoinAndSelect('engineer.clients', 'clients')
-                .leftJoinAndSelect('clients.visits', 'visits')
-                .where('engineer.id = :engineerId', { engineerId })
-                .andWhere('clients.id = :clientId', { clientId })
-                .select([
-                    'visits.id',
-                    'visits.scheduledDate',
-                    'visits.status',
-                    'visits.notes',
-                    'visits.created_at',
-                    'visits.updated_at',
-                ])
-                .getRawMany();
+            const models = await VisitModel.find({
+                where: { clientId },
+            });
 
             if (!models || models.length === 0) {
                 return Res.failure(
@@ -151,30 +137,8 @@ export class AgriculturalEngineerImpl
                 );
             }
 
-            const validVisits = models.filter(
-                (model) => model.reports_id !== null,
-            );
-
-            if (validVisits.length === 0) {
-                return Res.failure(
-                    new RepositoryNoDataFound('No visits found'),
-                );
-            }
-
-            const formattedVisits: VisitModel[] = validVisits.map((model) =>
-                new VisitModel().setProps({
-                    id: model.visits_id as string,
-                    status: model.visits_status as VisitStatus,
-                    scheduledDate: model.visits_scheduledDate as Date,
-                    notes: model.visits_notes as string,
-                    createdAt: model.visits_created_at as Date,
-                }),
-            );
-
             return Res.success(
-                formattedVisits.map((visit) =>
-                    VisitMapper.modelToDomain(visit),
-                ),
+                models.map((visit) => VisitMapper.modelToDomain(visit)),
             );
         } catch (e) {
             return Res.failure(new TechnicalException(e));
@@ -182,59 +146,22 @@ export class AgriculturalEngineerImpl
     }
 
     async getReports(
-        engineerId: string,
-        clientId: string,
         visitId: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Report[]>> {
         try {
-            const models = await AgriculturalEngineerModel.createQueryBuilder(
-                'engineer',
-            )
-                .leftJoinAndSelect('engineer.clients', 'clients')
-                .leftJoinAndSelect('clients.visits', 'visits')
-                .leftJoinAndSelect('visits.reports', 'reports')
-                .where('engineer.id = :engineerId', { engineerId })
-                .andWhere('clients.id = :clientId', { clientId })
-                .andWhere('visits.id = :visitId', { visitId })
-                .select([
-                    'reports.id',
-                    'reports.title',
-                    'reports.content',
-                    'reports.status',
-                    'reports.attachments',
-                    'reports.created_at',
-                ])
-                .getRawMany();
+            const model = await VisitModel.findOne({
+                where: { id: visitId },
+                relations: ['reports'],
+            });
 
-            if (!models || models.length === 0) {
+            if (!model) {
                 return Res.failure(
                     new RepositoryNoDataFound('No reports found'),
                 );
             }
-            console.log(models);
-            const validReports = models.filter(
-                (model) => model.reports_id !== null,
-            );
-
-            if (validReports.length === 0) {
-                return Res.failure(
-                    new RepositoryNoDataFound('No reports found'),
-                );
-            }
-
-            const formattedReports: ReportModel[] = validReports.map((model) =>
-                new ReportModel().setProps({
-                    id: model.reports_id as string,
-                    title: model.reports_title as string,
-                    content: model.reports_content as string,
-                    status: model.reports_status as ReportStatus,
-                    attachments: model.reports_attachments as string[],
-                    createdAt: model.created_at as Date,
-                }),
-            );
 
             return Res.success(
-                formattedReports.map((report) =>
+                model.reports.map((report) =>
                     ReportMapper.modelToDomain(report),
                 ),
             );
@@ -247,45 +174,20 @@ export class AgriculturalEngineerImpl
         engineerId: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>> {
         try {
-            const visits = await AgriculturalEngineerModel.createQueryBuilder(
-                'engineer',
-            )
-                .leftJoinAndSelect('engineer.clients', 'clients')
-                .leftJoinAndSelect('clients.visits', 'visits')
-                .where('engineer.id = :engineerId', { engineerId })
-                .orderBy('visits.created_at', 'DESC')
-                .select([
-                    'visits.id',
-                    'visits.scheduledDate',
-                    'visits.status',
-                    'visits.notes',
-                    'visits.created_at',
-                ])
-                .take(5)
-                .getRawMany();
+            const visits = await VisitModel.find({
+                where: { engineerId },
+                order: { scheduledDate: 'DESC' },
+                take: 5,
+            });
 
-            const formattedVisits: VisitModel[] = visits.map((model) =>
-                new VisitModel().setProps({
-                    id: model.visits_id as string,
-                    status: model.visits_status as VisitStatus,
-                    scheduledDate: model.visits_scheduledDate as Date,
-                    notes: model.visits_notes as string,
-                    createdAt: model.visits_created_at as Date,
-                }),
-            );
-
-            if (!formattedVisits || formattedVisits.length === 0) {
+            if (!visits || visits.length === 0) {
                 return Res.failure(
-                    new RepositoryNoDataFound(
-                        'No visits found for the engineer',
-                    ),
+                    new RepositoryNoDataFound('No visits found'),
                 );
             }
 
             return Res.success(
-                formattedVisits.map((visit) =>
-                    VisitMapper.modelToDomain(visit),
-                ),
+                visits.map((visit) => VisitMapper.modelToDomain(visit)),
             );
         } catch (e) {
             return Res.failure(new TechnicalException(e));

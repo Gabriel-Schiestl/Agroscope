@@ -1,12 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
+import { VisitRepository } from 'src/modules/core/domain/repositories/Visit.repository';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
-import { ClientDto } from '../../dto/Client.dto';
-import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
-import { AgriculturalEngineerAppMapper } from '../../mappers/AgriculturalEngineer.mapper';
-import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
-import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
 import { VisitDto } from '../../dto/Visit.dto';
 import { VisitAppMapper } from '../../mappers/Visit.mapper';
 
@@ -19,6 +16,8 @@ export class GetLastVisitsUseCase {
     constructor(
         @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
+        @Inject('VisitRepository')
+        private readonly visitRepository: VisitRepository,
     ) {}
 
     async execute(
@@ -29,7 +28,7 @@ export class GetLastVisitsUseCase {
             return Res.failure(engineer.error);
         }
 
-        const visits = await this.engineerRepository.getLastVisits(
+        const visits = await this.visitRepository.getLastVisits(
             engineer.value.id,
         );
         if (visits.isFailure()) {

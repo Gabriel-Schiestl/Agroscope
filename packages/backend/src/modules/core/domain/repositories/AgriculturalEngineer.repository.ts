@@ -30,18 +30,6 @@ export interface AgriculturalEngineerRepository {
     getWithClients(
         engineerId: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Client[]>>;
-    getVisits(
-        engineerId: string,
-        clientId: string,
-    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>>;
-    getReports(
-        engineerId: string,
-        clientId: string,
-        visitId: string,
-    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Report[]>>;
-    getLastVisits(
-        engineerId: string,
-    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>>;
     getClientsByCrop(
         engineerId: string,
         crop: Crop,

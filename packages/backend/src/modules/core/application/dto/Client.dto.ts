@@ -44,7 +44,7 @@ export class ClientDto {
     actualCrop?: Crop;
 
     @IsOptional()
-    @Type(() => HistoryDto)
+    @Type(() => VisitDto)
     visits?: VisitDto[];
 }
 

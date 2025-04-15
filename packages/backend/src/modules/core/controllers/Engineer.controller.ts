@@ -34,21 +34,13 @@ export class EngineerController {
     }
 
     @Get('visits/:clientId')
-    async getVisits(@Req() req: any, @Param('clientId') clientId: string) {
-        return await this.getVisitsUseCase.execute(req.user.id, clientId);
+    async getVisits(@Param('clientId') clientId: string) {
+        return await this.getVisitsUseCase.execute(clientId);
     }
 
-    @Get('reports/:clientId/:visitId')
-    async getReports(
-        @Req() req: any,
-        @Param('clientId') clientId: string,
-        @Param('visitId') visitId: string,
-    ) {
-        return await this.getReportsUseCase.execute(
-            req.user.id,
-            clientId,
-            visitId,
-        );
+    @Get('reports/:visitId')
+    async getReports(@Param('visitId') visitId: string) {
+        return await this.getReportsUseCase.execute(visitId);
     }
 
     @Get('last-visits')

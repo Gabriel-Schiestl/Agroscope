@@ -12,6 +12,8 @@ export enum VisitStatus {
 export interface VisitProps {
     id: string;
     status: VisitStatus;
+    engineerId: string;
+    clientId: string;
     notes?: string;
     scheduledDate?: Date;
     reports?: Report[];
@@ -20,6 +22,8 @@ export interface VisitProps {
 
 export interface CreateVisitProps extends Omit<VisitProps, 'createdAt' | 'id'> {
     status: VisitStatus;
+    engineerId: string;
+    clientId: string;
     notes?: string;
     scheduledDate?: Date;
     reports?: Report[];
@@ -27,6 +31,8 @@ export interface CreateVisitProps extends Omit<VisitProps, 'createdAt' | 'id'> {
 
 export interface LoadVisitProps extends Omit<VisitProps, 'id'> {
     status: VisitStatus;
+    engineerId: string;
+    clientId: string;
     notes?: string;
     scheduledDate?: Date;
     reports?: Report[];
@@ -36,6 +42,8 @@ export interface LoadVisitProps extends Omit<VisitProps, 'id'> {
 export class Visit implements VisitProps {
     #id: string;
     #status: VisitStatus;
+    #engineerId: string;
+    #clientId: string;
     #scheduledDate?: Date;
     #notes?: string;
     #reports?: Report[];
@@ -44,6 +52,8 @@ export class Visit implements VisitProps {
     private constructor(props: CreateVisitProps, id?: string) {
         this.#id = id ?? uuidv4();
         this.#status = props.status;
+        this.#engineerId = props.engineerId;
+        this.#clientId = props.clientId;
         this.#notes = props.notes;
         this.#scheduledDate = props.scheduledDate;
         this.#reports = props.reports;
@@ -69,6 +79,14 @@ export class Visit implements VisitProps {
 
     get status(): VisitStatus {
         return this.#status;
+    }
+
+    get engineerId(): string {
+        return this.#engineerId;
+    }
+
+    get clientId(): string {
+        return this.#clientId;
     }
 
     get notes(): string | undefined {

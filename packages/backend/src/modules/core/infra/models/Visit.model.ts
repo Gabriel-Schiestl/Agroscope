@@ -16,6 +16,8 @@ import { VisitStatus } from '../../domain/models/Visit';
 export interface VisitModelProps {
     id: string;
     status: VisitStatus;
+    engineerId: string;
+    clientId: string;
     notes?: string;
     scheduledDate?: Date;
     reports?: ReportModel[];
@@ -36,11 +38,11 @@ export class VisitModel extends BaseEntity implements VisitModelProps {
     @Column({ type: 'text', nullable: true })
     notes: string;
 
-    @ManyToOne(() => ClientModel, (client) => client.visits, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'client_id' })
-    client: ClientModel;
+    @Column({ name: 'client_id' })
+    clientId: string;
+
+    @Column({ name: 'engineer_id' })
+    engineerId: string;
 
     @OneToMany(() => ReportModel, (report) => report.visit, {
         nullable: true,

@@ -5,40 +5,50 @@ const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.request.use(
-  async (config) => {
-    if (
-      ["post", "put", "delete"].includes(config.method?.toLowerCase() ?? "")
-    ) {
-      let csrfToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("csrf-token="))
-        ?.split("=")[1];
+let cachedCsrfToken: string | null = null;
+let tokenPromise: Promise<void> | null = null;
 
-      if (!csrfToken) {
-        try {
-          const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/csrf/token`,
-            {
-              withCredentials: true,
-            }
-          );
-          csrfToken = response.data.csrfToken;
-          document.cookie = `csrf-token=${csrfToken}; path=/; secure=${
-            process.env.NODE_ENV === "production"
-          }; samesite=lax`;
-        } catch (error) {
-          console.error("Erro ao obter token CSRF:", error);
+api.interceptors.request.use(async (config) => {
+  await ensureCsrfToken();
+  if (cachedCsrfToken) {
+    config.headers["X-CSRF-TOKEN"] = cachedCsrfToken;
+  }
+  return config;
+});
+
+export async function ensureCsrfToken() {
+  if (cachedCsrfToken) {
+    return;
+  }
+
+  if (tokenPromise) {
+    return tokenPromise;
+  }
+
+  tokenPromise = (async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/csrf/token`,
+        {
+          withCredentials: true,
         }
-      }
+      );
 
-      if (csrfToken) {
-        config.headers["X-CSRF-TOKEN"] = csrfToken;
-      }
+      cachedCsrfToken = response.data.csrfToken;
+    } catch (error) {
+      console.error("Erro ao obter CSRF token:", error);
+    } finally {
+      tokenPromise = null;
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  })();
+
+  return tokenPromise;
+}
+
+export function initializeCSRF() {
+  if (typeof window !== "undefined") {
+    ensureCsrfToken();
+  }
+}
 
 export default api;

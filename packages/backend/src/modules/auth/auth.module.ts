@@ -24,6 +24,10 @@ import { AuthController } from './controllers/Auth.controller';
         ...repositories,
         ...mappers,
         AuthGuard,
+        {
+            provide: 'AES_KEY',
+            useValue: process.env.AES_KEY,
+        },
     ],
     exports: [...repositories, ...services],
 })

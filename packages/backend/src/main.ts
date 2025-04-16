@@ -6,17 +6,18 @@ import { AuthGuard } from './modules/auth/infra/services/Auth.guard';
 import { Transport } from '@nestjs/microservices';
 import { doubleCsrf } from 'csrf-csrf';
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 config();
 
 const { doubleCsrfProtection } = doubleCsrf({
-  getSecret: () => process.env.CSRF_SECRET,
-  cookieName: 'csrf-token',
-  cookieOptions: {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-  },
+    getSecret: () => process.env.CSRF_SECRET,
+    cookieName: 'csrf-token',
+    cookieOptions: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+    },
 });
 
 async function bootstrap() {
@@ -26,6 +27,23 @@ async function bootstrap() {
 
     app.use(cookieParser());
     app.use(doubleCsrfProtection);
+
+    app.use(
+        helmet({
+            frameguard: { action: 'deny' },
+            noSniff: true,
+            strictTransportSecurity: {
+                maxAge: 31536000,
+                includeSubDomains: true,
+                preload: true,
+            },
+            contentSecurityPolicy: true,
+            referrerPolicy: { policy: 'no-referrer' },
+            crossOriginEmbedderPolicy: true,
+            crossOriginResourcePolicy: { policy: 'same-origin' },
+            crossOriginOpenerPolicy: { policy: 'same-origin' },
+        }),
+    );
 
     app.useGlobalInterceptors(app.get(ResponseInterceptor));
 

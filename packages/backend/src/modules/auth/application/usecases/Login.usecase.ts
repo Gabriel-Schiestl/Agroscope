@@ -9,6 +9,7 @@ import {
 } from '../../domain/services/Authentication.service';
 import { EncryptionService } from '../../domain/services/Encryption.service';
 import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
+import { AESService } from '../../domain/services/AES.service';
 
 export interface LoginUseCaseProps {
     email: string;
@@ -32,6 +33,8 @@ export class LoginUseCase {
         private readonly encryptionService: EncryptionService,
         @Inject('AgriculturalEngineerRepository')
         private readonly agriculturalEngineerRepository: AgriculturalEngineerRepository,
+        @Inject('AESService')
+        private readonly aesService: AESService,
     ) {}
 
     async execute(
@@ -93,6 +96,11 @@ export class LoginUseCase {
         if (saveAuthentication.isFailure())
             return Res.failure(saveAuthentication.error);
 
-        return Res.success(token);
+        const encryptedToken = await this.aesService.encrypt(token);
+        if (encryptedToken.isFailure()) {
+            return Res.failure(new UnauthorizedException('Error on login'));
+        }
+
+        return Res.success(encryptedToken.value);
     }
 }

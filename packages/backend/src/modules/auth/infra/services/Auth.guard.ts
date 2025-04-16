@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { AuthenticationService } from '../../domain/services/Authentication.service';
 import { Reflector } from '@nestjs/core';
+import { AESService } from '../../domain/services/AES.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -14,6 +15,8 @@ export class AuthGuard implements CanActivate {
         @Inject('AuthenticationService')
         private readonly authenticationService: AuthenticationService,
         private readonly reflector: Reflector,
+        @Inject('AESService')
+        private readonly aesService: AESService,
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -26,28 +29,22 @@ export class AuthGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
 
-        let token: string | undefined;
-
-        if (request.headers.cookie) {
-            const cookies = request.headers.cookie.split(';');
-            const agroscopeCookie = cookies.find((cookie) =>
-                cookie.trim().startsWith('agroscope-authentication='),
-            );
-            if (agroscopeCookie) {
-                token = agroscopeCookie.split('=')[1].trim();
-            }
-        }
-
-        token =
-            token ||
-            request.headers.authorization ||
-            request.cookies?.['agroscope-authentication'];
+        const token =
+            request.cookies?.['agroscope-authentication'] ||
+            request.headers['authorization'];
 
         if (!token) {
             throw new UnauthorizedException('Invalid token');
         }
 
-        const payload = await this.authenticationService.verify(token);
+        const decryptedToken = await this.aesService.decrypt(token);
+        if (decryptedToken.isFailure()) {
+            throw new UnauthorizedException('Invalid token');
+        }
+
+        const payload = await this.authenticationService.verify(
+            decryptedToken.value,
+        );
         if (payload.isFailure()) {
             throw new UnauthorizedException('Invalid token');
         }

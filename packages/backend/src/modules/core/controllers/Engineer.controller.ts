@@ -30,32 +30,42 @@ export class EngineerController {
 
     @Get('clients')
     async getClients(@Req() req: any) {
-        return await this.getClientsUseCase.execute(req.user.id);
+        return await this.getClientsUseCase.execute({
+            engineerId: req.user.sub,
+        });
     }
 
     @Get('visits/:clientId')
     async getVisits(@Param('clientId') clientId: string) {
-        return await this.getVisitsUseCase.execute(clientId);
+        return await this.getVisitsUseCase.execute({ clientId });
     }
 
     @Get('reports/:visitId')
     async getReports(@Param('visitId') visitId: string) {
-        return await this.getReportsUseCase.execute(visitId);
+        return await this.getReportsUseCase.execute({ visitId });
     }
 
     @Get('last-visits')
     async getLastVisits(@Req() req: any) {
-        return await this.getLastVisitsUseCase.execute(req.user.id);
+        return await this.getLastVisitsUseCase.execute({
+            engineerId: req.user.sub,
+        });
     }
 
     @Post('client')
     async createClient(@Req() req: any, @Body() clientDto: CreateClientDto) {
-        return await this.createClientUseCase.execute(req.user.id, clientDto);
+        return await this.createClientUseCase.execute({
+            clientDto,
+            engineerId: req.user.sub,
+        });
     }
 
     @Get('clients/:crop')
     async getClientsByCrop(@Req() req: any, @Param('crop') crop: string) {
-        return await this.getClientsByCropUseCase.execute(req.user.id, crop);
+        return await this.getClientsByCropUseCase.execute({
+            crop,
+            engineerId: req.user.sub,
+        });
     }
 
     // @Get('dashboard/overview')

@@ -32,7 +32,7 @@ export class CreateUserUseCase extends AbstractUseCase<
     ) {
         super();
     }
-    async execute(
+    async onExecute(
         props: CreateUserDto,
     ): Promise<Result<CreateUserUseCaseExceptions, void>> {
         const user = User.create(props);

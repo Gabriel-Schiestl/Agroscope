@@ -12,6 +12,7 @@ import FormData = require('form-data'); // Correção aqui
 import e = require('express');
 import { PredictService } from '../../domain/services/Predict.service';
 import { ProducerService } from '../../domain/services/Producer.service';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export interface PredictUseCaseResponse {
     prediction: string;
@@ -25,7 +26,11 @@ export interface UseCasesResponse<T> {
 }
 
 @Injectable()
-export class PredictUseCase {
+export class PredictUseCase extends AbstractUseCase<
+    { imagePath: string; userId: string },
+    Exception,
+    PredictUseCaseResponse
+> {
     constructor(
         @Inject('SicknessRepository')
         private readonly sicknessRepository: SicknessRepository,
@@ -37,12 +42,17 @@ export class PredictUseCase {
         private readonly predictService: PredictService,
         @Inject('ProducerService')
         private readonly producerService: ProducerService,
-    ) {}
+    ) {
+        super();
+    }
 
-    async execute(
-        imagePath: string,
-        userId: string,
-    ): Promise<Result<Exception, PredictUseCaseResponse>> {
+    async onExecute({
+        imagePath,
+        userId,
+    }: {
+        imagePath: string;
+        userId: string;
+    }): Promise<Result<Exception, PredictUseCaseResponse>> {
         const result = await this.predictService.predict(imagePath);
         if (result.isFailure()) return Res.failure(result.error);
 

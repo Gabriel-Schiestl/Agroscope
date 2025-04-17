@@ -10,7 +10,6 @@ export class UserController {
     @Public()
     @Post()
     async createUser(@Body() user: CreateUserDto) {
-        console.log(user);
         const result = await this.createUserCase.execute(user);
 
         return result;

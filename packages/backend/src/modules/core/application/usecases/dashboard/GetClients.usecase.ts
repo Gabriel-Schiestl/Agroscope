@@ -8,21 +8,30 @@ import { AgriculturalEngineerAppMapper } from '../../mappers/AgriculturalEnginee
 import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
 import { ClientAppMapper } from '../../mappers/Client.mapper';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export type GetClientesUseCaseExceptions =
     | RepositoryNoDataFound
     | TechnicalException;
 
 @Injectable()
-export class GetClientesUseCase {
+export class GetClientesUseCase extends AbstractUseCase<
+    { engineerId: string },
+    GetClientesUseCaseExceptions,
+    ClientDto[]
+> {
     constructor(
         @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
-    ) {}
+    ) {
+        super();
+    }
 
-    async execute(
-        engineerId: string,
-    ): Promise<Result<GetClientesUseCaseExceptions, ClientDto[]>> {
+    async onExecute({
+        engineerId,
+    }: {
+        engineerId: string;
+    }): Promise<Result<GetClientesUseCaseExceptions, ClientDto[]>> {
         const engineer = await this.engineerRepository.getByUserId(engineerId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);

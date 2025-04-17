@@ -27,17 +27,19 @@ export class CoreController {
         @UploadedFile() file: Express.Multer.File,
         @Req() req: Request,
     ) {
-        const result = await this.predictUseCase.execute(
-            file.path,
-            req['user'].sub,
-        );
+        const result = await this.predictUseCase.execute({
+            imagePath: file.path,
+            userId: req['user'].sub,
+        });
 
         return result;
     }
 
     @Get('history')
     async getHistory(@Req() req: Request) {
-        const result = await this.getHistoryUseCase.execute(req['user'].sub);
+        const result = await this.getHistoryUseCase.execute({
+            userId: req['user'].sub,
+        });
 
         return result;
     }

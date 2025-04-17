@@ -6,23 +6,32 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { VisitDto } from '../../dto/Visit.dto';
 import { VisitAppMapper } from '../../mappers/Visit.mapper';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export type GetLastVisitsUseCaseExceptions =
     | RepositoryNoDataFound
     | TechnicalException;
 
 @Injectable()
-export class GetLastVisitsUseCase {
+export class GetLastVisitsUseCase extends AbstractUseCase<
+    { engineerId: string },
+    GetLastVisitsUseCaseExceptions,
+    VisitDto[]
+> {
     constructor(
         @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
         @Inject('VisitRepository')
         private readonly visitRepository: VisitRepository,
-    ) {}
+    ) {
+        super();
+    }
 
-    async execute(
-        engineerId: string,
-    ): Promise<Result<GetLastVisitsUseCaseExceptions, VisitDto[]>> {
+    async onExecute({
+        engineerId,
+    }: {
+        engineerId: string;
+    }): Promise<Result<GetLastVisitsUseCaseExceptions, VisitDto[]>> {
         const engineer = await this.engineerRepository.getByUserId(engineerId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);

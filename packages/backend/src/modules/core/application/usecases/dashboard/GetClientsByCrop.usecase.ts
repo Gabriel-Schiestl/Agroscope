@@ -7,17 +7,24 @@ import { Res, Result } from 'src/shared/Result';
 import { ClientDto } from '../../dto/Client.dto';
 import { ClientAppMapper } from '../../mappers/Client.mapper';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export type GetClientsByCropUseCaseExceptions =
     | RepositoryNoDataFound
     | TechnicalException;
 
 @Injectable()
-export class GetClientsByCropUseCase {
+export class GetClientsByCropUseCase extends AbstractUseCase<
+    { engineerId: string; crop: string },
+    GetClientsByCropUseCaseExceptions,
+    ClientDto[]
+> {
     constructor(
         @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
-    ) {}
+    ) {
+        super();
+    }
 
     private mapStringToCrop(cropString: string): Crop | null {
         const normalizedCrop = cropString.toUpperCase().trim();
@@ -34,10 +41,13 @@ export class GetClientsByCropUseCase {
         return cropMapping[normalizedCrop] || null;
     }
 
-    async execute(
-        engineerId: string,
-        crop: string,
-    ): Promise<Result<GetClientsByCropUseCaseExceptions, ClientDto[]>> {
+    async onExecute({
+        engineerId,
+        crop,
+    }: {
+        engineerId: string;
+        crop: string;
+    }): Promise<Result<GetClientsByCropUseCaseExceptions, ClientDto[]>> {
         const engineer = await this.engineerRepository.getByUserId(engineerId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);

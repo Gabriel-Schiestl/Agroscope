@@ -5,21 +5,30 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { ReportDto } from '../../dto/Report.dto';
 import { ReportAppMapper } from '../../mappers/Report.mapper';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export type GetVisitsUseCaseExceptions =
     | RepositoryNoDataFound
     | TechnicalException;
 
 @Injectable()
-export class GetReportsUseCase {
+export class GetReportsUseCase extends AbstractUseCase<
+    { visitId: string },
+    GetVisitsUseCaseExceptions,
+    ReportDto[]
+> {
     constructor(
         @Inject('VisitRepository')
         private readonly visitRepository: VisitRepository,
-    ) {}
+    ) {
+        super();
+    }
 
-    async execute(
-        visitId: string,
-    ): Promise<Result<GetVisitsUseCaseExceptions, ReportDto[]>> {
+    async onExecute({
+        visitId,
+    }: {
+        visitId: string;
+    }): Promise<Result<GetVisitsUseCaseExceptions, ReportDto[]>> {
         const reports = await this.visitRepository.getReports(visitId);
         if (reports.isFailure()) {
             return Res.failure(reports.error);

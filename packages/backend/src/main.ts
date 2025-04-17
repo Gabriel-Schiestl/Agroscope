@@ -7,6 +7,7 @@ import { Transport } from '@nestjs/microservices';
 import { doubleCsrf } from 'csrf-csrf';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 config();
 

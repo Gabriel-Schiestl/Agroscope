@@ -5,12 +5,14 @@ import {
 } from '../application/usecases/Login.usecase';
 import { Response, Request } from 'express';
 import { Public } from 'PublicRoutes';
+import { minutes, Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
     constructor(private readonly loginUseCase: LoginUseCase) {}
 
     @Public()
+    @Throttle({ medium: { limit: 10, ttl: minutes(1) } })
     @Post('login')
     async login(@Body() body: LoginUseCaseProps, @Res() res: Response) {
         const result = await this.loginUseCase.execute(body);

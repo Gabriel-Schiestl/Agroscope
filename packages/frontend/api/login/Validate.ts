@@ -12,6 +12,7 @@ export default async function Validate(
       headers: {
         Authorization: `${cookie}`,
       },
+      timeout: 5000,
     });
 
     return response.data;

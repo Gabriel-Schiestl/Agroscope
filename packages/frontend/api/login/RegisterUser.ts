@@ -12,7 +12,7 @@ export default async function RegisterUser({
   password,
 }: RegisterUserProps) {
   try {
-    const response = await api.post("/user", {
+    const response = await api.post("/api/user", {
       email,
       name,
       password,

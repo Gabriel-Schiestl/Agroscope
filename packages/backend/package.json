@@ -32,6 +32,7 @@
         "@nestjs/mapped-types": "^2.1.0",
         "@nestjs/microservices": "^11.0.12",
         "@nestjs/platform-express": "^11.0.0",
+        "@nestjs/throttler": "^6.4.0",
         "@nestjs/typeorm": "^11.0.0",
         "amqp-connection-manager": "^4.1.14",
         "amqplib": "^0.10.7",

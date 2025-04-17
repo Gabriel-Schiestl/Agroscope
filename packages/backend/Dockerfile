@@ -17,6 +17,6 @@ COPY --from=build-stage /app/node_modules /app/node_modules
 
 COPY package.json /app/package.json
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["npm", "run", "start:prod"]

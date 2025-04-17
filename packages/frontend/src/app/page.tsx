@@ -25,10 +25,7 @@ export default function Home() {
   const [result, setResult] = useState<Data>({ prediction: "", handling: "" });
   const [url, setUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const apiUrl =
-    typeof window === "undefined"
-      ? process.env.NEXT_PUBLIC_API_URL
-      : "http://localhost:3000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

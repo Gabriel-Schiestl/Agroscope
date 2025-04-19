@@ -1,9 +1,9 @@
 "use client";
 
-import { CustomPieChart } from "../components/ui/charts/PieChart";
-import { CustomBarChart } from "../components/ui/charts/BarChart";
-import { CustomLineChart } from "../components/ui/charts/LineChart";
-import Sidebar from "../components/Sidebar";
+import { CustomPieChart } from "../../components/ui/charts/PieChart";
+import { CustomBarChart } from "../../components/ui/charts/BarChart";
+import { CustomLineChart } from "../../components/ui/charts/LineChart";
+import Sidebar from "../../components/Sidebar";
 
 export default function DashboardPage() {
   return (

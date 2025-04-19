@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import LoginAPI from "../../../api/login/Login";
+import LoginAPI from "../../../../api/login/Login";
+import { toast } from "react-toastify";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -10,7 +12,8 @@ export default function Login() {
     senha: "",
   });
 
-  const router = useRouter(); // Hook para redirecionamento
+  const router = useRouter();
+  const { refreshAuth } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,6 +23,10 @@ export default function Login() {
     e.preventDefault();
     const response = await LoginAPI(formData.email, formData.senha);
     if (response) {
+      await refreshAuth(); // Implementar este método no AuthContext
+
+      toast.success("Login realizado com sucesso!");
+
       router.push("/analyze"); // Redireciona para a página Analyze
     }
   };

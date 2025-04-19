@@ -1,10 +1,10 @@
 services:
-  flask:
-    build: ./packages/IA
-    networks:
-      - app-network
-    ports:
-      - "5000:5000"
+  # flask:
+  #   build: ./packages/IA
+  #   networks:
+  #     - app-network
+  #   ports:
+  #     - "5000:5000"
 
   backend:
     build: ./packages/backend
@@ -24,23 +24,23 @@ services:
       - DB_PORT=5432
       - FLASK_API_URL=http://flask:5000
       - NODE_ENV=production
-    depends_on:
-      - db
-      - flask
+    # depends_on:
+    #   - db
+    #   - flask
 
-  db:
-    image: postgres:15-alpine
-    networks:
-      - app-network
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command: ["postgres"]
+  # db:
+  #   image: postgres:15-alpine
+  #   networks:
+  #     - app-network
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: postgres
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   command: ["postgres"]
 
   nextjs:
     build: ./packages/frontend/

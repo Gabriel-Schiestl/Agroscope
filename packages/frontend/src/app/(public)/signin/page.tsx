@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import RegisterUser from "../../../api/login/RegisterUser";
+import RegisterUser from "../../../../api/login/RegisterUser";
 
 export default function Signin() {
   const [formData, setFormData] = useState({

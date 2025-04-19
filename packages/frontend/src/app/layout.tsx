@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import CSRFInitializer from "./components/CSRFInitializer";
+import { AuthProvider } from "../contexts/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,7 @@ export default function RootLayout({
     <html lang="pt">
       <body className={inter.className}>
         <CSRFInitializer />
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <ToastContainer
           position="top-right"
           autoClose={3000}

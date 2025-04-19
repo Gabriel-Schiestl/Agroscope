@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FaUpload } from "react-icons/fa";
 import { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../../components/Sidebar";
 import Image from "next/image";
 
 export default function Analyze() {

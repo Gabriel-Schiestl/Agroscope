@@ -1,13 +1,19 @@
+import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ToastContainer } from "react-toastify";
+import { AuthProvider } from "@/contexts/auth-context";
+import { AuthModalProvider } from "@/contexts/auth-modal-context";
+import "leaflet/dist/leaflet.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
-  title: "AgroScope - Diagnóstico de Plantas",
-  description: "Identifique doenças em folhas de milho com AgroScope!",
+  title: "AgroScope - Gestão Agronômica",
+  description: "Plataforma de gestão para agrônomos",
 };
 
 export default function RootLayout({
@@ -16,21 +22,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt">
-      <body className={inter.className}>
-        {children}
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
+    <html lang="pt-BR">
+      <body className={`${inter.variable} font-inter bg-lightGray`}>
+        <AuthProvider>
+          <AuthModalProvider>{children}</AuthModalProvider>
+        </AuthProvider>
       </body>
     </html>
   );

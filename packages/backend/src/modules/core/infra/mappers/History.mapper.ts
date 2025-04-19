@@ -7,9 +7,13 @@ export class HistoryMapper {
         return new HistoryModel().setProps({
             id: domain.id,
             createdAt: domain.createdAt,
-            sickness: SicknessMapper.domainToModel(domain.sickness),
+            sickness: domain.sickness
+                ? SicknessMapper.domainToModel(domain.sickness)
+                : null,
             handling: domain.handling,
             image: domain.image,
+            clientId: domain.clientId,
+            userId: domain.userId,
         });
     }
 
@@ -20,6 +24,8 @@ export class HistoryMapper {
                 sickness: SicknessMapper.modelToDomain(model.sickness),
                 handling: model.handling,
                 image: model.image,
+                clientId: model.clientId,
+                userId: model.userId,
             },
             model.id,
         );

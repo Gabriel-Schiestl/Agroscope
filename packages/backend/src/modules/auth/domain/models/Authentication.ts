@@ -49,22 +49,20 @@ export class Authentication implements AuthenticationProps {
         return new Authentication(props, id);
     }
 
-    comparePassword(password: string): boolean {
-        const isValid = this.#password === password;
-
-        if (!isValid) {
-            this.#incorrectPasswordAttempts++;
-            return isValid;
-        }
-
-        this.#incorrectPasswordAttempts = 0;
-        this.#lastLogin = new Date();
-
-        return isValid;
-    }
-
     verifyAuthenticationBlocked(): boolean {
         return this.#incorrectPasswordAttempts >= 5;
+    }
+
+    applyLogin(): void {
+        this.#lastLogin = new Date();
+        this.#incorrectPasswordAttempts = 0;
+    }
+
+    incrementIncorrectPasswordAttempts(): void {
+        if (!this.#incorrectPasswordAttempts) {
+            this.#incorrectPasswordAttempts = 0;
+        }
+        this.#incorrectPasswordAttempts += 1;
     }
 
     get id() {

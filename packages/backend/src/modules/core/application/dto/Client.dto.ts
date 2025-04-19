@@ -1,8 +1,17 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+    IsArray,
+    IsBoolean,
+    IsNumber,
+    IsOptional,
+    IsString,
+} from 'class-validator';
 import { HistoryDto } from './History.dto';
-import { PersonType } from '../../domain/models/Client';
+import { Crop, PersonType } from '../../domain/models/Client';
 import { Address } from '../../domain/models/Address';
+import { Visit } from '../../domain/models/Visit';
+import { VisitDto } from './Visit.dto';
+import { OmitType } from '@nestjs/mapped-types';
 
 export class ClientDto {
     @IsString()
@@ -14,18 +23,12 @@ export class ClientDto {
     @IsString()
     telephone: string;
 
-    @IsOptional()
-    @IsArray()
-    @Type(() => HistoryDto)
-    predictions: HistoryDto[];
-
     @IsString()
     person: PersonType;
 
     @IsString()
     document: string;
 
-    @IsString()
     address: Address;
 
     @IsNumber()
@@ -33,4 +36,16 @@ export class ClientDto {
 
     @IsNumber()
     totalAreaPlanted: number;
+
+    @IsBoolean()
+    active: boolean;
+
+    @IsOptional()
+    actualCrop?: Crop;
+
+    @IsOptional()
+    @Type(() => VisitDto)
+    visits?: VisitDto[];
 }
+
+export class CreateClientDto extends OmitType(ClientDto, ['id', 'active']) {}

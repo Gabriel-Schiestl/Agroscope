@@ -6,6 +6,7 @@ import { usecases } from './application/usecases';
 import { mappers } from './infra/mappers';
 import { CoreModule } from '../core/core.module';
 import { AuthGuard } from './infra/services/Auth.guard';
+import { AuthController } from './controllers/Auth.controller';
 
 @Module({
     imports: [
@@ -16,14 +17,18 @@ import { AuthGuard } from './infra/services/Auth.guard';
         }),
         forwardRef(() => CoreModule),
     ],
-    controllers: [],
+    controllers: [AuthController],
     providers: [
         ...usecases,
         ...services,
         ...repositories,
         ...mappers,
         AuthGuard,
+        {
+            provide: 'AES_KEY',
+            useValue: process.env.AES_KEY,
+        },
     ],
-    exports: [...repositories],
+    exports: [...repositories, ...services],
 })
 export class AuthModule {}

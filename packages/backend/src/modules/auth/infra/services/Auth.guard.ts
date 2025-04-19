@@ -3,9 +3,11 @@ import {
     ExecutionContext,
     Inject,
     Injectable,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { AuthenticationService } from '../../domain/services/Authentication.service';
 import { Reflector } from '@nestjs/core';
+import { AESService } from '../../domain/services/AES.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -13,6 +15,8 @@ export class AuthGuard implements CanActivate {
         @Inject('AuthenticationService')
         private readonly authenticationService: AuthenticationService,
         private readonly reflector: Reflector,
+        @Inject('AESService')
+        private readonly aesService: AESService,
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,13 +29,27 @@ export class AuthGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
 
-        const token = request.headers.authorization;
-        if (!token) return false;
+        const token =
+            request.cookies?.['agroscope-authentication'] ||
+            request.headers['authorization'];
 
-        const payload = await this.authenticationService.verify(token);
-        if (payload.isFailure()) return false;
+        if (!token) {
+            throw new UnauthorizedException('Invalid token');
+        }
 
-        request.session = payload.value;
+        const decryptedToken = await this.aesService.decrypt(token);
+        if (decryptedToken.isFailure()) {
+            throw new UnauthorizedException('Invalid token');
+        }
+
+        const payload = await this.authenticationService.verify(
+            decryptedToken.value,
+        );
+        if (payload.isFailure()) {
+            throw new UnauthorizedException('Invalid token');
+        }
+
+        request.user = payload.value;
 
         return true;
     }

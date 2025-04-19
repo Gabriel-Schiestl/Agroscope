@@ -5,7 +5,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ClientModel } from './Client';
+import { ClientModel } from './Client.model';
 
 export interface AgriculturalEngineerModelProps {
     id: string;

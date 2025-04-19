@@ -1,7 +1,7 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
-import { Client } from './Client';
+import { Client, CreateClientProps } from './Client';
 
 export interface AgriculturalEngineerProps {
     userId: string;
@@ -40,6 +40,16 @@ export class AgriculturalEngineer implements AgriculturalEngineerProps {
         id: string,
     ): AgriculturalEngineer {
         return new AgriculturalEngineer(props, id);
+    }
+
+    addClient(props: CreateClientProps): Result<BusinessException, Client> {
+        if (!this.#clients) this.#clients = [];
+
+        const clientOrError = Client.create(props);
+        if (clientOrError.isFailure()) return Res.failure(clientOrError.error);
+
+        this.#clients.push(clientOrError.value);
+        return Res.success(clientOrError.value);
     }
 
     get id() {

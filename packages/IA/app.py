@@ -10,11 +10,12 @@ CORS(app)
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    if 'image' not in request.files:
+        return jsonify({"error": "Nenhuma imagem enviada"}), 400
+
     file = request.files['image']
-    if not file:
-        return jsonify({'message': 'No file uploaded'}), 400
     
-    test_image = Image.open(file.stream)
+    test_image = Image.open(file.stream).convert('RGB')
 
     test_image = test_image.resize((300, 300))
 

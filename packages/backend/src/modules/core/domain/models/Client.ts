@@ -1,49 +1,58 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
-import { History } from './History';
 import { Address } from './Address';
+import { Visit } from './Visit';
 
 export enum PersonType {
     CPF = 'PF',
     CNPJ = 'PJ',
 }
 
+export enum Crop {
+    SOYBEAN = 'SOJA',
+    CORN = 'MILHO',
+    WHEAT = 'TRIGO',
+}
+
 export interface ClientProps {
     name: string;
     telephone: string;
-    predictions?: History[];
     person: PersonType;
     document: string;
     address: Address;
     totalArea: number;
     totalAreaPlanted: number;
+    actualCrop?: Crop;
+    active: boolean;
 }
 
-export type CreateClientProps = Omit<ClientProps, 'predictions'>;
+export type CreateClientProps = Omit<ClientProps, 'visits' | 'active'>;
 export interface LoadClientProps extends ClientProps {}
 
 export class Client implements ClientProps {
     #id: string;
     #name: string;
     #telephone: string;
-    #predictions?: History[];
     #person: PersonType;
     #document: string;
     #address: Address;
     #totalArea: number;
     #totalAreaPlanted: number;
+    #active: boolean = true;
+    #actualCrop?: Crop;
 
     private constructor(props: ClientProps, id?: string) {
         this.#id = id || uuid();
         this.#name = props.name;
         this.#telephone = props.telephone;
-        this.#predictions = props.predictions;
         this.#person = props.person;
         this.#document = props.document;
         this.#address = props.address;
         this.#totalArea = props.totalArea;
         this.#totalAreaPlanted = props.totalAreaPlanted;
+        this.#active = props.active;
+        this.#actualCrop = props.actualCrop;
     }
 
     static create(props: CreateClientProps): Result<BusinessException, Client> {
@@ -70,7 +79,7 @@ export class Client implements ClientProps {
                 new BusinessException('Total area planted is required'),
             );
 
-        return Res.success(new Client(props));
+        return Res.success(new Client({ ...props, active: true }));
     }
 
     static load(props: LoadClientProps, id: string): Client {
@@ -87,10 +96,6 @@ export class Client implements ClientProps {
 
     get telephone() {
         return this.#telephone;
-    }
-
-    get predictions() {
-        return this.#predictions;
     }
 
     get person() {
@@ -111,5 +116,13 @@ export class Client implements ClientProps {
 
     get totalAreaPlanted() {
         return this.#totalAreaPlanted;
+    }
+
+    get active() {
+        return this.#active;
+    }
+
+    get actualCrop() {
+        return this.#actualCrop;
     }
 }

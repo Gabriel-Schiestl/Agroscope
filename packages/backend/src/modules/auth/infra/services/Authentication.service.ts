@@ -22,10 +22,10 @@ export class AuthenticationServiceImpl implements AuthenticationService {
     ): Promise<Result<TechnicalException, JwtPayload>> {
         const payload = this.jwtService.verify(token);
 
-        if (!payload || !payload.email || !payload.sub || !payload.role) {
+        if (!payload || !payload.email || !payload.sub) {
             return Res.failure(new TechnicalException('Invalid token'));
         }
 
-        return payload;
+        return Res.success(payload);
     }
 }

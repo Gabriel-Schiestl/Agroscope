@@ -1,6 +1,7 @@
 import {
     BaseEntity,
     Column,
+    CreateDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
@@ -8,19 +9,20 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../domain/models/Address';
-import { PersonType } from '../../domain/models/Client';
-import { HistoryModel } from './History.model';
+import { Crop, PersonType } from '../../domain/models/Client';
 import { AgriculturalEngineerModel } from './AgriculturalEngineer.model';
+import { VisitModel } from './Visit.model';
 
 export interface ClientModelProps {
     name: string;
     telephone: string;
-    predictions?: HistoryModel[];
     person: PersonType;
     document: string;
     address: Address;
     totalArea: number;
     totalAreaPlanted: number;
+    active: boolean;
+    actualCrop?: Crop;
 }
 
 @Entity('clients')
@@ -33,12 +35,6 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
 
     @Column()
     telephone: string;
-
-    @OneToMany(() => HistoryModel, (history) => history.client, {
-        nullable: true,
-    })
-    @JoinColumn()
-    predictions?: HistoryModel[];
 
     @Column()
     person: PersonType;
@@ -62,10 +58,17 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
             onDelete: 'CASCADE',
         },
     )
+    @JoinColumn({ name: 'agricultural_engineer_id' })
     agriculturalEngineer: AgriculturalEngineerModel;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
+
+    @Column({ name: 'active', default: true })
+    active: boolean;
+
+    @Column({ nullable: true })
+    actualCrop?: Crop;
 
     setProps(props: ClientModelProps): ClientModel {
         Object.assign(this, props);

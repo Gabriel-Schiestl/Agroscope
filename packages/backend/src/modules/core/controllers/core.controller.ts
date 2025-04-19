@@ -3,13 +3,14 @@ import {
     Get,
     HttpStatus,
     Post,
+    Req,
     Res,
     UploadedFile,
     UseInterceptors,
 } from '@nestjs/common';
 import { PredictUseCase } from '../application/usecases/Predict.usecase';
 import { UseFileInterceptor } from '../infra/services/File.interceptor';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { GetHistoryUseCase } from '../application/usecases/GetHistory.usecase';
 import { Failure } from 'src/shared/Result';
 
@@ -22,15 +23,23 @@ export class CoreController {
 
     @Post('predict')
     @UseInterceptors(UseFileInterceptor)
-    async predict(@UploadedFile() file: Express.Multer.File) {
-        const result = await this.predictUseCase.execute(file.path);
+    async predict(
+        @UploadedFile() file: Express.Multer.File,
+        @Req() req: Request,
+    ) {
+        const result = await this.predictUseCase.execute({
+            imagePath: file.path,
+            userId: req['user'].sub,
+        });
 
         return result;
     }
 
     @Get('history')
-    async getHistory() {
-        const result = await this.getHistoryUseCase.execute();
+    async getHistory(@Req() req: Request) {
+        const result = await this.getHistoryUseCase.execute({
+            userId: req['user'].sub,
+        });
 
         return result;
     }

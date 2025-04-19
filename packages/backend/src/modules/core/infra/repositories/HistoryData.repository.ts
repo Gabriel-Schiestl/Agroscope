@@ -65,4 +65,46 @@ export class HistoryRepositoryImpl implements HistoryRepository {
             );
         }
     }
+
+    async getByClientId(
+        clientId: string,
+    ): Promise<Result<HistoryExceptions, History[]>> {
+        try {
+            const models = await HistoryModel.find({ where: { clientId } });
+            if (!models || models.length === 0) {
+                return Res.failure(
+                    new RepositoryNoDataFound('History not found'),
+                );
+            }
+
+            return Res.success(
+                models.map((model) => HistoryMapper.modelToDomain(model)),
+            );
+        } catch (error) {
+            return Res.failure(
+                new TechnicalException('Error on get history by clientId'),
+            );
+        }
+    }
+
+    async getByUserId(
+        userId: string,
+    ): Promise<Result<HistoryExceptions, History[]>> {
+        try {
+            const models = await HistoryModel.find({ where: { userId } });
+            if (!models || models.length === 0) {
+                return Res.failure(
+                    new RepositoryNoDataFound('History not found'),
+                );
+            }
+
+            return Res.success(
+                models.map((model) => HistoryMapper.modelToDomain(model)),
+            );
+        } catch (error) {
+            return Res.failure(
+                new TechnicalException('Error on get history by userId'),
+            );
+        }
+    }
 }

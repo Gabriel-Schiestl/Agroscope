@@ -9,6 +9,7 @@ import { UserRepository } from 'src/modules/core/domain/repositories/User.reposi
 import { User } from 'src/modules/core/domain/models/User';
 import { Authentication } from 'src/modules/auth/domain/models/Authentication';
 import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/Authentication.repository';
+import { EncryptionService } from 'src/modules/auth/domain/services/Encryption.service';
 
 export type CreateUserUseCaseExceptions =
     | RepositoryNoDataFound
@@ -26,10 +27,12 @@ export class CreateUserUseCase extends AbstractUseCase<
         private readonly userRepository: UserRepository,
         @Inject('AuthenticationRepository')
         private readonly authenticationRepository: AuthenticationRepository,
+        @Inject('EncryptionService')
+        private readonly encryptionService: EncryptionService,
     ) {
         super();
     }
-    async execute(
+    async onExecute(
         props: CreateUserDto,
     ): Promise<Result<CreateUserUseCaseExceptions, void>> {
         const user = User.create(props);
@@ -38,9 +41,11 @@ export class CreateUserUseCase extends AbstractUseCase<
         const result = await this.userRepository.save(user.value);
         if (result.isFailure()) return Res.failure(result.error);
 
+        const hash = await this.encryptionService.encrypt(props.password);
+
         const authentication = Authentication.create({
             email: user.value.email,
-            password: props.password,
+            password: hash,
         });
         if (authentication.isFailure())
             return Res.failure(authentication.error);

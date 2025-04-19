@@ -1,0 +1,7 @@
+INSERT INTO public.sickness (id,name,description,symptoms,"createdAt","updatedAt") VALUES
+	 ('baf59905-26dd-418b-bca2-3157552607d5'::uuid,'Cercosporiose','Doença fúngica que afeta diversas culturas, caracterizada por manchas nas folhas e diminuição da produtividade.','{"Manchas nas folhas","Diminuição da produtividade","Amarelamento das folhas"}','2025-01-14 21:05:46.616158','2025-01-14 21:05:46.616158'),
+	 ('77341487-6f19-44d5-ba3e-9841d91751e9'::uuid,'Ferrugem','Doença causada por fungos que afeta o milho, caracterizada por manchas de cor laranja nas folhas e no sabugo.','{"Manchas laranja nas folhas","Manchas no sabugo","Diminuição da produção de grãos"}','2025-01-14 21:06:17.142531','2025-01-14 21:06:17.142531');
+
+	INSERT INTO public.knowledge (id,handling,"createdAt","updatedAt","sicknessId") VALUES
+	 ('166e124c-47b4-466b-95ae-212ff8eb39e0'::uuid,'Para o tratamento da Cercosporiose, recomenda-se o uso de fungicidas apropriados. Além disso, o controle de umidade e a rotação de culturas são práticas importantes.','2025-01-14 21:08:25.439897','2025-01-14 21:08:25.439897','baf59905-26dd-418b-bca2-3157552607d5'::uuid),
+	 ('7a2304b1-bf4d-4885-98fd-5c402dece32a'::uuid,'A Ferrugem do milho pode ser controlada com fungicidas específicos, especialmente durante períodos de alta umidade. A eliminação de restos de cultura também é recomendada.','2025-01-14 21:08:32.242858','2025-01-14 21:08:32.242858','77341487-6f19-44d5-ba3e-9841d91751e9'::uuid);

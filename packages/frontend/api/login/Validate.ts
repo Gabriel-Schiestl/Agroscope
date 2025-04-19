@@ -7,8 +7,6 @@ export interface ValidateResponse {
 export default async function Validate(
   cookie?: string
 ): Promise<boolean | ValidateResponse> {
-  await ensureCsrfToken();
-
   try {
     const response = await api.get<ValidateResponse>("/auth/validate", {
       headers: {

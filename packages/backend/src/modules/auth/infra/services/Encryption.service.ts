@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EncryptionService } from '../../domain/services/Encryption.service';
 import { Res, Result } from 'src/shared/Result';
-import { hash, compare } from 'bcrypt';
+import { hash, compare } from 'bcryptjs';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 
 @Injectable()

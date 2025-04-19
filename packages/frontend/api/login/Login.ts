@@ -2,9 +2,7 @@ import api, { ensureCsrfToken } from "../../shared/http/http.config";
 
 export default async function LoginAPI(email: string, password: string) {
   try {
-    await ensureCsrfToken();
-
-    const response = await api.post("/api/auth/login", {
+    const response = await api.post("/auth/login", {
       email,
       password,
     });

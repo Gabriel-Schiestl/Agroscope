@@ -21,7 +21,7 @@ export class AuthController {
             res.cookie('agroscope-authentication', result.value, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                sameSite: 'none',
                 maxAge: 1000 * 60 * 60 * 24 * 7,
             });
         }

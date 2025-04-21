@@ -1,21 +1,15 @@
+# Etapa de build
 FROM node:20 AS build-stage
 
 WORKDIR /app
 
-COPY . /app
+COPY package*.json ./
 
 RUN npm install
 
+COPY . .
+
 RUN npm run build
-
-FROM node:20-bullseye-slim AS production-stage
-
-WORKDIR /app
-
-COPY --from=build-stage /app/dist /app/dist
-COPY --from=build-stage /app/node_modules /app/node_modules
-
-COPY package.json /app/package.json
 
 EXPOSE 3001
 

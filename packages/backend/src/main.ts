@@ -17,8 +17,10 @@ const { doubleCsrfProtection } = doubleCsrf({
     cookieOptions: {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'none',
+        path: '/',
     },
+    ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
 });
 
 async function bootstrap() {

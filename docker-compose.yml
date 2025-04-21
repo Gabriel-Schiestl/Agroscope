@@ -1,13 +1,17 @@
 services:
-  flask:
-    build: ./packages/IA
-    ports:
-      - "5000:5000"
+  # flask:
+  #   build: ./packages/IA
+  #   networks:
+  #     - app-network
+  #   ports:
+  #     - "5000:5000"
 
   backend:
     build: ./packages/backend
     ports:
       - "3001:3001"
+    networks:
+      - app-network
     volumes:
       - ./packages/backend:/app
       - ./packages/backend/uploads:/app/uploads
@@ -19,25 +23,33 @@ services:
       - DB_SSL=false
       - DB_PORT=5432
       - FLASK_API_URL=http://flask:5000
-    depends_on:
-      - db
-      - flask
+      - NODE_ENV=production
+    # depends_on:
+    #   - db
+    #   - flask
 
-  db:
-    image: postgres:15-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command: ["postgres"]
+  # db:
+  #   image: postgres:15-alpine
+  #   networks:
+  #     - app-network
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: postgres
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   command: ["postgres"]
 
   nextjs:
     build: ./packages/frontend/
     container_name: nextjs
+    networks:
+      - app-network
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost/api
+      - API_URL=http://nginx/api
     ports:
       - "3000:3000"
     restart: always
@@ -47,6 +59,8 @@ services:
   nginx:
     image: nginx:stable-alpine
     container_name: nginx
+    networks:
+      - app-network
     ports:
       - "80:80"
     volumes:
@@ -57,3 +71,7 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

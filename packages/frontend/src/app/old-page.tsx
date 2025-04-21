@@ -4,9 +4,9 @@ import axios from "axios";
 import Image from "next/image";
 import { ChangeEvent, useState, useRef } from "react";
 import { FaSearch, FaUpload, FaUserPlus } from "react-icons/fa";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar";
 import { toast } from "react-toastify";
-import Footer from "./components/Footer";
+// import Footer from "./components/Footer";
 import api from "../../shared/http/http.config";
 
 interface Data {
@@ -58,7 +58,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <Navbar />
+      {/* <Navbar /> */}
       <main className="flex-grow container mx-auto py-12 px-4 md:px-12">
         <div className="flex flex-col md:flex-row items-center justify-between">
           {/* Texto principal e CTA */}
@@ -140,7 +140,7 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

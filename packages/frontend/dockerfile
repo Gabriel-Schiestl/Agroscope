@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_API_URL=http://backend:3001
+ENV NEXT_PUBLIC_API_URL=http://localhost/api
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm install

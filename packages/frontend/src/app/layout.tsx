@@ -5,7 +5,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AuthModalProvider } from "@/contexts/auth-modal-context";
 import "leaflet/dist/leaflet.css";
-import CSRFInitializer from "./components/CSRFInitializer";
+import CSRFInitializer from "@/components/CSRFInitializer";
 
 const inter = Inter({
   subsets: ["latin"],

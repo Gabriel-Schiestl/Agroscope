@@ -45,7 +45,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
-      // Mock implementation
       if (email === "demo@example.com" && password === "password") {
         const user = {
           id: "1",
@@ -73,7 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = async () => {
     try {
       setLoading(true);
-      // Mock implementation
       const user = {
         id: "1",
         name: "Dr. Carlos Silva",
@@ -98,7 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signup = async (name: string, email: string, password: string) => {
     try {
       setLoading(true);
-      // Mock implementation
       const user = {
         id: "1",
         name,

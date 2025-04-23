@@ -16,7 +16,7 @@ const { doubleCsrfProtection } = doubleCsrf({
     cookieName: 'csrf-token',
     cookieOptions: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'none',
         path: '/',
     },

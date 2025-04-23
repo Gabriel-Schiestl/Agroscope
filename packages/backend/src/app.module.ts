@@ -10,6 +10,8 @@ import {
     ThrottlerStorage,
 } from '@nestjs/throttler';
 import { APP_GUARD, Reflector } from '@nestjs/core';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
     imports: [
@@ -35,6 +37,7 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
         ]),
     ],
     providers: [
+        AppService,
         ResponseInterceptor,
         {
             provide: APP_GUARD,
@@ -44,5 +47,6 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
             inject: ['THROTTLER:MODULE_OPTIONS', ThrottlerStorage, Reflector],
         },
     ],
+    controllers: [AppController],
 })
 export class AppModule {}

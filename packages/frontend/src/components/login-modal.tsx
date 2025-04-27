@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import LoginAPI from "../../api/login/Login";
+import { useRouter } from "next/navigation";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -32,15 +34,15 @@ export default function LoginModal({
   const [password, setPassword] = useState("password");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-
-  const { login, loginWithGoogle } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      await login(email, password);
+      //router.push("/dashboard");
+      //await LoginAPI(email, password);
       onClose();
     } catch (error) {
       setError("Email ou senha inválidos. Tente novamente.");
@@ -49,7 +51,7 @@ export default function LoginModal({
 
   const handleGoogleLogin = async () => {
     try {
-      await loginWithGoogle();
+      //await loginWithGoogle();
       onClose();
     } catch (error) {
       setError("Erro ao fazer login com Google. Tente novamente.");

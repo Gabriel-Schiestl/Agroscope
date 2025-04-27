@@ -20,6 +20,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import LoginAPI from "../../../../api/login/Login";
+import { ro } from "date-fns/locale";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("demo@example.com");
@@ -38,10 +39,13 @@ export default function LoginPage() {
 
       if (response) {
         refreshAuth();
+        router.push("/dashboard");
       }
     } catch (error) {
       setError("Email ou senha inválidos. Tente novamente.");
     }
+
+    router.push("/dashboard");
   };
 
   const handleGoogleLogin = async () => {

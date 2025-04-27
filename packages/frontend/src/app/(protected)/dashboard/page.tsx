@@ -21,9 +21,11 @@ import { useEffect, useMemo, useState } from "react";
 import GetClientsAPI from "../../../../api/engineer/GetClients";
 import { Client } from "@/models/Client";
 import { VisitStatus } from "@/models/Visit";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);
+  const { auth } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,10 +80,36 @@ export default function DashboardPage() {
     }, 0);
   }, [clients]);
 
+  const getNewTotalArea = () => {
+    const result = clients
+      .filter((c) => c.createdAt?.getMonth() === new Date().getMonth())
+      .reduce((total, client) => {
+        return total + client.totalArea;
+      }, 0);
+
+    return result > 0 ? result : 0;
+  };
+
+  const getPendingVisits = () => {
+    let visits = 0;
+
+    for (const client of clients) {
+      if (!client.visits) continue;
+
+      for (const visit of client.visits) {
+        if (visit.status === VisitStatus.PENDING) {
+          visits++;
+        }
+      }
+    }
+
+    return visits;
+  };
+
   return (
     <div className="space-y-6 pb-16 md:pb-0">
       <div>
-        <h1 className="text-xl md:text-2xl">Bem-vindo, Dr. Carlos</h1>
+        <h1 className="text-xl md:text-2xl">Bem-vindo, {auth?.name}</h1>
         <p className="text-mediumGray">Painel de controle do agrônomo</p>
       </div>
 
@@ -94,7 +122,15 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-primaryGreen">+2 novos este mês</div>
+            <div className="text-xs text-primaryGreen">
+              +
+              {
+                clients.filter(
+                  (c) => c.createdAt?.getMonth() === new Date().getMonth()
+                ).length
+              }{" "}
+              novos este mês
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -106,14 +142,16 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-xs text-primaryGreen">
-              +450 ha desde o último mês
+              +{getNewTotalArea()} ha desde o último mês
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Visitas Pendentes</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">5</CardTitle>
+            <CardTitle className="text-xl md:text-2xl">
+              {getPendingVisits()}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-primaryGreen">Próxima: 22/04/2024</div>

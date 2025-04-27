@@ -49,6 +49,7 @@ export class VisitRepositoryImpl implements VisitRepository {
         try {
             const models = await VisitModel.find({
                 where: { clientId },
+                order: { scheduledDate: 'DESC' },
             });
 
             if (!models || models.length === 0) {

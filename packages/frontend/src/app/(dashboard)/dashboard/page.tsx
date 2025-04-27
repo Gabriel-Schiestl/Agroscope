@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Card,
@@ -15,8 +17,67 @@ import {
   FileText,
   BarChart2,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import GetClientsAPI from "../../../../api/engineer/GetClients";
+import { Client } from "@/models/Client";
+import { VisitStatus } from "@/models/Visit";
 
 export default function DashboardPage() {
+  const [clients, setClients] = useState<Client[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await GetClientsAPI();
+      if (response) {
+        const sortedClientsByLastVisit = response.sort((a, b) => {
+          const completedVisitsA =
+            a.visits?.filter(
+              (visit) => visit.status === VisitStatus.COMPLETED
+            ) || [];
+
+          const completedVisitsB =
+            b.visits?.filter(
+              (visit) => visit.status === VisitStatus.COMPLETED
+            ) || [];
+
+          const sortedVisitsA = completedVisitsA.sort(
+            (x, y) =>
+              new Date(y.scheduledDate || 0).getTime() -
+              new Date(x.scheduledDate || 0).getTime()
+          );
+
+          const sortedVisitsB = completedVisitsB.sort(
+            (x, y) =>
+              new Date(y.scheduledDate || 0).getTime() -
+              new Date(x.scheduledDate || 0).getTime()
+          );
+
+          const lastVisitA =
+            sortedVisitsA.length > 0
+              ? new Date(sortedVisitsA[0].scheduledDate || 0).getTime()
+              : 0;
+
+          const lastVisitB =
+            sortedVisitsB.length > 0
+              ? new Date(sortedVisitsB[0].scheduledDate || 0).getTime()
+              : 0;
+
+          return lastVisitB - lastVisitA;
+        });
+
+        setClients(sortedClientsByLastVisit);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const areaMonitored = useMemo(() => {
+    return clients.reduce((total, client) => {
+      return total + (client.totalArea || 0);
+    }, 0);
+  }, [clients]);
+
   return (
     <div className="space-y-6 pb-16 md:pb-0">
       <div>
@@ -28,7 +89,9 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total de Clientes</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">12</CardTitle>
+            <CardTitle className="text-xl md:text-2xl">
+              {clients.length}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-primaryGreen">+2 novos este mês</div>
@@ -37,7 +100,9 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Área Monitorada</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">8.450 ha</CardTitle>
+            <CardTitle className="text-xl md:text-2xl">
+              {areaMonitored} ha
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-primaryGreen">
@@ -86,14 +151,17 @@ export default function DashboardPage() {
                     <Users size={18} />
                   </div>
                   <div>
-                    <h4 className="font-medium">Fazenda São João</h4>
+                    <h4 className="font-medium">{clients[0]?.name}</h4>
                     <p className="text-sm text-mediumGray">
-                      Ribeirão Preto, SP
+                      {clients[0]?.address.city}, {clients[0]?.address.state}
                     </p>
                   </div>
                 </div>
                 <div className="text-sm text-mediumGray">
-                  Visitado: 15/03/2024
+                  Visitado:{" "}
+                  {new Date(
+                    clients[0]?.visits?.[0].scheduledDate || 0
+                  ).toLocaleDateString()}
                 </div>
               </div>
               <div className="flex items-center justify-between p-3 rounded-md hover:bg-lightGray transition-colors">
@@ -102,12 +170,17 @@ export default function DashboardPage() {
                     <Users size={18} />
                   </div>
                   <div>
-                    <h4 className="font-medium">Sítio Esperança</h4>
-                    <p className="text-sm text-mediumGray">Uberaba, MG</p>
+                    <h4 className="font-medium">{clients[1]?.name}</h4>
+                    <p className="text-sm text-mediumGray">
+                      {clients[1]?.address.city}, {clients[1]?.address.state}
+                    </p>
                   </div>
                 </div>
                 <div className="text-sm text-mediumGray">
-                  Visitado: 02/04/2024
+                  Visitado:{" "}
+                  {new Date(
+                    clients[1]?.visits?.[0].scheduledDate || 0
+                  ).toLocaleDateString()}
                 </div>
               </div>
               <div className="flex items-center justify-between p-3 rounded-md hover:bg-lightGray transition-colors">
@@ -116,12 +189,17 @@ export default function DashboardPage() {
                     <Users size={18} />
                   </div>
                   <div>
-                    <h4 className="font-medium">Fazenda Boa Vista</h4>
-                    <p className="text-sm text-mediumGray">Rondonópolis, MT</p>
+                    <h4 className="font-medium">{clients[2]?.name}</h4>
+                    <p className="text-sm text-mediumGray">
+                      {clients[2]?.address.city}, {clients[2]?.address.state}
+                    </p>
                   </div>
                 </div>
                 <div className="text-sm text-mediumGray">
-                  Visitado: 28/03/2024
+                  Visitado:{" "}
+                  {new Date(
+                    clients[2]?.visits?.[0].scheduledDate || 0
+                  ).toLocaleDateString()}
                 </div>
               </div>
             </div>

@@ -19,8 +19,10 @@ export class ResponseInterceptor implements NestInterceptor {
                     if (method === 'POST') {
                         response.status(201);
                     } else if (method === 'GET') {
-                        response.status(200).json(data.value);
+                        response.status(200);
                     }
+
+                    response.json(data.value);
                 } else if (data instanceof Failure) {
                     if (
                         method === 'POST' ||

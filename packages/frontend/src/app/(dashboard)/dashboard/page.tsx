@@ -20,6 +20,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import GetClientsAPI from "../../../../api/engineer/GetClients";
 import { Client } from "@/models/Client";
+import { VisitStatus } from "@/models/Visit";
 
 export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -29,8 +30,26 @@ export default function DashboardPage() {
       const response = await GetClientsAPI();
       if (response) {
         const sortedClientsByLastVisit = response.sort((a, b) => {
-          const lastVisitA = new Date(a.visits?.[0].createdAt || 0).getTime();
-          const lastVisitB = new Date(b.visits?.[0].createdAt || 0).getTime();
+          const completedVisitsA =
+            a.visits?.filter(
+              (visit) => visit.status === VisitStatus.COMPLETED
+            ) || [];
+
+          const completedVisitsB =
+            b.visits?.filter(
+              (visit) => visit.status === VisitStatus.COMPLETED
+            ) || [];
+
+          const lastVisitA =
+            completedVisitsA.length > 0
+              ? new Date(completedVisitsA[0].createdAt || 0).getTime()
+              : 0;
+
+          const lastVisitB =
+            completedVisitsB.length > 0
+              ? new Date(completedVisitsB[0].createdAt || 0).getTime()
+              : 0;
+
           return lastVisitB - lastVisitA;
         });
 

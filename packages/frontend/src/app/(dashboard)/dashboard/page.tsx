@@ -40,14 +40,26 @@ export default function DashboardPage() {
               (visit) => visit.status === VisitStatus.COMPLETED
             ) || [];
 
+          const sortedVisitsA = completedVisitsA.sort(
+            (x, y) =>
+              new Date(y.scheduledDate || 0).getTime() -
+              new Date(x.scheduledDate || 0).getTime()
+          );
+
+          const sortedVisitsB = completedVisitsB.sort(
+            (x, y) =>
+              new Date(y.scheduledDate || 0).getTime() -
+              new Date(x.scheduledDate || 0).getTime()
+          );
+
           const lastVisitA =
-            completedVisitsA.length > 0
-              ? new Date(completedVisitsA[0].createdAt || 0).getTime()
+            sortedVisitsA.length > 0
+              ? new Date(sortedVisitsA[0].scheduledDate || 0).getTime()
               : 0;
 
           const lastVisitB =
-            completedVisitsB.length > 0
-              ? new Date(completedVisitsB[0].createdAt || 0).getTime()
+            sortedVisitsB.length > 0
+              ? new Date(sortedVisitsB[0].scheduledDate || 0).getTime()
               : 0;
 
           return lastVisitB - lastVisitA;
@@ -148,7 +160,7 @@ export default function DashboardPage() {
                 <div className="text-sm text-mediumGray">
                   Visitado:{" "}
                   {new Date(
-                    clients[0]?.visits?.[0].createdAt || 0
+                    clients[0]?.visits?.[0].scheduledDate || 0
                   ).toLocaleDateString()}
                 </div>
               </div>
@@ -165,9 +177,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-sm text-mediumGray">
-                  Visitado:
+                  Visitado:{" "}
                   {new Date(
-                    clients[1]?.visits?.[0].createdAt || 0
+                    clients[1]?.visits?.[0].scheduledDate || 0
                   ).toLocaleDateString()}
                 </div>
               </div>
@@ -184,9 +196,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-sm text-mediumGray">
-                  Visitado:
+                  Visitado:{" "}
                   {new Date(
-                    clients[2]?.visits?.[0].createdAt || 0
+                    clients[2]?.visits?.[0].scheduledDate || 0
                   ).toLocaleDateString()}
                 </div>
               </div>

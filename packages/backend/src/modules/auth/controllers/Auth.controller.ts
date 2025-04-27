@@ -33,12 +33,14 @@ export class AuthController {
 
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
-        const isEngineer: boolean = req.user?.engineer;
-        const isAdmin: boolean = req.user?.admin;
-
         return res
             .status(200)
-            .json({ isEngineer: isEngineer, isAdmin: isAdmin });
+            .json({
+                isEngineer: req.user.isEngineer,
+                isAdmin: req.user.isAdmin,
+                email: req.user.email,
+                name: req.user.name,
+            });
     }
 
     @Public()

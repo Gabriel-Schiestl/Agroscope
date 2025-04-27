@@ -1,144 +1,112 @@
 "use client";
 
-import type React from "react";
-
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import api from "../../shared/http/http.config";
 import { useRouter } from "next/navigation";
+import Validate from "../../api/login/Validate";
 
-type User = {
-  id: string;
+interface AuthState {
+  isEngineer: boolean;
+  isAdmin: boolean;
   name: string;
   email: string;
-  role: string;
-  avatar?: string;
-};
+}
 
-type AuthContextType = {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+interface AuthContextType {
+  auth: AuthState | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  refreshAuth: () => Promise<void>;
   logout: () => void;
+}
+
+const initialAuthState: AuthState = {
+  isEngineer: false,
+  isAdmin: false,
+  name: "",
+  email: "",
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  auth: null,
+  isLoading: true,
+  isAuthenticated: false,
+  refreshAuth: async () => {},
+  logout: () => {},
+});
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [auth, setAuth] = useState<AuthState | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const validateAuth = async () => {
+    try {
+      const response = await Validate();
+      if (response && typeof response === "object") {
+        setAuth({
+          isEngineer: response.isEngineer,
+          isAdmin: response.isAdmin,
+          name: response.name,
+          email: response.email,
+        });
+        setIsLoading(false);
+      }
+
+      router.push("/");
+    } catch (error) {
+      console.error("Erro ao validar autenticação:", error);
+      setAuth(null);
+      setIsLoading(false);
+
+      if (
+        window.location.pathname !== "/" &&
+        !window.location.pathname.startsWith("/login") &&
+        !window.location.pathname.startsWith("/signin")
+      ) {
+        router.push("/login");
+      }
+    }
+  };
+
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("agroscope_user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (error) {
-      console.error("Error loading user from localStorage:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    validateAuth();
+  }, [router]);
 
-  const login = async (email: string, password: string) => {
+  const logout = async () => {
     try {
-      setLoading(true);
-      if (email === "demo@example.com" && password === "password") {
-        const user = {
-          id: "1",
-          name: "Dr. Carlos Silva",
-          email: "demo@example.com",
-          role: "Agrônomo",
-        };
-        setUser(user);
-        try {
-          localStorage.setItem("agroscope_user", JSON.stringify(user));
-        } catch (error) {
-          console.error("Error saving to localStorage:", error);
-        }
-        router.push("/dashboard");
-      } else {
-        throw new Error("Credenciais inválidas");
-      }
+      //TODO: implementar logout no backend
+      setAuth(null);
+      router.push("/login");
     } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
+      console.error("Erro ao fazer logout:", error);
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      setLoading(true);
-      const user = {
-        id: "1",
-        name: "Dr. Carlos Silva",
-        email: "demo@example.com",
-        role: "Agrônomo",
-        avatar: "https://placehold.co/32x32",
-      };
-      setUser(user);
-      try {
-        localStorage.setItem("agroscope_user", JSON.stringify(user));
-      } catch (error) {
-        console.error("Error saving to localStorage:", error);
-      }
-      router.push("/dashboard");
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signup = async (name: string, email: string, password: string) => {
-    try {
-      setLoading(true);
-      const user = {
-        id: "1",
-        name,
-        email,
-        role: "Agrônomo",
-      };
-      setUser(user);
-      try {
-        localStorage.setItem("agroscope_user", JSON.stringify(user));
-      } catch (error) {
-        console.error("Error saving to localStorage:", error);
-      }
-      router.push("/dashboard");
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    try {
-      localStorage.removeItem("agroscope_user");
-    } catch (error) {
-      console.error("Error removing from localStorage:", error);
-    }
-    router.push("/login");
+  const refreshAuth = async () => {
+    setIsLoading(true);
+    await validateAuth();
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, loginWithGoogle, signup, logout }}
+      value={{
+        auth,
+        isLoading,
+        isAuthenticated: !!auth,
+        logout,
+        refreshAuth,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);

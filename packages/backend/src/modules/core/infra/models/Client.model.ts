@@ -23,6 +23,7 @@ export interface ClientModelProps {
     totalAreaPlanted: number;
     active: boolean;
     actualCrop?: Crop;
+    createdAt?: Date;
 }
 
 @Entity('clients')

@@ -21,6 +21,7 @@ export class ClientAppMapper {
             active: client.active,
             actualCrop: client.actualCrop,
             visits: client.visits?.map((visit) => VisitAppMapper.toDto(visit)),
+            createdAt: client.createdAt,
         };
     }
 }

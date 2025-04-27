@@ -25,9 +25,13 @@ export interface ClientProps {
     totalAreaPlanted: number;
     actualCrop?: Crop;
     active: boolean;
+    createdAt?: Date;
 }
 
-export type CreateClientProps = Omit<ClientProps, 'visits' | 'active'>;
+export type CreateClientProps = Omit<
+    ClientProps,
+    'visits' | 'active' | 'createdAt'
+>;
 export interface LoadClientProps extends ClientProps {}
 
 export class Client implements ClientProps {
@@ -41,6 +45,7 @@ export class Client implements ClientProps {
     #totalAreaPlanted: number;
     #active: boolean = true;
     #actualCrop?: Crop;
+    #createdAt?: Date;
 
     private constructor(props: ClientProps, id?: string) {
         this.#id = id || uuid();
@@ -124,5 +129,9 @@ export class Client implements ClientProps {
 
     get actualCrop() {
         return this.#actualCrop;
+    }
+
+    get createdAt() {
+        return this.#createdAt;
     }
 }

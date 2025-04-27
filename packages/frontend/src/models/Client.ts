@@ -45,4 +45,5 @@ export interface Client {
   active: boolean;
   actualCrop?: Crop;
   visits?: Visit[];
+  createdAt?: Date;
 }

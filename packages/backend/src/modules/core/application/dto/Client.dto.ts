@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
     IsArray,
     IsBoolean,
+    IsDate,
     IsNumber,
     IsOptional,
     IsString,
@@ -46,6 +47,9 @@ export class ClientDto {
     @IsOptional()
     @Type(() => VisitDto)
     visits?: VisitDto[];
+
+    @IsDate()
+    createdAt?: Date;
 }
 
 export class CreateClientDto extends OmitType(ClientDto, ['id', 'active']) {}

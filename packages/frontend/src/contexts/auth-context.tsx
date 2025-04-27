@@ -49,17 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const validateAuth = async () => {
     try {
       const response = await Validate();
+
       if (response && typeof response === "object") {
         setAuth({
           isEngineer: response.isEngineer,
-          isAdmin: response.isAdmin,
+          isAdmin: response.isAdmin || false,
           name: response.name,
           email: response.email,
         });
+
         setIsLoading(false);
       }
-
-      router.push("/");
     } catch (error) {
       console.error("Erro ao validar autenticação:", error);
       setAuth(null);

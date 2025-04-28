@@ -73,6 +73,14 @@ export class Visit implements VisitProps {
         return new Visit(props, id);
     }
 
+    setReports(reports: Report[]): void {
+        if (!this.#reports) {
+            this.#reports = reports;
+        } else {
+            this.#reports.push(...reports);
+        }
+    }
+
     get id(): string {
         return this.#id;
     }

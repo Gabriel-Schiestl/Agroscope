@@ -1,3 +1,5 @@
+import { Report } from "./Report";
+
 /**
  * Enum para status da visita
  */

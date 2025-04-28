@@ -16,6 +16,7 @@ import { CreateClientDto } from '../application/dto/Client.dto';
 import { CreateClientUseCase } from '../application/usecases/engineer/CreateClient.usecase';
 import { GetClientsByCropUseCase } from '../application/usecases/dashboard/GetClientsByCrop.usecase';
 import { GetAllReportsUseCase } from '../application/usecases/dashboard/GetAllReports.usecase';
+import { GetClientUseCase } from '../application/usecases/dashboard/GetClient.usecase';
 
 @UseGuards(EngineerGuard)
 @Controller('engineer')
@@ -28,12 +29,21 @@ export class EngineerController {
         private readonly createClientUseCase: CreateClientUseCase,
         private readonly getClientsByCropUseCase: GetClientsByCropUseCase,
         private readonly getAllReportsUseCase: GetAllReportsUseCase,
+        private readonly getClientUseCase: GetClientUseCase,
     ) {}
 
     @Get('clients')
     async getClients(@Req() req: any) {
         return await this.getClientsUseCase.execute({
             engineerId: req.user.sub,
+        });
+    }
+
+    @Get('clients/:clientId')
+    async getClient(@Param('clientId') clientId: string, @Req() req: any) {
+        return await this.getClientUseCase.execute({
+            engineerId: req.user.sub,
+            clientId,
         });
     }
 

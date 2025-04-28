@@ -20,7 +20,9 @@ export class ClientAppMapper {
             totalAreaPlanted: client.totalAreaPlanted,
             active: client.active,
             actualCrop: client.actualCrop,
-            visits: client.visits?.map((visit) => VisitAppMapper.toDto(visit)),
+            visits: client.visits
+                ? client.visits.map((visit) => VisitAppMapper.toDto(visit))
+                : [],
             createdAt: client.createdAt,
         };
     }

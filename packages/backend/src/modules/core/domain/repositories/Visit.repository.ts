@@ -14,13 +14,7 @@ export interface VisitRepository {
     getVisits(
         clientId: string,
     ): Promise<Result<VisitRepositoryExceptions, Visit[]>>;
-    getReports(
-        visitId: string,
-    ): Promise<Result<VisitRepositoryExceptions, Report[]>>;
     getLastVisits(
         engineerId: string,
     ): Promise<Result<VisitRepositoryExceptions, Visit[]>>;
-    getReportsByEngineer(
-        engineerId: string,
-    ): Promise<Result<VisitRepositoryExceptions, Report[]>>;
 }

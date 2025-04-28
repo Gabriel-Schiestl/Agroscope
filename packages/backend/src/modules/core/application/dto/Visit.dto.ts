@@ -18,10 +18,6 @@ export class VisitDto {
     @Type(() => Date)
     scheduledDate?: Date;
 
-    @IsOptional()
-    @Type(() => ReportDto)
-    reports?: ReportDto[];
-
     @Type(() => Date)
     createdAt?: Date;
 }

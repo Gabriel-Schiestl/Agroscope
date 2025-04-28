@@ -6,6 +6,7 @@ import { Res, Result } from 'src/shared/Result';
 import { ReportDto } from '../../dto/Report.dto';
 import { ReportAppMapper } from '../../mappers/Report.mapper';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
+import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
 
 export type GetVisitsUseCaseExceptions =
     | RepositoryNoDataFound
@@ -18,8 +19,8 @@ export class GetReportsUseCase extends AbstractUseCase<
     ReportDto[]
 > {
     constructor(
-        @Inject('VisitRepository')
-        private readonly visitRepository: VisitRepository,
+        @Inject('ReportRepository')
+        private readonly visitRepository: ReportRepository,
     ) {
         super();
     }
@@ -29,7 +30,7 @@ export class GetReportsUseCase extends AbstractUseCase<
     }: {
         visitId: string;
     }): Promise<Result<GetVisitsUseCaseExceptions, ReportDto[]>> {
-        const reports = await this.visitRepository.getReports(visitId);
+        const reports = await this.visitRepository.getByVisitId(visitId);
         if (reports.isFailure()) {
             return Res.failure(reports.error);
         }

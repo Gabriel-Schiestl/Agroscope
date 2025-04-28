@@ -13,6 +13,7 @@ import { Address } from '../../domain/models/Address';
 import { Visit } from '../../domain/models/Visit';
 import { VisitDto } from './Visit.dto';
 import { OmitType } from '@nestjs/mapped-types';
+import { ReportDto } from './Report.dto';
 
 export class ClientDto {
     @IsString()
@@ -47,6 +48,10 @@ export class ClientDto {
     @IsOptional()
     @Type(() => VisitDto)
     visits?: VisitDto[];
+
+    @IsOptional()
+    @Type(() => ReportDto)
+    reports?: ReportDto[];
 
     @IsDate()
     createdAt?: Date;

@@ -13,7 +13,10 @@ export interface ReportProps {
     title: string;
     content: string;
     status: ReportStatus;
+    clientId: string;
+    engineerId: string;
     attachments?: string[];
+    visitId?: string;
     createdAt?: Date;
 }
 
@@ -22,7 +25,10 @@ export interface CreateReportProps
     title: string;
     content: string;
     status: ReportStatus;
+    clientId: string;
+    engineerId: string;
     attachments?: string[];
+    visitId?: string;
     createdAt?: Date;
 }
 
@@ -30,7 +36,10 @@ export interface LoadReportProps extends Omit<ReportProps, 'id'> {
     title: string;
     content: string;
     status: ReportStatus;
+    clientId: string;
+    engineerId: string;
     attachments?: string[];
+    visitId?: string;
     createdAt: Date;
 }
 
@@ -39,7 +48,10 @@ export class Report implements ReportProps {
     #title: string;
     #content: string;
     #status: ReportStatus;
+    #engineerId: string;
+    #clientId: string;
     #attachments?: string[];
+    #visitId?: string;
     #createdAt?: Date;
 
     private constructor(props: CreateReportProps, id?: string) {
@@ -47,14 +59,25 @@ export class Report implements ReportProps {
         this.#title = props.title;
         this.#content = props.content;
         this.#status = props.status;
+        this.#clientId = props.clientId;
+        this.#engineerId = props.engineerId;
         this.#attachments = props.attachments;
+        this.#visitId = props.visitId;
         this.#createdAt = props.createdAt ?? new Date();
     }
 
     static create(props: CreateReportProps): Result<BusinessException, Report> {
-        if (!props.title || !props.content || !props.status) {
+        if (
+            !props.title ||
+            !props.content ||
+            !props.status ||
+            !props.engineerId ||
+            !props.clientId
+        ) {
             return Res.failure(
-                new BusinessException('Title, content and status are required'),
+                new BusinessException(
+                    'Title, content, engineer id, client id and status are required',
+                ),
             );
         }
         return Res.success(new Report(props));
@@ -80,8 +103,20 @@ export class Report implements ReportProps {
         return this.#status;
     }
 
+    get clientId(): string {
+        return this.#clientId;
+    }
+
+    get engineerId(): string {
+        return this.#engineerId;
+    }
+
     get attachments(): string[] | undefined {
         return this.#attachments;
+    }
+
+    get visitId(): string | undefined {
+        return this.#visitId;
     }
 
     get createdAt(): Date | undefined {

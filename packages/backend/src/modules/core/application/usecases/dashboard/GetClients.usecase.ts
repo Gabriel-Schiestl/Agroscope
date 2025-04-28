@@ -11,6 +11,8 @@ import { ClientAppMapper } from '../../mappers/Client.mapper';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { VisitRepository } from 'src/modules/core/domain/repositories/Visit.repository';
 import { VisitAppMapper } from '../../mappers/Visit.mapper';
+import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
+import { ReportAppMapper } from '../../mappers/Report.mapper';
 
 export type GetClientesUseCaseExceptions =
     | RepositoryNoDataFound
@@ -27,6 +29,8 @@ export class GetClientesUseCase extends AbstractUseCase<
         private readonly engineerRepository: AgriculturalEngineerRepository,
         @Inject('VisitRepository')
         private readonly visitRepository: VisitRepository,
+        @Inject('ReportRepository')
+        private readonly reportRepository: ReportRepository,
     ) {
         super();
     }
@@ -53,13 +57,29 @@ export class GetClientesUseCase extends AbstractUseCase<
         );
 
         for (const client of clientsDto) {
-            const visits = await this.visitRepository.getVisits(client.id);
-            if (visits.isFailure()) {
-                return Res.failure(visits.error);
+            const reportsToSet = [];
+            const visitsToSet = [];
+
+            const visitsQuery = this.visitRepository.getVisits(client.id);
+            const reportsQuery = this.reportRepository.getByClientId(client.id);
+            const [visits, reports] = await Promise.all([
+                visitsQuery,
+                reportsQuery,
+            ]);
+            if (reports.isSuccess()) {
+                reports.value.map((report) =>
+                    reportsToSet.push(ReportAppMapper.toDto(report)),
+                );
             }
-            client.visits = visits.value.map((visit) =>
-                VisitAppMapper.toDto(visit),
-            );
+
+            if (visits.isSuccess()) {
+                visits.value.map((visit) =>
+                    visitsToSet.push(VisitAppMapper.toDto(visit)),
+                );
+            }
+            client.visits = visitsToSet;
+
+            client.reports = reportsToSet;
         }
 
         return Res.success(clientsDto);

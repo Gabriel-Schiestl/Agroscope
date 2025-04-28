@@ -16,7 +16,10 @@ export interface ReportModelProps {
     title: string;
     content: string;
     status: ReportStatus;
+    clientId: string;
+    engineerId: string;
     attachments?: string[];
+    visitId?: string;
     createdAt?: Date;
 }
 
@@ -37,11 +40,14 @@ export class ReportModel extends BaseEntity implements ReportModelProps {
     @Column({ type: 'jsonb', nullable: true })
     attachments: string[];
 
-    @ManyToOne(() => VisitModel, (visit) => visit.reports, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'visit_id' })
-    visit: VisitModel;
+    @Column({ name: 'client_id' })
+    clientId: string;
+
+    @Column({ name: 'engineer_id' })
+    engineerId: string;
+
+    @Column({ name: 'visit_id', nullable: true })
+    visitId: string;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;

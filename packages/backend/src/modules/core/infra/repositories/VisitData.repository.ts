@@ -70,21 +70,19 @@ export class VisitRepositoryImpl implements VisitRepository {
         visitId: string,
     ): Promise<Result<VisitRepositoryExceptions, Report[]>> {
         try {
-            const model = await VisitModel.findOne({
-                where: { id: visitId },
+            const models = await ReportModel.find({
+                where: { visitId },
                 relations: ['reports'],
             });
 
-            if (!model) {
+            if (!models) {
                 return Res.failure(
                     new RepositoryNoDataFound('No reports found'),
                 );
             }
 
             return Res.success(
-                model.reports.map((report) =>
-                    ReportMapper.modelToDomain(report),
-                ),
+                models.map((report) => ReportMapper.modelToDomain(report)),
             );
         } catch (e) {
             return Res.failure(new TechnicalException(e));
@@ -119,23 +117,14 @@ export class VisitRepositoryImpl implements VisitRepository {
         engineerId: string,
     ): Promise<Result<VisitRepositoryExceptions, Report[]>> {
         try {
-            const visits = await VisitModel.find({
+            const reports = await ReportModel.find({
                 where: { engineerId },
-                relations: ['reports'],
             });
 
-            if (!visits || visits.length === 0) {
+            if (!reports || reports.length === 0) {
                 return Res.failure(
-                    new RepositoryNoDataFound('No visits found'),
+                    new RepositoryNoDataFound('No reports found'),
                 );
-            }
-
-            const reports: ReportModel[] = [];
-
-            for (const visit of visits) {
-                if (visit.reports) {
-                    reports.push(...visit.reports);
-                }
             }
 
             return Res.success(

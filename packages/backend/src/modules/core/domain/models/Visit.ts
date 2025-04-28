@@ -16,7 +16,6 @@ export interface VisitProps {
     clientId: string;
     notes?: string;
     scheduledDate?: Date;
-    reports?: Report[];
     createdAt?: Date;
 }
 
@@ -26,7 +25,6 @@ export interface CreateVisitProps extends Omit<VisitProps, 'createdAt' | 'id'> {
     clientId: string;
     notes?: string;
     scheduledDate?: Date;
-    reports?: Report[];
 }
 
 export interface LoadVisitProps extends Omit<VisitProps, 'id'> {
@@ -35,7 +33,6 @@ export interface LoadVisitProps extends Omit<VisitProps, 'id'> {
     clientId: string;
     notes?: string;
     scheduledDate?: Date;
-    reports?: Report[];
     createdAt: Date;
 }
 
@@ -46,7 +43,6 @@ export class Visit implements VisitProps {
     #clientId: string;
     #scheduledDate?: Date;
     #notes?: string;
-    #reports?: Report[];
     #createdAt?: Date;
 
     private constructor(props: CreateVisitProps, id?: string) {
@@ -56,7 +52,6 @@ export class Visit implements VisitProps {
         this.#clientId = props.clientId;
         this.#notes = props.notes;
         this.#scheduledDate = props.scheduledDate;
-        this.#reports = props.reports;
         this.#createdAt = new Date();
     }
 
@@ -71,14 +66,6 @@ export class Visit implements VisitProps {
 
     static load(props: LoadVisitProps, id: string): Visit {
         return new Visit(props, id);
-    }
-
-    setReports(reports: Report[]): void {
-        if (!this.#reports) {
-            this.#reports = reports;
-        } else {
-            this.#reports.push(...reports);
-        }
     }
 
     get id(): string {
@@ -107,9 +94,5 @@ export class Visit implements VisitProps {
 
     get createdAt(): Date | undefined {
         return this.#createdAt;
-    }
-
-    get reports(): Report[] | undefined {
-        return this.#reports;
     }
 }

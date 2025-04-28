@@ -9,9 +9,6 @@ export class VisitAppMapper {
             status: visit.status,
             notes: visit.notes,
             scheduledDate: visit.scheduledDate,
-            reports: visit.reports?.map((report) =>
-                ReportAppMapper.toDto(report),
-            ),
             createdAt: visit.createdAt,
         };
     }

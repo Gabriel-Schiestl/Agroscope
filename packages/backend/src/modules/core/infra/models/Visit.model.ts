@@ -20,7 +20,6 @@ export interface VisitModelProps {
     clientId: string;
     notes?: string;
     scheduledDate?: Date;
-    reports?: ReportModel[];
     createdAt?: Date;
 }
 
@@ -43,12 +42,6 @@ export class VisitModel extends BaseEntity implements VisitModelProps {
 
     @Column({ name: 'engineer_id' })
     engineerId: string;
-
-    @OneToMany(() => ReportModel, (report) => report.visit, {
-        nullable: true,
-        cascade: true,
-    })
-    reports: ReportModel[];
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;

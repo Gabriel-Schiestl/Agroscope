@@ -8,7 +8,10 @@ export class ReportAppMapper {
             title: report.title,
             content: report.content,
             status: report.status,
+            clientId: report.clientId,
+            engineerId: report.engineerId,
             attachments: report.attachments,
+            visitId: report.visitId,
             createdAt: report.createdAt,
         };
     }

@@ -145,31 +145,6 @@ export class AgriculturalEngineerImpl
         }
     }
 
-    async getReports(
-        visitId: string,
-    ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Report[]>> {
-        try {
-            const model = await VisitModel.findOne({
-                where: { id: visitId },
-                relations: ['reports'],
-            });
-
-            if (!model) {
-                return Res.failure(
-                    new RepositoryNoDataFound('No reports found'),
-                );
-            }
-
-            return Res.success(
-                model.reports.map((report) =>
-                    ReportMapper.modelToDomain(report),
-                ),
-            );
-        } catch (e) {
-            return Res.failure(new TechnicalException(e));
-        }
-    }
-
     async getLastVisits(
         engineerId: string,
     ): Promise<Result<AgriculturalEngineerRepositoryExceptions, Visit[]>> {

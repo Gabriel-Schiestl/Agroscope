@@ -11,6 +11,8 @@ import { ClientAppMapper } from '../../mappers/Client.mapper';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { VisitRepository } from 'src/modules/core/domain/repositories/Visit.repository';
 import { VisitAppMapper } from '../../mappers/Visit.mapper';
+import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
+import { ReportAppMapper } from '../../mappers/Report.mapper';
 
 export type GetClientUseCaseExceptions =
     | RepositoryNoDataFound
@@ -27,6 +29,8 @@ export class GetClientUseCase extends AbstractUseCase<
         private readonly engineerRepository: AgriculturalEngineerRepository,
         @Inject('VisitRepository')
         private readonly visitRepository: VisitRepository,
+        @Inject('ReportRepository')
+        private readonly reportRepository: ReportRepository,
     ) {
         super();
     }
@@ -54,19 +58,24 @@ export class GetClientUseCase extends AbstractUseCase<
 
         const clientDto = ClientAppMapper.toDto(client);
 
-        const visits = await this.visitRepository.getVisits(clientId);
-        if (visits.isFailure()) {
-            return Res.failure(visits.error);
+        const visitsQuery = this.visitRepository.getVisits(clientId);
+        const reportsQuery = this.reportRepository.getByClientId(clientId);
+
+        const [visits, reports] = await Promise.all([
+            visitsQuery,
+            reportsQuery,
+        ]);
+
+        if (visits.isSuccess()) {
+            clientDto.visits = visits.value.map((visit) =>
+                VisitAppMapper.toDto(visit),
+            );
         }
 
-        for (const visit of visits.value) {
-            const reports = await this.visitRepository.getReports(visit.id);
-            if (reports.isFailure()) {
-                return Res.failure(reports.error);
-            }
-            visit.setReports(reports.value);
-
-            clientDto.visits.push(VisitAppMapper.toDto(visit));
+        if (reports.isSuccess()) {
+            clientDto.reports = reports.value.map((report) =>
+                ReportAppMapper.toDto(report),
+            );
         }
 
         return Res.success(clientDto);

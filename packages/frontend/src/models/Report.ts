@@ -15,6 +15,8 @@ export interface Report {
   title: string;
   content: string;
   status: ReportStatus;
+  engineerId: string;
+  clientId: string;
   attachments?: string[];
   createdAt?: Date;
 }

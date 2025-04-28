@@ -248,81 +248,46 @@ export default function ClientPage({ params }: { params: { id: string } }) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {client.visits && client.visits.length > 0 ? (
+              {client.reports && client.reports.length > 0 ? (
                 <div className="space-y-4">
-                  {client.visits.map((visit) => (
-                    <div key={visit.id} className="border rounded-md p-4">
+                  {client.reports.map((report) => (
+                    <div
+                      key={report.id || Math.random().toString()}
+                      className="border rounded-md p-4"
+                    >
                       <div className="flex justify-between items-center">
                         <h3 className="font-medium">
-                          Visita em{" "}
-                          {visit.scheduledDate
-                            ? new Date(visit.scheduledDate).toLocaleDateString(
-                                "pt-BR"
-                              )
-                            : "Data não agendada"}
+                          {report.title || "Relatório sem título"}
                         </h3>
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${
-                            visit.status === VisitStatus.COMPLETED
+                            report.status === ReportStatus.SENT
                               ? "bg-green-100 text-green-800"
-                              : visit.status === VisitStatus.CANCELLED
-                              ? "bg-red-100 text-red-800"
+                              : report.status === ReportStatus.DRAFT
+                              ? "bg-gray-200 text-gray-800"
                               : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
-                          {visit.status === VisitStatus.COMPLETED
-                            ? "Concluída"
-                            : visit.status === VisitStatus.CANCELLED
-                            ? "Cancelada"
-                            : "Pendente"}
+                          {report.status
+                            ? getStatus(report.status as ReportStatus)
+                            : "Status desconhecido"}
                         </span>
                       </div>
-                      {visit.notes && (
-                        <p className="text-sm text-mediumGray mt-1">
-                          Observações: {visit.notes}
+                      <p className="text-sm text-mediumGray mt-1">
+                        {report.content || "Sem conteúdo"}
+                      </p>
+                      {report.createdAt && (
+                        <p className="text-xs text-mediumGray mt-1">
+                          Data:{" "}
+                          {new Date(report.createdAt).toLocaleDateString(
+                            "pt-BR"
+                          )}
                         </p>
                       )}
-                      {visit.reports && visit.reports.length > 0 ? (
-                        <div className="mt-2 space-y-2">
-                          {visit.reports.map((report) => (
-                            <div
-                              key={report.id || Math.random().toString()}
-                              className="bg-gray-50 p-3 rounded-md"
-                            >
-                              <div className="flex justify-between items-center mb-1">
-                                <h4 className="font-medium text-sm">
-                                  {report.title || "Relatório sem título"}
-                                </h4>
-                                <span
-                                  className={`text-xs px-2 py-1 rounded-full ${
-                                    report.status === ReportStatus.SENT
-                                      ? "bg-green-100 text-green-800"
-                                      : report.status === ReportStatus.DRAFT
-                                      ? "bg-gray-200 text-gray-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                  }`}
-                                >
-                                  {report.status
-                                    ? getStatus(report.status as ReportStatus)
-                                    : "Status desconhecido"}
-                                </span>
-                              </div>
-                              <p className="text-sm text-mediumGray">
-                                {report.content || "Sem conteúdo"}
-                              </p>
-                              {report.attachments &&
-                                report.attachments.length > 0 && (
-                                  <div className="mt-2 text-xs text-blue-600">
-                                    {report.attachments.length} anexo(s)
-                                  </div>
-                                )}
-                            </div>
-                          ))}
+                      {report.attachments && report.attachments.length > 0 && (
+                        <div className="mt-2 text-xs text-blue-600">
+                          {report.attachments.length} anexo(s)
                         </div>
-                      ) : (
-                        <p className="text-sm text-mediumGray mt-2">
-                          Sem relatórios para esta visita
-                        </p>
                       )}
                     </div>
                   ))}

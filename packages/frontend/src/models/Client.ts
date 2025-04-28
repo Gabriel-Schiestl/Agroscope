@@ -1,3 +1,4 @@
+import { Report } from "./Report";
 import { Visit } from "./Visit";
 
 /**
@@ -45,5 +46,6 @@ export interface Client {
   active: boolean;
   actualCrop?: Crop;
   visits?: Visit[];
+  reports?: Report[];
   createdAt?: Date;
 }

@@ -11,9 +11,6 @@ export class VisitMapper {
             engineerId: visit.engineerId,
             notes: visit.notes,
             scheduledDate: visit.scheduledDate,
-            reports: visit.reports
-                ? visit.reports.map(ReportMapper.domainToModel)
-                : [],
             createdAt: visit.createdAt,
         });
     }
@@ -26,9 +23,6 @@ export class VisitMapper {
                 clientId: visit.clientId,
                 notes: visit.notes,
                 scheduledDate: visit.scheduledDate,
-                reports: visit.reports
-                    ? visit.reports.map(ReportMapper.modelToDomain)
-                    : [],
                 createdAt: visit.createdAt,
             },
             visit.id,

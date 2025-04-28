@@ -17,6 +17,5 @@ export interface Visit {
   status: VisitStatus;
   notes?: string;
   scheduledDate?: Date;
-  reports?: Report[];
   createdAt?: Date;
 }

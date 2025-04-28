@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -27,69 +27,73 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-
-const CLIENTS = [
-  {
-    id: "1",
-    name: "Fazenda São João",
-    owner: "João Silva",
-    location: "Ribeirão Preto, SP",
-    area: 1250,
-    crops: ["Soja", "Milho"],
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Sítio Esperança",
-    owner: "Maria Oliveira",
-    location: "Uberaba, MG",
-    area: 450,
-    crops: ["Café", "Laranja"],
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Fazenda Boa Vista",
-    owner: "Pedro Santos",
-    location: "Rondonópolis, MT",
-    area: 3200,
-    crops: ["Algodão", "Soja", "Milho"],
-    status: "active",
-  },
-  {
-    id: "4",
-    name: "Rancho Dourado",
-    owner: "Ana Ferreira",
-    location: "Barretos, SP",
-    area: 780,
-    crops: ["Cana-de-açúcar"],
-    status: "pending",
-  },
-  {
-    id: "5",
-    name: "Fazenda Paraíso",
-    owner: "Carlos Mendes",
-    location: "Rio Verde, GO",
-    area: 2100,
-    crops: ["Soja", "Milho", "Sorgo"],
-    status: "active",
-  },
-];
+import { Client, Crop } from "@/models/Client";
+import GetClientsAPI from "@/../../api/engineer/GetClients";
 
 export default function ClientList() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  const filteredClients = CLIENTS.filter(
+  useEffect(() => {
+    async function fetchClients() {
+      setIsLoading(true);
+      try {
+        const data = await GetClientsAPI();
+        if (data) {
+          setClients(data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar clientes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchClients();
+  }, []);
+
+  const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.location.toLowerCase().includes(searchQuery.toLowerCase())
+      client.document.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.address?.city &&
+        client.address.city
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())) ||
+      (client.address?.state &&
+        client.address.state.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleClientClick = (clientId: string) => {
     router.push(`/clients/${clientId}`);
   };
+
+  const getLocationString = (client: Client) => {
+    if (!client.address) return "Localização não definida";
+    return `${client.address.city || ""}, ${client.address.state || ""}`;
+  };
+
+  const getCropBadges = (client: Client) => {
+    const crops = [];
+    if (client.actualCrop) {
+      crops.push(client.actualCrop);
+    }
+    return crops;
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-center">
+            <p>Carregando clientes...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -121,7 +125,7 @@ export default function ClientList() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome da Propriedade</TableHead>
-                <TableHead>Proprietário</TableHead>
+                <TableHead>Documento</TableHead>
                 <TableHead>
                   <div className="flex items-center">
                     Localização
@@ -130,11 +134,12 @@ export default function ClientList() {
                 </TableHead>
                 <TableHead>
                   <div className="flex items-center">
-                    Área (ha)
+                    Área Total (ha)
                     <ArrowUpDown className="ml-1" size={14} />
                   </div>
                 </TableHead>
-                <TableHead>Culturas</TableHead>
+                <TableHead>Área Plantada (ha)</TableHead>
+                <TableHead>Cultura Atual</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead></TableHead>
               </TableRow>
@@ -147,31 +152,33 @@ export default function ClientList() {
                   onClick={() => handleClientClick(client.id)}
                 >
                   <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.owner}</TableCell>
-                  <TableCell>{client.location}</TableCell>
-                  <TableCell>{client.area.toLocaleString()}</TableCell>
+                  <TableCell>{client.document}</TableCell>
+                  <TableCell>{getLocationString(client)}</TableCell>
+                  <TableCell>{client.totalArea.toLocaleString()}</TableCell>
+                  <TableCell>
+                    {client.totalAreaPlanted.toLocaleString()}
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {client.crops.map((crop) => (
+                      {client.actualCrop && (
                         <Badge
-                          key={crop}
                           variant="outline"
                           className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20"
                         >
-                          {crop}
+                          {client.actualCrop}
                         </Badge>
-                      ))}
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge
                       className={
-                        client.status === "active"
+                        client.active
                           ? "bg-primaryGreen/20 text-lightGreen"
                           : "bg-mediumGray/20 text-darkGray"
                       }
                     >
-                      {client.status === "active" ? "Ativo" : "Pendente"}
+                      {client.active ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -254,37 +261,42 @@ export default function ClientList() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <div className="text-sm mb-1">{client.owner}</div>
+              <div className="text-sm mb-1">Doc: {client.document}</div>
               <div className="flex items-center text-sm text-mediumGray mb-2">
                 <MapPin className="mr-1" size={14} />
-                {client.location}
+                {getLocationString(client)}
               </div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-mediumGray">Área:</span>
+                <span className="text-sm text-mediumGray">Área Total:</span>
                 <span className="text-sm font-medium">
-                  {client.area.toLocaleString()} ha
+                  {client.totalArea.toLocaleString()} ha
                 </span>
               </div>
-              <div className="flex flex-wrap gap-1 mb-2">
-                {client.crops.map((crop) => (
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-mediumGray">Área Plantada:</span>
+                <span className="text-sm font-medium">
+                  {client.totalAreaPlanted.toLocaleString()} ha
+                </span>
+              </div>
+              {client.actualCrop && (
+                <div className="flex flex-wrap gap-1 mb-2">
                   <Badge
-                    key={crop}
                     variant="outline"
                     className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20"
                   >
-                    {crop}
+                    {client.actualCrop}
                   </Badge>
-                ))}
-              </div>
+                </div>
+              )}
               <div className="flex justify-end">
                 <Badge
                   className={
-                    client.status === "active"
+                    client.active
                       ? "bg-primaryGreen/20 text-lightGreen"
                       : "bg-mediumGray/20 text-darkGray"
                   }
                 >
-                  {client.status === "active" ? "Ativo" : "Pendente"}
+                  {client.active ? "Ativo" : "Inativo"}
                 </Badge>
               </div>
             </div>

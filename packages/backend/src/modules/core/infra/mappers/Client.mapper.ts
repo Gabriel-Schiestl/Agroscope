@@ -15,6 +15,7 @@ export class ClientMapper {
             totalAreaPlanted: client.totalAreaPlanted,
             active: client.active,
             actualCrop: client.actualCrop,
+            createdAt: client.createdAt,
         });
     }
 
@@ -30,6 +31,7 @@ export class ClientMapper {
                 totalAreaPlanted: client.totalAreaPlanted,
                 active: client.active,
                 actualCrop: client.actualCrop,
+                createdAt: client.createdAt,
             },
             client.id,
         );

@@ -73,6 +73,7 @@ export class LoginUseCase {
         }
 
         const jwtPayload: JwtPayload = {
+            name: user.value.name,
             email: user.value.email,
             sub: user.value.id,
             engineer: false,

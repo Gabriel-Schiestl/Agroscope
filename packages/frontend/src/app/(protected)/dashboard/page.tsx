@@ -22,16 +22,26 @@ import GetClientsAPI from "../../../../api/engineer/GetClients";
 import { Client } from "@/models/Client";
 import { VisitStatus } from "@/models/Visit";
 import { useAuth } from "@/contexts/auth-context";
+import GetAllReportsAPI from "../../../../api/engineer/GetAllReports";
+import { getStatus, Report } from "@/models/Report";
 
 export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const { auth } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await GetClientsAPI();
-      if (response) {
-        const sortedClientsByLastVisit = response.sort((a, b) => {
+      const clientsPromise = GetClientsAPI();
+      const reportsPromise = GetAllReportsAPI();
+
+      const [clientsResponse, reportsResponse] = await Promise.all([
+        clientsPromise,
+        reportsPromise,
+      ]);
+
+      if (clientsResponse) {
+        const sortedClientsByLastVisit = clientsResponse.sort((a, b) => {
           const completedVisitsA =
             a.visits?.filter(
               (visit) => visit.status === VisitStatus.COMPLETED
@@ -69,6 +79,16 @@ export default function DashboardPage() {
 
         setClients(sortedClientsByLastVisit);
       }
+
+      if (reportsResponse) {
+        const reportsSorted = reportsResponse.sort((a, b) => {
+          return (
+            new Date(b.createdAt || 0).getTime() -
+            new Date(a.createdAt || 0).getTime()
+          );
+        });
+        setReports(reportsSorted);
+      }
     };
 
     fetchData();
@@ -80,17 +100,19 @@ export default function DashboardPage() {
     }, 0);
   }, [clients]);
 
-  const getNewTotalArea = () => {
+  const newTotalArea = useMemo(() => {
     const result = clients
-      .filter((c) => c.createdAt?.getMonth() === new Date().getMonth())
+      .filter(
+        (c) => new Date(c.createdAt!).getMonth() === new Date().getMonth()
+      )
       .reduce((total, client) => {
-        return total + client.totalArea;
+        return total + (client.totalArea || 0);
       }, 0);
 
     return result > 0 ? result : 0;
-  };
+  }, [clients]);
 
-  const getPendingVisits = () => {
+  const pendingVisits = useMemo(() => {
     let visits = 0;
 
     for (const client of clients) {
@@ -104,7 +126,39 @@ export default function DashboardPage() {
     }
 
     return visits;
-  };
+  }, [clients]);
+
+  const nextVisitDate = useMemo(() => {
+    const visits = [];
+
+    for (const client of clients) {
+      if (!client.visits) continue;
+
+      for (const visit of client.visits) {
+        if (visit.status === VisitStatus.PENDING) {
+          visits.push(visit.scheduledDate);
+        }
+      }
+    }
+
+    const sortedVisits = visits.sort((a, b) => {
+      return new Date(a || 0).getTime() - new Date(b || 0).getTime();
+    });
+
+    if (sortedVisits.length > 0) {
+      return new Date(sortedVisits[0] || 0).toLocaleDateString();
+    }
+
+    return "Sem visitas pendentes";
+  }, [clients]);
+
+  const lastReportsCount = useMemo(() => {
+    const lastReports = reports.filter(
+      (report) => report.createdAt?.getMonth() === new Date().getMonth()
+    );
+
+    return lastReports.length;
+  }, [reports]);
 
   return (
     <div className="space-y-6 pb-16 md:pb-0">
@@ -126,7 +180,8 @@ export default function DashboardPage() {
               +
               {
                 clients.filter(
-                  (c) => c.createdAt?.getMonth() === new Date().getMonth()
+                  (c) =>
+                    new Date(c.createdAt!).getMonth() === new Date().getMonth()
                 ).length
               }{" "}
               novos este mês
@@ -142,7 +197,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-xs text-primaryGreen">
-              +{getNewTotalArea()} ha desde o último mês
+              +{newTotalArea} ha desde o último mês
             </div>
           </CardContent>
         </Card>
@@ -150,20 +205,26 @@ export default function DashboardPage() {
           <CardHeader className="pb-2">
             <CardDescription>Visitas Pendentes</CardDescription>
             <CardTitle className="text-xl md:text-2xl">
-              {getPendingVisits()}
+              {pendingVisits}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-primaryGreen">Próxima: 22/04/2024</div>
+            <div className="text-xs text-primaryGreen">
+              Próxima: {nextVisitDate}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Relatórios</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">28</CardTitle>
+            <CardTitle className="text-xl md:text-2xl">
+              {reports.length}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-primaryGreen">3 novos esta semana</div>
+            <div className="text-xs text-primaryGreen">
+              {lastReportsCount} novos este mês
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -246,38 +307,58 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Próximas Atividades</CardTitle>
-            <CardDescription>Agenda da semana</CardDescription>
+            <CardTitle>Relatórios recentes</CardTitle>
+            <CardDescription>Últimos relatórios gerados</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20">
-                <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
-                  <Calendar size={18} />
+            {reports.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20">
+                  <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
+                    <Calendar size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">{reports[0]?.title}</h4>
+                    <p className="text-sm text-mediumGray">
+                      {getStatus(reports[0]?.status)}
+                    </p>
+                    <p className="text-xs text-primaryGreen mt-1">
+                      {new Date(
+                        reports[0]?.createdAt || 0
+                      ).toLocaleDateString()}{" "}
+                      -{" "}
+                      {new Date(
+                        reports[0]?.createdAt || 0
+                      ).toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium">Visita Técnica</h4>
-                  <p className="text-sm text-mediumGray">Fazenda São João</p>
-                  <p className="text-xs text-primaryGreen mt-1">
-                    22/04/2024 - 09:00
-                  </p>
+                <div className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20">
+                  <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
+                    <FileText size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">{reports[1]?.title}</h4>
+                    <p className="text-sm text-mediumGray">
+                      {getStatus(reports[1]?.status)}
+                    </p>
+                    <p className="text-xs text-primaryGreen mt-1">
+                      {new Date(
+                        reports[1]?.createdAt || 1
+                      ).toLocaleDateString()}{" "}
+                      -{" "}
+                      {new Date(
+                        reports[1]?.createdAt || 1
+                      ).toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20">
-                <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
-                  <FileText size={18} />
-                </div>
-                <div>
-                  <h4 className="font-medium">Relatório Mensal</h4>
-                  <p className="text-sm text-mediumGray">
-                    Entrega de relatório
-                  </p>
-                  <p className="text-xs text-primaryGreen mt-1">
-                    25/04/2024 - 18:00
-                  </p>
-                </div>
+            ) : (
+              <div className="flex items-center justify-center h-full p-4 text-mediumGray">
+                Nenhum relatório gerado ainda.
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

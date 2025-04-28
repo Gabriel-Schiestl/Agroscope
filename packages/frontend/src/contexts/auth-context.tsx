@@ -57,13 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: response.name,
           email: response.email,
         });
-
-        setIsLoading(false);
       }
     } catch (error) {
       console.error("Erro ao validar autenticação:", error);
       setAuth(null);
-      setIsLoading(false);
 
       if (
         window.location.pathname !== "/" &&
@@ -72,6 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ) {
         router.push("/login");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 

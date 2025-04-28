@@ -18,3 +18,16 @@ export interface Report {
   attachments?: string[];
   createdAt?: Date;
 }
+
+export function getStatus(status: ReportStatus): string {
+  switch (status) {
+    case ReportStatus.DRAFT:
+      return "Rascunho";
+    case ReportStatus.PENDING:
+      return "Pendente";
+    case ReportStatus.SENT:
+      return "Enviado";
+    default:
+      return "Desconhecido";
+  }
+}

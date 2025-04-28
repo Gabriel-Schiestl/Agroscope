@@ -1,3 +1,4 @@
+import { GetAllReportsUseCase } from './GetAllReports.usecase';
 import { GetClientesUseCase } from './GetClients.usecase';
 import { GetClientsByCropUseCase } from './GetClientsByCrop.usecase';
 import { GetLastVisitsUseCase } from './GetLastVisits.usecase';
@@ -10,4 +11,5 @@ export const dashboardUseCases = [
     GetReportsUseCase,
     GetLastVisitsUseCase,
     GetClientsByCropUseCase,
+    GetAllReportsUseCase,
 ];

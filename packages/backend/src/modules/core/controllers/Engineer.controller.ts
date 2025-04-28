@@ -15,6 +15,7 @@ import { EngineerGuard } from '../infra/services/Engineer.guard';
 import { CreateClientDto } from '../application/dto/Client.dto';
 import { CreateClientUseCase } from '../application/usecases/engineer/CreateClient.usecase';
 import { GetClientsByCropUseCase } from '../application/usecases/dashboard/GetClientsByCrop.usecase';
+import { GetAllReportsUseCase } from '../application/usecases/dashboard/GetAllReports.usecase';
 
 @UseGuards(EngineerGuard)
 @Controller('engineer')
@@ -26,6 +27,7 @@ export class EngineerController {
         private readonly getLastVisitsUseCase: GetLastVisitsUseCase,
         private readonly createClientUseCase: CreateClientUseCase,
         private readonly getClientsByCropUseCase: GetClientsByCropUseCase,
+        private readonly getAllReportsUseCase: GetAllReportsUseCase,
     ) {}
 
     @Get('clients')
@@ -64,6 +66,13 @@ export class EngineerController {
     async getClientsByCrop(@Req() req: any, @Param('crop') crop: string) {
         return await this.getClientsByCropUseCase.execute({
             crop,
+            engineerId: req.user.sub,
+        });
+    }
+
+    @Get('reports')
+    async getAllReports(@Req() req: any) {
+        return await this.getAllReportsUseCase.execute({
             engineerId: req.user.sub,
         });
     }

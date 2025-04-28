@@ -58,6 +58,7 @@ export class Client implements ClientProps {
         this.#totalAreaPlanted = props.totalAreaPlanted;
         this.#active = props.active;
         this.#actualCrop = props.actualCrop;
+        this.#createdAt = props.createdAt || new Date();
     }
 
     static create(props: CreateClientProps): Result<BusinessException, Client> {

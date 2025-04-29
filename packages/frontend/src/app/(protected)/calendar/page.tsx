@@ -58,84 +58,88 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { EventType, EventStatus, CalendarEvent } from "@/models/CalendarEvent";
 
 // Mock data for events
-const INITIAL_EVENTS = [
+const INITIAL_EVENTS: CalendarEvent[] = [
   {
-    id: "1",
     title: "Visita Técnica",
-    date: "2024-04-22",
+    date: new Date("2024-04-22"),
     time: "09:00",
-    client: "Fazenda São João",
+    clientId: "1",
     location: "Ribeirão Preto, SP",
     description: "Monitoramento de pragas e análise de solo",
-    type: "visit",
+    type: EventType.VISIT,
+    status: EventStatus.PENDING,
   },
   {
-    id: "2",
     title: "Aplicação de Defensivos",
-    date: "2024-05-10",
+    date: new Date("2024-05-10"),
     time: "08:00",
-    client: "Sítio Esperança",
+    clientId: "2",
     location: "Uberaba, MG",
     description: "Controle preventivo na área sul",
-    type: "application",
+    type: EventType.APPLICATION,
+    status: EventStatus.PENDING,
   },
   {
-    id: "3",
     title: "Coleta de Amostras",
-    date: "2024-05-15",
+    date: new Date("2024-05-15"),
     time: "10:30",
-    client: "Fazenda Boa Vista",
+    clientId: "3",
     location: "Rondonópolis, MT",
     description: "Análise foliar para culturas de soja",
-    type: "collection",
+    type: EventType.COLLECTION,
+    status: EventStatus.PENDING,
   },
   {
-    id: "4",
     title: "Entrega de Relatório",
-    date: "2024-04-25",
+    date: new Date("2024-04-25"),
     time: "18:00",
-    client: "Escritório",
+    clientId: "4",
     location: "Online",
     description: "Entrega do relatório mensal de atividades",
-    type: "report",
+    type: EventType.REPORT,
+    status: EventStatus.PENDING,
   },
   {
-    id: "5",
     title: "Reunião com Cliente",
-    date: "2024-04-28",
+    date: new Date("2024-04-28"),
     time: "14:00",
-    client: "Fazenda Paraíso",
+    clientId: "5",
     location: "Rio Verde, GO",
     description: "Discussão sobre plano de manejo integrado",
-    type: "meeting",
+    type: EventType.MEETING,
+    status: EventStatus.PENDING,
   },
 ];
 
 // Event type configuration for styling and icons
-const EVENT_TYPES = {
-  visit: {
+const EVENT_TYPES: Record<
+  EventType,
+  { label: string; color: string; icon: any }
+> = {
+  [EventType.VISIT]: {
     label: "Visita Técnica",
     color: "bg-blue-100 text-blue-800 border-blue-200",
     icon: Users,
   },
-  application: {
+  [EventType.APPLICATION]: {
     label: "Aplicação",
     color: "bg-green-100 text-green-800 border-green-200",
     icon: FileText,
   },
-  collection: {
+  [EventType.COLLECTION]: {
     label: "Coleta",
     color: "bg-amber-100 text-amber-800 border-amber-200",
     icon: FileText,
   },
-  report: {
+  [EventType.REPORT]: {
     label: "Relatório",
     color: "bg-purple-100 text-purple-800 border-purple-200",
     icon: FileText,
   },
-  meeting: {
+  [EventType.MEETING]: {
     label: "Reunião",
     color: "bg-rose-100 text-rose-800 border-rose-200",
     icon: Users,
@@ -148,14 +152,15 @@ export default function CalendarPage() {
   const [events, setEvents] = useState(INITIAL_EVENTS);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState({
+  const [newEvent, setNewEvent] = useState<Partial<CalendarEvent>>({
     title: "",
-    date: format(selectedDate, "yyyy-MM-dd"),
+    date: new Date(selectedDate),
     time: "09:00",
-    client: "",
+    clientId: "",
     location: "",
     description: "",
-    type: "visit",
+    type: EventType.VISIT,
+    status: EventStatus.PENDING,
   });
 
   // Calendar navigation
@@ -175,7 +180,7 @@ export default function CalendarPage() {
 
   // Get events for the selected date
   const selectedDateEvents = filteredEvents.filter((event) =>
-    isSameDay(parseISO(event.date), selectedDate)
+    isSameDay(event.date, selectedDate)
   );
 
   // Toggle event type filter
@@ -189,22 +194,35 @@ export default function CalendarPage() {
 
   // Check if a day has events
   const dayHasEvents = (day: Date) => {
-    return filteredEvents.some((event) => isSameDay(parseISO(event.date), day));
+    return filteredEvents.some((event) => isSameDay(event.date, day));
   };
 
   // Handle adding a new event
   const handleAddEvent = () => {
-    const id = (events.length + 1).toString();
-    setEvents([...events, { id, ...newEvent }]);
+    if (!newEvent.title || !newEvent.date) return;
+
+    const fullEvent: CalendarEvent = {
+      title: newEvent.title || "",
+      type: newEvent.type || EventType.VISIT,
+      status: newEvent.status || EventStatus.PENDING,
+      date: newEvent.date as Date,
+      time: newEvent.time || "09:00",
+      clientId: newEvent.clientId,
+      location: newEvent.location,
+      description: newEvent.description,
+    };
+
+    setEvents([...events, fullEvent]);
     setIsAddEventOpen(false);
     setNewEvent({
       title: "",
-      date: format(selectedDate, "yyyy-MM-dd"),
+      date: new Date(selectedDate),
       time: "09:00",
-      client: "",
+      clientId: "",
       location: "",
       description: "",
-      type: "visit",
+      type: EventType.VISIT,
+      status: EventStatus.PENDING,
     });
   };
 
@@ -300,7 +318,7 @@ export default function CalendarPage() {
                   <Select
                     value={newEvent.type}
                     onValueChange={(value) =>
-                      setNewEvent({ ...newEvent, type: value })
+                      setNewEvent({ ...newEvent, type: value as EventType })
                     }
                   >
                     <SelectTrigger className="col-span-3">
@@ -325,9 +343,12 @@ export default function CalendarPage() {
                   <Input
                     id="event-date"
                     type="date"
-                    value={newEvent.date}
+                    value={format(newEvent.date as Date, "yyyy-MM-dd")}
                     onChange={(e) =>
-                      setNewEvent({ ...newEvent, date: e.target.value })
+                      setNewEvent({
+                        ...newEvent,
+                        date: new Date(e.target.value),
+                      })
                     }
                     className="col-span-3"
                   />
@@ -352,9 +373,9 @@ export default function CalendarPage() {
                   </Label>
                   <Input
                     id="event-client"
-                    value={newEvent.client}
+                    value={newEvent.clientId}
                     onChange={(e) =>
-                      setNewEvent({ ...newEvent, client: e.target.value })
+                      setNewEvent({ ...newEvent, clientId: e.target.value })
                     }
                     className="col-span-3"
                   />
@@ -521,17 +542,16 @@ export default function CalendarPage() {
                   </p>
                 </div>
               ) : (
-                selectedDateEvents.map((event) => {
+                selectedDateEvents.map((event, index) => {
                   const EventIcon =
-                    EVENT_TYPES[event.type as keyof typeof EVENT_TYPES]?.icon ||
-                    CalendarIcon;
+                    EVENT_TYPES[event.type]?.icon || CalendarIcon;
                   const eventColor =
-                    EVENT_TYPES[event.type as keyof typeof EVENT_TYPES]
-                      ?.color || "bg-gray-100 text-gray-800 border-gray-200";
+                    EVENT_TYPES[event.type]?.color ||
+                    "bg-gray-100 text-gray-800 border-gray-200";
 
                   return (
                     <div
-                      key={event.id}
+                      key={`${event.title}-${index}`}
                       className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20"
                     >
                       <div
@@ -545,13 +565,14 @@ export default function CalendarPage() {
                         <div className="flex justify-between items-start">
                           <h4 className="font-medium">{event.title}</h4>
                           <Badge variant="outline" className={eventColor}>
-                            {EVENT_TYPES[event.type as keyof typeof EVENT_TYPES]
-                              ?.label || "Evento"}
+                            {EVENT_TYPES[event.type]?.label || "Evento"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-mediumGray">
-                          {event.client}
-                        </p>
+                        {event.clientId && (
+                          <p className="text-sm text-mediumGray">
+                            Cliente ID: {event.clientId}
+                          </p>
+                        )}
                         <div className="flex items-center text-xs text-primaryGreen mt-1">
                           <span>{event.time}</span>
                           {event.location && (
@@ -562,6 +583,19 @@ export default function CalendarPage() {
                             </>
                           )}
                         </div>
+                        {event.status && (
+                          <Badge
+                            className={`mt-2 ${
+                              event.status === EventStatus.COMPLETED
+                                ? "bg-green-100 text-green-800"
+                                : event.status === EventStatus.CANCELLED
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {event.status}
+                          </Badge>
+                        )}
                         {event.description && (
                           <p className="text-sm mt-2 text-muted-foreground">
                             {event.description}
@@ -581,7 +615,7 @@ export default function CalendarPage() {
               onClick={() => {
                 setNewEvent({
                   ...newEvent,
-                  date: format(selectedDate, "yyyy-MM-dd"),
+                  date: new Date(selectedDate),
                 });
                 setIsAddEventOpen(true);
               }}
@@ -604,22 +638,20 @@ export default function CalendarPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {filteredEvents
-              .filter((event) => new Date(event.date) >= new Date())
-              .sort(
-                (a, b) =>
-                  new Date(a.date).getTime() - new Date(b.date).getTime()
-              )
+              .filter((event) => event.date >= new Date())
+              .sort((a, b) => a.date.getTime() - b.date.getTime())
               .slice(0, 3)
-              .map((event) => {
-                const EventIcon =
-                  EVENT_TYPES[event.type as keyof typeof EVENT_TYPES]?.icon ||
-                  CalendarIcon;
+              .map((event, index) => {
+                const EventIcon = EVENT_TYPES[event.type]?.icon || CalendarIcon;
                 const eventColor =
-                  EVENT_TYPES[event.type as keyof typeof EVENT_TYPES]?.color ||
+                  EVENT_TYPES[event.type]?.color ||
                   "bg-gray-100 text-gray-800 border-gray-200";
 
                 return (
-                  <Card key={event.id} className="border border-mediumGray/20">
+                  <Card
+                    key={`upcoming-${index}`}
+                    className="border border-mediumGray/20"
+                  >
                     <CardHeader className="p-4 pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-base">
@@ -633,14 +665,16 @@ export default function CalendarPage() {
                           <EventIcon className="h-4 w-4" />
                         </div>
                       </div>
-                      <CardDescription>{event.client}</CardDescription>
+                      <CardDescription>
+                        {event.clientId
+                          ? `Cliente ID: ${event.clientId}`
+                          : "Sem cliente"}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="flex items-center text-xs text-primaryGreen mt-1">
                         <CalendarIcon className="h-3 w-3 mr-1" />
-                        <span>
-                          {format(parseISO(event.date), "dd/MM/yyyy")}
-                        </span>
+                        <span>{format(event.date, "dd/MM/yyyy")}</span>
                         <span className="mx-1">•</span>
                         <span>{event.time}</span>
                       </div>
@@ -649,6 +683,19 @@ export default function CalendarPage() {
                           <MapPin className="h-3 w-3 mr-1" />
                           <span>{event.location}</span>
                         </div>
+                      )}
+                      {event.status && (
+                        <Badge
+                          className={`mt-2 ${
+                            event.status === EventStatus.COMPLETED
+                              ? "bg-green-100 text-green-800"
+                              : event.status === EventStatus.CANCELLED
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
+                          }`}
+                        >
+                          {event.status}
+                        </Badge>
                       )}
                     </CardContent>
                   </Card>

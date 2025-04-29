@@ -75,7 +75,7 @@ export class EngineerController {
         });
     }
 
-    @Get('clients/:crop')
+    @Get('clients-by-crop/:crop')
     async getClientsByCrop(@Req() req: any, @Param('crop') crop: string) {
         return await this.getClientsByCropUseCase.execute({
             crop,

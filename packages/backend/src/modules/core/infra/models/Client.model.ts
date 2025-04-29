@@ -49,10 +49,10 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
     @Column('jsonb')
     address: Address;
 
-    @Column('float')
+    @Column('float', { name: 'total_area' })
     totalArea: number;
 
-    @Column('float')
+    @Column('float', { name: 'total_area_planted' })
     totalAreaPlanted: number;
 
     @ManyToOne(
@@ -71,7 +71,7 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
     @Column({ name: 'active', default: true })
     active: boolean;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, name: 'actual_crop' })
     actualCrop?: Crop;
 
     setProps(props: ClientModelProps): ClientModel {

@@ -257,7 +257,7 @@ export default function DashboardPage() {
                 <div className="text-sm text-mediumGray">
                   Visitado:{" "}
                   {new Date(
-                    clients[0]?.calendarEvents?.[0].date || 0
+                    clients[0]?.calendarEvents?.[0]?.date || 0
                   ).toLocaleDateString()}
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function DashboardPage() {
                 <div className="text-sm text-mediumGray">
                   Visitado:{" "}
                   {new Date(
-                    clients[1]?.calendarEvents?.[0].date || 0
+                    clients[1]?.calendarEvents?.[0]?.date || 0
                   ).toLocaleDateString()}
                 </div>
               </div>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                 <div className="text-sm text-mediumGray">
                   Visitado:{" "}
                   {new Date(
-                    clients[2]?.calendarEvents?.[0].date || 0
+                    clients[2]?.calendarEvents?.[0]?.date || 0
                   ).toLocaleDateString()}
                 </div>
               </div>

@@ -21,7 +21,7 @@ export class AgriculturalEngineerModel
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column({ name: 'user_id' })
     userId: string;
 
     @OneToMany(() => ClientModel, (client) => client.agriculturalEngineer, {
@@ -30,7 +30,11 @@ export class AgriculturalEngineerModel
     })
     clients?: ClientModel[];
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        name: 'created_at',
+    })
     createdAt: Date;
 
     setProps(props: AgriculturalEngineerModelProps): AgriculturalEngineerModel {

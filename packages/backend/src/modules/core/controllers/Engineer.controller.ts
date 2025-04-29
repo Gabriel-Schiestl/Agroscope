@@ -16,6 +16,7 @@ import { GetClientsByCropUseCase } from '../application/usecases/dashboard/GetCl
 import { GetAllReportsUseCase } from '../application/usecases/dashboard/GetAllReports.usecase';
 import { GetClientUseCase } from '../application/usecases/dashboard/GetClient.usecase';
 import { GetLastEventsUseCase } from '../application/usecases/dashboard/GetLastEvents.usecase';
+import { GetEventsByClientUseCase } from '../application/usecases/dashboard/GetEventsByClient.usecase';
 import { GetEventsUseCase } from '../application/usecases/dashboard/GetEvents.usecase';
 
 @UseGuards(EngineerGuard)
@@ -29,6 +30,7 @@ export class EngineerController {
         private readonly getClientsByCropUseCase: GetClientsByCropUseCase,
         private readonly getAllReportsUseCase: GetAllReportsUseCase,
         private readonly getClientUseCase: GetClientUseCase,
+        private readonly getEventsByClientUseCase: GetEventsByClientUseCase,
         private readonly getEventsUseCase: GetEventsUseCase,
     ) {}
 
@@ -47,9 +49,16 @@ export class EngineerController {
         });
     }
 
-    @Get('visits/:clientId')
-    async getVisits(@Param('clientId') clientId: string, @Req() req: any) {
+    @Get('events')
+    async getAllEvents(@Req() req: any) {
         return await this.getEventsUseCase.execute({
+            userId: req.user.sub,
+        });
+    }
+
+    @Get('events/:clientId')
+    async getEvents(@Param('clientId') clientId: string, @Req() req: any) {
+        return await this.getEventsByClientUseCase.execute({
             clientId,
             userId: req.user.sub,
         });

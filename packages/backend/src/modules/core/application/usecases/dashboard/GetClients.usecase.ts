@@ -73,11 +73,13 @@ export class GetClientesUseCase extends AbstractUseCase<
             }
 
             if (calendar.isSuccess()) {
-                calendar.value.events.map((event) =>
-                    calendarEventsToSet.push(
-                        CalendarEventAppMapper.toDto(event),
-                    ),
-                );
+                calendar.value.events
+                    .filter((event) => event.clientId === client.id)
+                    .map((event) =>
+                        calendarEventsToSet.push(
+                            CalendarEventAppMapper.toDto(event),
+                        ),
+                    );
             }
             client.calendarEvents = calendarEventsToSet;
 

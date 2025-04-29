@@ -7,14 +7,14 @@ import { CalendarRepository } from 'src/modules/core/domain/repositories/Calenda
 import { CalendarEventDto } from '../../dto/CalendarEvent.dto';
 import { CalendarEventAppMapper } from '../../mappers/CalendarEvent.mapper';
 
-export type GetEventsUseCaseExceptions =
+export type GetEventsByClientUseCaseExceptions =
     | RepositoryNoDataFound
     | TechnicalException;
 
 @Injectable()
-export class GetEventsUseCase extends AbstractUseCase<
-    { userId: string },
-    GetEventsUseCaseExceptions,
+export class GetEventsByClientUseCase extends AbstractUseCase<
+    { userId: string; clientId: string },
+    GetEventsByClientUseCaseExceptions,
     CalendarEventDto[]
 > {
     constructor(
@@ -26,18 +26,22 @@ export class GetEventsUseCase extends AbstractUseCase<
 
     async onExecute({
         userId,
+        clientId,
     }: {
         userId: string;
-    }): Promise<Result<GetEventsUseCaseExceptions, CalendarEventDto[]>> {
+        clientId: string;
+    }): Promise<
+        Result<GetEventsByClientUseCaseExceptions, CalendarEventDto[]>
+    > {
         const calendar = await this.calendarRepository.findByUserId(userId);
         if (calendar.isFailure()) {
             return Res.failure(calendar.error);
         }
 
         return Res.success(
-            calendar.value.events.map((event) =>
-                CalendarEventAppMapper.toDto(event),
-            ),
+            calendar.value.events
+                .filter((event) => event.clientId == clientId)
+                .map((event) => CalendarEventAppMapper.toDto(event)),
         );
     }
 }

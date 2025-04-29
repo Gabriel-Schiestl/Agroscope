@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   format,
   addMonths,
@@ -59,99 +59,47 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { EventType, EventStatus, CalendarEvent } from "@/models/CalendarEvent";
-
-// Mock data for events
-const INITIAL_EVENTS: CalendarEvent[] = [
-  {
-    title: "Visita Técnica",
-    date: new Date("2024-04-22"),
-    time: "09:00",
-    clientId: "1",
-    location: "Ribeirão Preto, SP",
-    description: "Monitoramento de pragas e análise de solo",
-    type: EventType.VISIT,
-    status: EventStatus.PENDING,
-  },
-  {
-    title: "Aplicação de Defensivos",
-    date: new Date("2024-05-10"),
-    time: "08:00",
-    clientId: "2",
-    location: "Uberaba, MG",
-    description: "Controle preventivo na área sul",
-    type: EventType.APPLICATION,
-    status: EventStatus.PENDING,
-  },
-  {
-    title: "Coleta de Amostras",
-    date: new Date("2024-05-15"),
-    time: "10:30",
-    clientId: "3",
-    location: "Rondonópolis, MT",
-    description: "Análise foliar para culturas de soja",
-    type: EventType.COLLECTION,
-    status: EventStatus.PENDING,
-  },
-  {
-    title: "Entrega de Relatório",
-    date: new Date("2024-04-25"),
-    time: "18:00",
-    clientId: "4",
-    location: "Online",
-    description: "Entrega do relatório mensal de atividades",
-    type: EventType.REPORT,
-    status: EventStatus.PENDING,
-  },
-  {
-    title: "Reunião com Cliente",
-    date: new Date("2024-04-28"),
-    time: "14:00",
-    clientId: "5",
-    location: "Rio Verde, GO",
-    description: "Discussão sobre plano de manejo integrado",
-    type: EventType.MEETING,
-    status: EventStatus.PENDING,
-  },
-];
+import GetAllEventsAPI from "../../../../api/engineer/GetAllEvents";
+import GetClientsAPI from "../../../../api/engineer/GetClients";
+import { Client } from "@/models/Client";
 
 // Event type configuration for styling and icons
-const EVENT_TYPES: Record<
-  EventType,
-  { label: string; color: string; icon: any }
-> = {
+const EVENT_TYPES = {
   [EventType.VISIT]: {
-    label: "Visita Técnica",
-    color: "bg-blue-100 text-blue-800 border-blue-200",
+    label: "Visita",
     icon: Users,
-  },
-  [EventType.APPLICATION]: {
-    label: "Aplicação",
-    color: "bg-green-100 text-green-800 border-green-200",
-    icon: FileText,
-  },
-  [EventType.COLLECTION]: {
-    label: "Coleta",
-    color: "bg-amber-100 text-amber-800 border-amber-200",
-    icon: FileText,
-  },
-  [EventType.REPORT]: {
-    label: "Relatório",
-    color: "bg-purple-100 text-purple-800 border-purple-200",
-    icon: FileText,
+    color: "bg-blue-100 text-blue-800 border-blue-200",
   },
   [EventType.MEETING]: {
     label: "Reunião",
-    color: "bg-rose-100 text-rose-800 border-rose-200",
     icon: Users,
+    color: "bg-purple-100 text-purple-800 border-purple-200",
+  },
+  [EventType.REPORT]: {
+    label: "Relatório",
+    icon: FileText,
+    color: "bg-green-100 text-green-800 border-green-200",
+  },
+  [EventType.APPLICATION]: {
+    label: "Aplicação",
+    icon: FileText,
+    color: "bg-gray-100 text-gray-800 border-gray-200",
+  },
+  [EventType.COLLECTION]: {
+    label: "Coleta",
+    icon: FileText,
+    color: "bg-gray-100 text-gray-800 border-gray-200",
   },
 };
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [events, setEvents] = useState(INITIAL_EVENTS);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [clients, setClients] = useState<Client[]>([]);
   const [newEvent, setNewEvent] = useState<Partial<CalendarEvent>>({
     title: "",
     date: new Date(selectedDate),
@@ -162,6 +110,53 @@ export default function CalendarPage() {
     type: EventType.VISIT,
     status: EventStatus.PENDING,
   });
+
+  // Buscar eventos do engenheiro ao carregar a página
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setIsLoading(true);
+      try {
+        const eventsData = await GetAllEventsAPI();
+        if (eventsData) {
+          // Converter strings de data para objetos Date
+          const formattedEvents = eventsData.map((event) => ({
+            ...event,
+            date:
+              event.date instanceof Date ? event.date : new Date(event.date),
+          }));
+          setEvents(formattedEvents);
+        } else {
+          setEvents([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar eventos:", error);
+        setEvents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Buscar lista de clientes ao carregar a página
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const clientsData = await GetClientsAPI();
+        if (clientsData) {
+          setClients(clientsData);
+        } else {
+          setClients([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar clientes:", error);
+        setClients([]);
+      }
+    };
+
+    fetchClients();
+  }, []);
 
   // Calendar navigation
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
@@ -371,14 +366,23 @@ export default function CalendarPage() {
                   <Label htmlFor="event-client" className="text-right">
                     Cliente
                   </Label>
-                  <Input
-                    id="event-client"
+                  <Select
                     value={newEvent.clientId}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, clientId: e.target.value })
+                    onValueChange={(value) =>
+                      setNewEvent({ ...newEvent, clientId: value })
                     }
-                    className="col-span-3"
-                  />
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecione o cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="event-location" className="text-right">
@@ -549,6 +553,9 @@ export default function CalendarPage() {
                     EVENT_TYPES[event.type]?.color ||
                     "bg-gray-100 text-gray-800 border-gray-200";
 
+                  // Encontrar o cliente pelo ID
+                  const client = clients.find((c) => c.id === event.clientId);
+
                   return (
                     <div
                       key={`${event.title}-${index}`}
@@ -570,7 +577,7 @@ export default function CalendarPage() {
                         </div>
                         {event.clientId && (
                           <p className="text-sm text-mediumGray">
-                            Cliente ID: {event.clientId}
+                            Cliente: {client ? client.name : event.clientId}
                           </p>
                         )}
                         <div className="flex items-center text-xs text-primaryGreen mt-1">
@@ -667,7 +674,10 @@ export default function CalendarPage() {
                       </div>
                       <CardDescription>
                         {event.clientId
-                          ? `Cliente ID: ${event.clientId}`
+                          ? `Cliente: ${
+                              clients.find((c) => c.id === event.clientId)
+                                ?.name || event.clientId
+                            }`
                           : "Sem cliente"}
                       </CardDescription>
                     </CardHeader>

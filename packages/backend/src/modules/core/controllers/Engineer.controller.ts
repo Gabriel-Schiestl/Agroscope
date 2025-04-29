@@ -8,59 +8,62 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { GetClientesUseCase } from '../application/usecases/dashboard/GetClients.usecase';
-import { GetVisitsUseCase } from '../application/usecases/dashboard/GetVisits.usecase';
 import { GetReportsUseCase } from '../application/usecases/dashboard/GetReports.usecase';
-import { GetLastVisitsUseCase } from '../application/usecases/dashboard/GetLastVisits.usecase';
 import { EngineerGuard } from '../infra/services/Engineer.guard';
 import { CreateClientDto } from '../application/dto/Client.dto';
 import { CreateClientUseCase } from '../application/usecases/engineer/CreateClient.usecase';
 import { GetClientsByCropUseCase } from '../application/usecases/dashboard/GetClientsByCrop.usecase';
 import { GetAllReportsUseCase } from '../application/usecases/dashboard/GetAllReports.usecase';
 import { GetClientUseCase } from '../application/usecases/dashboard/GetClient.usecase';
+import { GetLastEventsUseCase } from '../application/usecases/dashboard/GetLastEvents.usecase';
+import { GetEventsUseCase } from '../application/usecases/dashboard/GetEvents.usecase';
 
 @UseGuards(EngineerGuard)
 @Controller('engineer')
 export class EngineerController {
     constructor(
         private readonly getClientsUseCase: GetClientesUseCase,
-        private readonly getVisitsUseCase: GetVisitsUseCase,
         private readonly getReportsUseCase: GetReportsUseCase,
-        private readonly getLastVisitsUseCase: GetLastVisitsUseCase,
+        private readonly getLastEventsUseCase: GetLastEventsUseCase,
         private readonly createClientUseCase: CreateClientUseCase,
         private readonly getClientsByCropUseCase: GetClientsByCropUseCase,
         private readonly getAllReportsUseCase: GetAllReportsUseCase,
         private readonly getClientUseCase: GetClientUseCase,
+        private readonly getEventsUseCase: GetEventsUseCase,
     ) {}
 
     @Get('clients')
     async getClients(@Req() req: any) {
         return await this.getClientsUseCase.execute({
-            engineerId: req.user.sub,
+            userId: req.user.sub,
         });
     }
 
     @Get('clients/:clientId')
     async getClient(@Param('clientId') clientId: string, @Req() req: any) {
         return await this.getClientUseCase.execute({
-            engineerId: req.user.sub,
+            userId: req.user.sub,
             clientId,
         });
     }
 
     @Get('visits/:clientId')
-    async getVisits(@Param('clientId') clientId: string) {
-        return await this.getVisitsUseCase.execute({ clientId });
+    async getVisits(@Param('clientId') clientId: string, @Req() req: any) {
+        return await this.getEventsUseCase.execute({
+            clientId,
+            userId: req.user.sub,
+        });
     }
 
-    @Get('reports/:visitId')
-    async getReports(@Param('visitId') visitId: string) {
-        return await this.getReportsUseCase.execute({ visitId });
+    @Get('reports/:eventId')
+    async getReports(@Param('eventId') eventId: string) {
+        return await this.getReportsUseCase.execute({ eventId });
     }
 
-    @Get('last-visits')
+    @Get('last-events')
     async getLastVisits(@Req() req: any) {
-        return await this.getLastVisitsUseCase.execute({
-            engineerId: req.user.sub,
+        return await this.getLastEventsUseCase.execute({
+            userId: req.user.sub,
         });
     }
 
@@ -76,14 +79,14 @@ export class EngineerController {
     async getClientsByCrop(@Req() req: any, @Param('crop') crop: string) {
         return await this.getClientsByCropUseCase.execute({
             crop,
-            engineerId: req.user.sub,
+            userId: req.user.sub,
         });
     }
 
     @Get('reports')
     async getAllReports(@Req() req: any) {
         return await this.getAllReportsUseCase.execute({
-            engineerId: req.user.sub,
+            userId: req.user.sub,
         });
     }
 

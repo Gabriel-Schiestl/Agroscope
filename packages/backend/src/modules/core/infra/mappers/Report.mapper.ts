@@ -11,7 +11,6 @@ export class ReportMapper {
             clientId: report.clientId,
             engineerId: report.engineerId,
             attachments: report.attachments,
-            visitId: report.visitId,
             createdAt: report.createdAt,
         });
     }
@@ -25,7 +24,6 @@ export class ReportMapper {
                 clientId: report.clientId,
                 engineerId: report.engineerId,
                 attachments: report.attachments,
-                visitId: report.visitId,
                 createdAt: report.createdAt,
             },
             report.id,

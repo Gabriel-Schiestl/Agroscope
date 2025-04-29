@@ -1,13 +1,13 @@
+import { CalendarEvent } from '../../domain/models/CalendarEvent';
 import { Client } from '../../domain/models/Client';
 import { Report } from '../../domain/models/Report';
-import { Visit } from '../../domain/models/Visit';
 import { ClientDto } from '../dto/Client.dto';
+import { CalendarEventAppMapper } from './CalendarEvent.mapper';
 import { ReportAppMapper } from './Report.mapper';
-import { VisitAppMapper } from './Visit.mapper';
 
 export interface ClientAppMapperProps extends Client {
-    visits?: Visit[];
     reports?: Report[];
+    calendarEvents?: CalendarEvent[];
 }
 
 export class ClientAppMapper {
@@ -15,6 +15,7 @@ export class ClientAppMapper {
         return {
             id: client.id,
             name: client.name,
+            email: client.email,
             address: client.address,
             person: client.person,
             document: client.document,
@@ -23,11 +24,13 @@ export class ClientAppMapper {
             totalAreaPlanted: client.totalAreaPlanted,
             active: client.active,
             actualCrop: client.actualCrop,
-            visits: client.visits
-                ? client.visits.map((visit) => VisitAppMapper.toDto(visit))
-                : [],
             reports: client.reports
                 ? client.reports.map((report) => ReportAppMapper.toDto(report))
+                : [],
+            calendarEvents: client.calendarEvents
+                ? client.calendarEvents.map((event) =>
+                      CalendarEventAppMapper.toDto(event),
+                  )
                 : [],
             createdAt: client.createdAt,
         };

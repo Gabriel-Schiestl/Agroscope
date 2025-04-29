@@ -48,12 +48,12 @@ export class ReportRepositoryImpl implements ReportRepository {
         }
     }
 
-    async getByVisitId(
-        visitId: string,
+    async getByEventId(
+        eventId: string,
     ): Promise<Result<ReportExceptions, Report[]>> {
         try {
             const reports = await ReportModel.find({
-                where: { visitId },
+                where: { eventId },
             });
             if (reports.length === 0) {
                 return Res.failure(

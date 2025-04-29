@@ -8,7 +8,6 @@ import {
     JoinColumn,
     BaseEntity,
 } from 'typeorm';
-import { VisitModel } from './Visit.model';
 import { ReportStatus } from '../../domain/models/Report';
 
 export interface ReportModelProps {
@@ -19,7 +18,7 @@ export interface ReportModelProps {
     clientId: string;
     engineerId: string;
     attachments?: string[];
-    visitId?: string;
+    eventId?: string;
     createdAt?: Date;
 }
 
@@ -46,8 +45,8 @@ export class ReportModel extends BaseEntity implements ReportModelProps {
     @Column({ name: 'engineer_id' })
     engineerId: string;
 
-    @Column({ name: 'visit_id', nullable: true })
-    visitId: string;
+    @Column({ name: 'event_id', nullable: true })
+    eventId: string;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;

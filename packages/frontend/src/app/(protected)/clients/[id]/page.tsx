@@ -25,8 +25,8 @@ import ClientOverview from "@/components/client-overview";
 import ClientMap from "@/components/client-map";
 import { Client, Crop } from "@/models/Client";
 import { Report, ReportStatus, getStatus } from "@/models/Report";
-import { VisitStatus } from "@/models/Visit";
 import GetClientAPI from "@/../../api/engineer/GetClient";
+import { EventStatus } from "@/models/CalendarEvent";
 
 export default function ClientPage({ params }: { params: { id: string } }) {
   const [client, setClient] = useState<Client | null>(null);
@@ -66,40 +66,35 @@ export default function ClientPage({ params }: { params: { id: string } }) {
     notFound();
   }
 
-  // Definir a última visita baseado no array de visitas do cliente, se existir
-  const lastVisit =
-    client.visits && client.visits.length > 0
-      ? client.visits
-          .filter((visit) => visit.scheduledDate)
+  const lastEvent =
+    client.calendarEvents && client.calendarEvents.length > 0
+      ? client.calendarEvents
+          .filter((event) => event.date)
           .sort((a, b) => {
-            const dateA = a.scheduledDate
-              ? new Date(a.scheduledDate).getTime()
-              : 0;
-            const dateB = b.scheduledDate
-              ? new Date(b.scheduledDate).getTime()
-              : 0;
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
             return dateB - dateA;
           })[0]
       : null;
 
-  const lastVisitDate = lastVisit?.scheduledDate
-    ? new Date(lastVisit.scheduledDate).toLocaleDateString("pt-BR")
-    : "Sem visitas";
+  const lastEventDate = lastEvent?.date
+    ? new Date(lastEvent.date).toLocaleDateString("pt-BR")
+    : "Sem eventos";
 
-  // Encontrar a próxima visita agendada (com data futura)
-  const nextVisitScheduled =
-    client.visits && client.visits.length > 0
-      ? client.visits.find(
-          (visit) =>
-            visit.scheduledDate &&
-            new Date(visit.scheduledDate) > new Date() &&
-            visit.status !== VisitStatus.CANCELLED
+  const nextEventScheduled =
+    client.calendarEvents && client.calendarEvents.length > 0
+      ? client.calendarEvents.find(
+          (event) =>
+            event.date &&
+            new Date(event.date) > new Date() &&
+            event.status !== EventStatus.CANCELLED &&
+            event.status !== EventStatus.COMPLETED
         )
       : null;
 
-  const nextVisit =
-    nextVisitScheduled && nextVisitScheduled.scheduledDate
-      ? new Date(nextVisitScheduled.scheduledDate).toLocaleDateString("pt-BR")
+  const nextEvent =
+    nextEventScheduled && nextEventScheduled.date
+      ? new Date(nextEventScheduled.date).toLocaleDateString("pt-BR")
       : "Não agendada";
 
   return (
@@ -171,16 +166,16 @@ export default function ClientPage({ params }: { params: { id: string } }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Última Visita</CardDescription>
+            <CardDescription>Último Evento</CardDescription>
             <CardTitle className="text-base md:text-lg">
-              {lastVisitDate}
+              {lastEventDate}
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Próxima Visita</CardDescription>
-            <CardTitle className="text-base md:text-lg">{nextVisit}</CardTitle>
+            <CardDescription>Próximo Evento</CardDescription>
+            <CardTitle className="text-base md:text-lg">{nextEvent}</CardTitle>
           </CardHeader>
         </Card>
         <Card>

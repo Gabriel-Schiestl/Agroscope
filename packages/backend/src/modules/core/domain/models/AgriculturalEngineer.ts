@@ -1,16 +1,18 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
+import { Calendar } from './Calendar';
 import { Client, CreateClientProps } from './Client';
 
 export interface AgriculturalEngineerProps {
     userId: string;
     clients?: Client[];
+    calendar?: Calendar;
 }
 
 export type CreateAgriculturalEngineerProps = Omit<
     AgriculturalEngineerProps,
-    'clients'
+    'clients' | 'calendar'
 >;
 export interface LoadAgriculturalEngineerProps
     extends AgriculturalEngineerProps {}
@@ -19,11 +21,13 @@ export class AgriculturalEngineer implements AgriculturalEngineerProps {
     #id: string;
     #userId: string;
     #clients?: Client[];
+    #calendar?: Calendar;
 
     private constructor(props: AgriculturalEngineerProps, id?: string) {
         this.#id = id || uuid();
         this.#userId = props.userId;
         this.#clients = props.clients;
+        this.#calendar = props.calendar;
     }
 
     static create(
@@ -52,6 +56,10 @@ export class AgriculturalEngineer implements AgriculturalEngineerProps {
         return Res.success(clientOrError.value);
     }
 
+    setCalendar(calendar: Calendar): void {
+        this.#calendar = calendar;
+    }
+
     get id() {
         return this.#id;
     }
@@ -62,5 +70,9 @@ export class AgriculturalEngineer implements AgriculturalEngineerProps {
 
     get clients() {
         return this.#clients;
+    }
+
+    get calendar() {
+        return this.#calendar;
     }
 }

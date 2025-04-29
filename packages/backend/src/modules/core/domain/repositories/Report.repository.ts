@@ -15,7 +15,7 @@ export interface ReportRepository {
     getByEngineerId(
         engineerId: string,
     ): Promise<Result<ReportExceptions, Report[]>>;
-    getByVisitId(visitId: string): Promise<Result<ReportExceptions, Report[]>>;
+    getByEventId(eventId: string): Promise<Result<ReportExceptions, Report[]>>;
     getByClientId(
         clientId: string,
     ): Promise<Result<ReportExceptions, Report[]>>;

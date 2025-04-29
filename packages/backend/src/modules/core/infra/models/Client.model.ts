@@ -11,11 +11,11 @@ import {
 import { Address } from '../../domain/models/Address';
 import { Crop, PersonType } from '../../domain/models/Client';
 import { AgriculturalEngineerModel } from './AgriculturalEngineer.model';
-import { VisitModel } from './Visit.model';
 
 export interface ClientModelProps {
     name: string;
     telephone: string;
+    email: string;
     person: PersonType;
     document: string;
     address: Address;
@@ -36,6 +36,9 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
 
     @Column()
     telephone: string;
+
+    @Column()
+    email: string;
 
     @Column()
     person: PersonType;

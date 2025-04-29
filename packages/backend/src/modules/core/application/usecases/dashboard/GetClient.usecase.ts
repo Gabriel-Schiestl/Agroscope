@@ -1,17 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
+import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
+import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { ClientDto } from '../../dto/Client.dto';
-import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
-import { AgriculturalEngineerAppMapper } from '../../mappers/AgriculturalEngineer.mapper';
-import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
-import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { CalendarEventAppMapper } from '../../mappers/CalendarEvent.mapper';
 import { ClientAppMapper } from '../../mappers/Client.mapper';
-import { AbstractUseCase } from 'src/shared/AbstractUseCase';
-import { VisitRepository } from 'src/modules/core/domain/repositories/Visit.repository';
-import { VisitAppMapper } from '../../mappers/Visit.mapper';
-import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
 import { ReportAppMapper } from '../../mappers/Report.mapper';
 
 export type GetClientUseCaseExceptions =
@@ -20,15 +17,15 @@ export type GetClientUseCaseExceptions =
 
 @Injectable()
 export class GetClientUseCase extends AbstractUseCase<
-    { engineerId: string; clientId: string },
+    { userId: string; clientId: string },
     GetClientUseCaseExceptions,
     ClientDto
 > {
     constructor(
         @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
-        @Inject('VisitRepository')
-        private readonly visitRepository: VisitRepository,
+        @Inject('CalendarRepository')
+        private readonly calendarRepository: CalendarRepository,
         @Inject('ReportRepository')
         private readonly reportRepository: ReportRepository,
     ) {
@@ -36,13 +33,13 @@ export class GetClientUseCase extends AbstractUseCase<
     }
 
     async onExecute({
-        engineerId,
+        userId,
         clientId,
     }: {
-        engineerId: string;
+        userId: string;
         clientId: string;
     }): Promise<Result<GetClientUseCaseExceptions, ClientDto>> {
-        const engineer = await this.engineerRepository.getByUserId(engineerId);
+        const engineer = await this.engineerRepository.getByUserId(userId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);
         }
@@ -58,18 +55,18 @@ export class GetClientUseCase extends AbstractUseCase<
 
         const clientDto = ClientAppMapper.toDto(client);
 
-        const visitsQuery = this.visitRepository.getVisits(clientId);
+        const calendarQuery = this.calendarRepository.findByUserId(userId);
         const reportsQuery = this.reportRepository.getByClientId(clientId);
 
-        const [visits, reports] = await Promise.all([
-            visitsQuery,
+        const [calendar, reports] = await Promise.all([
+            calendarQuery,
             reportsQuery,
         ]);
 
-        if (visits.isSuccess()) {
-            clientDto.visits = visits.value.map((visit) =>
-                VisitAppMapper.toDto(visit),
-            );
+        if (calendar.isSuccess()) {
+            clientDto.calendarEvents = calendar.value.events
+                .filter((event) => event.clientId === clientId)
+                .map((event) => CalendarEventAppMapper.toDto(event));
         }
 
         if (reports.isSuccess()) {

@@ -20,10 +20,10 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import GetClientsAPI from "../../../../api/engineer/GetClients";
 import { Client } from "@/models/Client";
-import { VisitStatus } from "@/models/Visit";
 import { useAuth } from "@/contexts/auth-context";
 import GetAllReportsAPI from "../../../../api/engineer/GetAllReports";
 import { getStatus, Report } from "@/models/Report";
+import { EventStatus } from "@/models/CalendarEvent";
 
 export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -41,43 +41,41 @@ export default function DashboardPage() {
       ]);
 
       if (clientsResponse) {
-        const sortedClientsByLastVisit = clientsResponse.sort((a, b) => {
-          const completedVisitsA =
-            a.visits?.filter(
-              (visit) => visit.status === VisitStatus.COMPLETED
+        const sortedClientsByLastEvents = clientsResponse.sort((a, b) => {
+          const completedEventsA =
+            a.calendarEvents?.filter(
+              (event) => event.status === EventStatus.COMPLETED
             ) || [];
 
-          const completedVisitsB =
-            b.visits?.filter(
-              (visit) => visit.status === VisitStatus.COMPLETED
+          const completedEventsB =
+            b.calendarEvents?.filter(
+              (visit) => visit.status === EventStatus.COMPLETED
             ) || [];
 
-          const sortedVisitsA = completedVisitsA.sort(
+          const sortedEventsA = completedEventsA.sort(
             (x, y) =>
-              new Date(y.scheduledDate || 0).getTime() -
-              new Date(x.scheduledDate || 0).getTime()
+              new Date(y.date || 0).getTime() - new Date(x.date || 0).getTime()
           );
 
-          const sortedVisitsB = completedVisitsB.sort(
+          const sortedEventsB = completedEventsB.sort(
             (x, y) =>
-              new Date(y.scheduledDate || 0).getTime() -
-              new Date(x.scheduledDate || 0).getTime()
+              new Date(y.date || 0).getTime() - new Date(x.date || 0).getTime()
           );
 
-          const lastVisitA =
-            sortedVisitsA.length > 0
-              ? new Date(sortedVisitsA[0].scheduledDate || 0).getTime()
+          const lastEventA =
+            sortedEventsA.length > 0
+              ? new Date(sortedEventsA[0].date || 0).getTime()
               : 0;
 
-          const lastVisitB =
-            sortedVisitsB.length > 0
-              ? new Date(sortedVisitsB[0].scheduledDate || 0).getTime()
+          const lastEventB =
+            sortedEventsB.length > 0
+              ? new Date(sortedEventsB[0].date || 0).getTime()
               : 0;
 
-          return lastVisitB - lastVisitA;
+          return lastEventB - lastEventA;
         });
 
-        setClients(sortedClientsByLastVisit);
+        setClients(sortedClientsByLastEvents);
       }
 
       if (reportsResponse) {
@@ -112,41 +110,41 @@ export default function DashboardPage() {
     return result > 0 ? result : 0;
   }, [clients]);
 
-  const pendingVisits = useMemo(() => {
-    let visits = 0;
+  const pendingEvents = useMemo(() => {
+    let events = 0;
 
     for (const client of clients) {
-      if (!client.visits) continue;
+      if (!client.calendarEvents) continue;
 
-      for (const visit of client.visits) {
-        if (visit.status === VisitStatus.PENDING) {
-          visits++;
+      for (const event of client.calendarEvents) {
+        if (event.status === EventStatus.PENDING) {
+          events++;
         }
       }
     }
 
-    return visits;
+    return events;
   }, [clients]);
 
-  const nextVisitDate = useMemo(() => {
-    const visits = [];
+  const nextEventDate = useMemo(() => {
+    const events = [];
 
     for (const client of clients) {
-      if (!client.visits) continue;
+      if (!client.calendarEvents) continue;
 
-      for (const visit of client.visits) {
-        if (visit.status === VisitStatus.PENDING) {
-          visits.push(visit.scheduledDate);
+      for (const visit of client.calendarEvents) {
+        if (visit.status === EventStatus.PENDING) {
+          events.push(visit.date);
         }
       }
     }
 
-    const sortedVisits = visits.sort((a, b) => {
+    const sortedEvents = events.sort((a, b) => {
       return new Date(a || 0).getTime() - new Date(b || 0).getTime();
     });
 
-    if (sortedVisits.length > 0) {
-      return new Date(sortedVisits[0] || 0).toLocaleDateString();
+    if (sortedEvents.length > 0) {
+      return new Date(sortedEvents[0] || 0).toLocaleDateString();
     }
 
     return "Sem visitas pendentes";
@@ -203,14 +201,14 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Visitas Pendentes</CardDescription>
+            <CardDescription>Eventos Pendentes</CardDescription>
             <CardTitle className="text-xl md:text-2xl">
-              {pendingVisits}
+              {pendingEvents}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-primaryGreen">
-              Próxima: {nextVisitDate}
+              Próximo: {nextEventDate}
             </div>
           </CardContent>
         </Card>
@@ -259,7 +257,7 @@ export default function DashboardPage() {
                 <div className="text-sm text-mediumGray">
                   Visitado:{" "}
                   {new Date(
-                    clients[0]?.visits?.[0].scheduledDate || 0
+                    clients[0]?.calendarEvents?.[0].date || 0
                   ).toLocaleDateString()}
                 </div>
               </div>
@@ -278,7 +276,7 @@ export default function DashboardPage() {
                 <div className="text-sm text-mediumGray">
                   Visitado:{" "}
                   {new Date(
-                    clients[1]?.visits?.[0].scheduledDate || 0
+                    clients[1]?.calendarEvents?.[0].date || 0
                   ).toLocaleDateString()}
                 </div>
               </div>
@@ -297,7 +295,7 @@ export default function DashboardPage() {
                 <div className="text-sm text-mediumGray">
                   Visitado:{" "}
                   {new Date(
-                    clients[2]?.visits?.[0].scheduledDate || 0
+                    clients[2]?.calendarEvents?.[0].date || 0
                   ).toLocaleDateString()}
                 </div>
               </div>

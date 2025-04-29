@@ -9,10 +9,10 @@ import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
 import { ClientAppMapper } from '../../mappers/Client.mapper';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
-import { VisitRepository } from 'src/modules/core/domain/repositories/Visit.repository';
-import { VisitAppMapper } from '../../mappers/Visit.mapper';
 import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
 import { ReportAppMapper } from '../../mappers/Report.mapper';
+import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
+import { CalendarEventAppMapper } from '../../mappers/CalendarEvent.mapper';
 
 export type GetClientesUseCaseExceptions =
     | RepositoryNoDataFound
@@ -20,15 +20,15 @@ export type GetClientesUseCaseExceptions =
 
 @Injectable()
 export class GetClientesUseCase extends AbstractUseCase<
-    { engineerId: string },
+    { userId: string },
     GetClientesUseCaseExceptions,
     ClientDto[]
 > {
     constructor(
         @Inject('AgriculturalEngineerRepository')
         private readonly engineerRepository: AgriculturalEngineerRepository,
-        @Inject('VisitRepository')
-        private readonly visitRepository: VisitRepository,
+        @Inject('CalendarRepository')
+        private readonly calendarRepository: CalendarRepository,
         @Inject('ReportRepository')
         private readonly reportRepository: ReportRepository,
     ) {
@@ -36,11 +36,11 @@ export class GetClientesUseCase extends AbstractUseCase<
     }
 
     async onExecute({
-        engineerId,
+        userId,
     }: {
-        engineerId: string;
+        userId: string;
     }): Promise<Result<GetClientesUseCaseExceptions, ClientDto[]>> {
-        const engineer = await this.engineerRepository.getByUserId(engineerId);
+        const engineer = await this.engineerRepository.getByUserId(userId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);
         }
@@ -58,12 +58,12 @@ export class GetClientesUseCase extends AbstractUseCase<
 
         for (const client of clientsDto) {
             const reportsToSet = [];
-            const visitsToSet = [];
+            const calendarEventsToSet = [];
 
-            const visitsQuery = this.visitRepository.getVisits(client.id);
+            const calendarQuery = this.calendarRepository.findByUserId(userId);
             const reportsQuery = this.reportRepository.getByClientId(client.id);
-            const [visits, reports] = await Promise.all([
-                visitsQuery,
+            const [calendar, reports] = await Promise.all([
+                calendarQuery,
                 reportsQuery,
             ]);
             if (reports.isSuccess()) {
@@ -72,12 +72,14 @@ export class GetClientesUseCase extends AbstractUseCase<
                 );
             }
 
-            if (visits.isSuccess()) {
-                visits.value.map((visit) =>
-                    visitsToSet.push(VisitAppMapper.toDto(visit)),
+            if (calendar.isSuccess()) {
+                calendar.value.events.map((event) =>
+                    calendarEventsToSet.push(
+                        CalendarEventAppMapper.toDto(event),
+                    ),
                 );
             }
-            client.visits = visitsToSet;
+            client.calendarEvents = calendarEventsToSet;
 
             client.reports = reportsToSet;
         }

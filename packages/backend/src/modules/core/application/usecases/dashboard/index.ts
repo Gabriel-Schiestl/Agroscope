@@ -2,16 +2,16 @@ import { GetAllReportsUseCase } from './GetAllReports.usecase';
 import { GetClientUseCase } from './GetClient.usecase';
 import { GetClientesUseCase } from './GetClients.usecase';
 import { GetClientsByCropUseCase } from './GetClientsByCrop.usecase';
-import { GetLastVisitsUseCase } from './GetLastVisits.usecase';
+import { GetEventsUseCase } from './GetEvents.usecase';
+import { GetLastEventsUseCase } from './GetLastEvents.usecase';
 import { GetReportsUseCase } from './GetReports.usecase';
-import { GetVisitsUseCase } from './GetVisits.usecase';
 
 export const dashboardUseCases = [
     GetClientesUseCase,
-    GetVisitsUseCase,
     GetReportsUseCase,
-    GetLastVisitsUseCase,
+    GetLastEventsUseCase,
     GetClientsByCropUseCase,
     GetAllReportsUseCase,
     GetClientUseCase,
+    GetEventsUseCase,
 ];

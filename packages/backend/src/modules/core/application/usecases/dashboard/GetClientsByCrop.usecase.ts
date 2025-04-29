@@ -15,7 +15,7 @@ export type GetClientsByCropUseCaseExceptions =
 
 @Injectable()
 export class GetClientsByCropUseCase extends AbstractUseCase<
-    { engineerId: string; crop: string },
+    { userId: string; crop: string },
     GetClientsByCropUseCaseExceptions,
     ClientDto[]
 > {
@@ -42,13 +42,13 @@ export class GetClientsByCropUseCase extends AbstractUseCase<
     }
 
     async onExecute({
-        engineerId,
+        userId,
         crop,
     }: {
-        engineerId: string;
+        userId: string;
         crop: string;
     }): Promise<Result<GetClientsByCropUseCaseExceptions, ClientDto[]>> {
-        const engineer = await this.engineerRepository.getByUserId(engineerId);
+        const engineer = await this.engineerRepository.getByUserId(userId);
         if (engineer.isFailure()) {
             return Res.failure(engineer.error);
         }

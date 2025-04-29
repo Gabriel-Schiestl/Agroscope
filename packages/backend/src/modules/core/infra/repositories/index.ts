@@ -1,11 +1,11 @@
 import { AgriculturalEngineerImpl } from './AgriculturalEngineerData.repository';
+import { CalendarRepositoryImpl } from './CalendarData.repository';
 import { HistoryRepositoryImpl } from './HistoryData.repository';
 import { ImageDataRepository } from './ImageData.repository';
 import { KnowledgeDataRepository } from './KnowledgeData.repository';
 import { ReportRepositoryImpl } from './ReportData.repository';
 import { SicknessDataRepository } from './SicknessData.repository';
 import { UserDataRepository } from './UserData.repository';
-import { VisitRepositoryImpl } from './VisitData.repository';
 
 export const repositories = [
     {
@@ -33,11 +33,11 @@ export const repositories = [
         useClass: AgriculturalEngineerImpl,
     },
     {
-        provide: 'VisitRepository',
-        useClass: VisitRepositoryImpl,
-    },
-    {
         provide: 'ReportRepository',
         useClass: ReportRepositoryImpl,
+    },
+    {
+        provide: 'CalendarRepository',
+        useClass: CalendarRepositoryImpl,
     },
 ];

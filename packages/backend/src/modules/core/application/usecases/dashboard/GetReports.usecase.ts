@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { VisitRepository } from 'src/modules/core/domain/repositories/Visit.repository';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
@@ -14,23 +13,23 @@ export type GetVisitsUseCaseExceptions =
 
 @Injectable()
 export class GetReportsUseCase extends AbstractUseCase<
-    { visitId: string },
+    { eventId: string },
     GetVisitsUseCaseExceptions,
     ReportDto[]
 > {
     constructor(
         @Inject('ReportRepository')
-        private readonly visitRepository: ReportRepository,
+        private readonly reportRepository: ReportRepository,
     ) {
         super();
     }
 
     async onExecute({
-        visitId,
+        eventId,
     }: {
-        visitId: string;
+        eventId: string;
     }): Promise<Result<GetVisitsUseCaseExceptions, ReportDto[]>> {
-        const reports = await this.visitRepository.getByVisitId(visitId);
+        const reports = await this.reportRepository.getByEventId(eventId);
         if (reports.isFailure()) {
             return Res.failure(reports.error);
         }

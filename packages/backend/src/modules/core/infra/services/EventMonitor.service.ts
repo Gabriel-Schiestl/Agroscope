@@ -4,6 +4,9 @@ import { CalendarRepository } from 'src/modules/core/domain/repositories/Calenda
 import { Inject } from '@nestjs/common';
 import { CalendarEvent } from '../../domain/models/CalendarEvent';
 import { UserRepository } from '../../domain/repositories/User.repository';
+import { ProducerService } from '../../domain/services/Producer.service';
+import { AgriculturalEngineerRepository } from '../../domain/repositories/AgriculturalEngineer.repository';
+import { EventEmail } from '../../domain/models/EventEmail';
 
 @Injectable()
 export class EventMonitorService {
@@ -14,9 +17,13 @@ export class EventMonitorService {
         private readonly calendarRepository: CalendarRepository,
         @Inject('UserRepository')
         private readonly userRepository: UserRepository,
+        @Inject('AgriculturalEngineerRepository')
+        private readonly engineerRepository: AgriculturalEngineerRepository,
+        @Inject('EmailProducerService')
+        private readonly emailProducer: ProducerService,
     ) {}
 
-    @Cron(CronExpression.EVERY_DAY_AT_8AM)
+    @Cron(CronExpression.EVERY_MINUTE)
     async checkUpcomingEvents() {
         this.logger.log(
             'Iniciando verificação de eventos próximos à data de vencimento',
@@ -52,6 +59,59 @@ export class EventMonitorService {
                     );
 
                     for (const event of eventsOneDayAway) {
+                        this.emailProducer.sendMessage(
+                            'email',
+                            new EventEmail({
+                                to: user.email,
+                                templateId: 5,
+                                subject: 'Evento agendado para amanhã',
+                                params: {
+                                    name: user.name,
+                                    eventTitle: event.title,
+                                    eventDate: event.date,
+                                    eventDescription: event.description,
+                                    eventLocation: event.location,
+                                    eventTime: event.time,
+                                },
+                            }),
+                        );
+
+                        if (event.clientId) {
+                            const engineer =
+                                await this.engineerRepository.getByUserId(
+                                    user.id,
+                                );
+                            if (engineer.isFailure()) continue;
+
+                            const withClientes =
+                                await this.engineerRepository.getWithClients(
+                                    engineer.value.id,
+                                );
+                            if (withClientes.isFailure()) continue;
+
+                            const client = withClientes.value.find(
+                                (client) => client.id === event.clientId,
+                            );
+                            if (client) {
+                                this.emailProducer.sendMessage(
+                                    'email',
+                                    new EventEmail({
+                                        to: client.email,
+                                        templateId: 5,
+                                        subject: 'Evento agendado para amanhã',
+                                        params: {
+                                            name: client.name,
+                                            eventTitle: event.title,
+                                            eventDate: event.date,
+                                            eventDescription: event.description,
+                                            eventLocation: event.location,
+                                            eventTime: event.time,
+                                        },
+                                    }),
+                                );
+                            }
+                        }
+
                         this.logger.log(
                             `Event "${event.title}" scheduled for tomorrow - user ${user.id}`,
                         );

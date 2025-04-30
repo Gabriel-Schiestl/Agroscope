@@ -1,18 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
-import axios from 'axios';
-import * as fs from 'fs';
-import * as path from 'path';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { Exception } from 'src/shared/Exception';
 import { Res, Result } from 'src/shared/Result';
 import { History } from '../../domain/models/History';
 import { HistoryRepository } from '../../domain/repositories/History.repository';
 import { KnowledgeRepository } from '../../domain/repositories/Knowledge.repository';
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
-import FormData = require('form-data'); // Correção aqui
-import e = require('express');
 import { PredictService } from '../../domain/services/Predict.service';
 import { ProducerService } from '../../domain/services/Producer.service';
-import { AbstractUseCase } from 'src/shared/AbstractUseCase';
+import FormData = require('form-data'); // Correção aqui
+import e = require('express');
 
 export interface PredictUseCaseResponse {
     prediction: string;

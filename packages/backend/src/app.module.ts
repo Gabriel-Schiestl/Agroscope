@@ -9,6 +9,7 @@ import {
     ThrottlerModule,
     ThrottlerStorage,
 } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -16,6 +17,7 @@ import { AppService } from './app.service';
 @Module({
     imports: [
         TypeOrmModule.forRoot(OrmConfig),
+        ScheduleModule.forRoot(),
         CoreModule,
         AuthModule,
         ThrottlerModule.forRoot([

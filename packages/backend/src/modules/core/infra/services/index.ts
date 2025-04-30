@@ -1,5 +1,6 @@
 import { PredictServiceImpl } from './Predict.service';
 import { ProducerServiceImpl } from './Producer.service';
+import { EventMonitorService } from './EventMonitor.service';
 
 export const services = [
     {
@@ -10,4 +11,5 @@ export const services = [
         provide: 'ProducerService',
         useClass: ProducerServiceImpl,
     },
+    EventMonitorService,
 ];

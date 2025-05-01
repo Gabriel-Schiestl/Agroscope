@@ -10,6 +10,9 @@ export class HistoryMapper {
             sickness: domain.sickness
                 ? SicknessMapper.domainToModel(domain.sickness)
                 : null,
+            sicknessConfidence: domain.sicknessConfidence,
+            crop: domain.crop,
+            cropConfidence: domain.cropConfidence,
             handling: domain.handling,
             image: domain.image,
             clientId: domain.clientId,
@@ -22,6 +25,9 @@ export class HistoryMapper {
             {
                 createdAt: model.createdAt,
                 sickness: SicknessMapper.modelToDomain(model.sickness),
+                sicknessConfidence: model.sicknessConfidence,
+                crop: model.crop,
+                cropConfidence: model.cropConfidence,
                 handling: model.handling,
                 image: model.image,
                 clientId: model.clientId,

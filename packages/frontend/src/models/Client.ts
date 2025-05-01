@@ -1,4 +1,5 @@
-import { Visit } from "./Visit";
+import { CalendarEvent } from "./CalendarEvent";
+import { Report } from "./Report";
 
 /**
  * Enums e tipos para o modelo Client
@@ -44,6 +45,7 @@ export interface Client {
   totalAreaPlanted: number;
   active: boolean;
   actualCrop?: Crop;
-  visits?: Visit[];
+  calendarEvents?: CalendarEvent[];
+  reports?: Report[];
   createdAt?: Date;
 }

@@ -8,6 +8,8 @@ export class ReportMapper {
             title: report.title,
             content: report.content,
             status: report.status,
+            clientId: report.clientId,
+            engineerId: report.engineerId,
             attachments: report.attachments,
             createdAt: report.createdAt,
         });
@@ -19,6 +21,8 @@ export class ReportMapper {
                 title: report.title,
                 content: report.content,
                 status: report.status,
+                clientId: report.clientId,
+                engineerId: report.engineerId,
                 attachments: report.attachments,
                 createdAt: report.createdAt,
             },

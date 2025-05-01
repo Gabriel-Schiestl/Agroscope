@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/drawer";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
+import MapIconFixComponent from "@/components/ui/map-icons";
 
 // Dynamically import the map components to avoid SSR issues
 const MapContainer = dynamic<any>(
@@ -643,6 +644,9 @@ export default function MapsPage() {
                   zoom={5}
                   style={{ height: "100%", width: "100%" }}
                 >
+                  {/* Fix for Leaflet marker icons */}
+                  <MapIconFixComponent />
+
                   {/* Map Layers */}
                   {activeMapLayer === "street" && (
                     <TileLayer

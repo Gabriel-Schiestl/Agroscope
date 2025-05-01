@@ -3,6 +3,7 @@ import {
     IsArray,
     IsBoolean,
     IsDate,
+    IsEmail,
     IsNumber,
     IsOptional,
     IsString,
@@ -10,9 +11,9 @@ import {
 import { HistoryDto } from './History.dto';
 import { Crop, PersonType } from '../../domain/models/Client';
 import { Address } from '../../domain/models/Address';
-import { Visit } from '../../domain/models/Visit';
-import { VisitDto } from './Visit.dto';
 import { OmitType } from '@nestjs/mapped-types';
+import { ReportDto } from './Report.dto';
+import { CalendarEventDto } from './CalendarEvent.dto';
 
 export class ClientDto {
     @IsString()
@@ -23,6 +24,10 @@ export class ClientDto {
 
     @IsString()
     telephone: string;
+
+    @IsString()
+    @IsEmail()
+    email: string;
 
     @IsString()
     person: PersonType;
@@ -45,8 +50,12 @@ export class ClientDto {
     actualCrop?: Crop;
 
     @IsOptional()
-    @Type(() => VisitDto)
-    visits?: VisitDto[];
+    @Type(() => ReportDto)
+    reports?: ReportDto[];
+
+    @IsOptional()
+    @Type(() => CalendarEventDto)
+    calendarEvents?: CalendarEventDto[];
 
     @IsDate()
     createdAt?: Date;

@@ -1,14 +1,16 @@
+import { CalendarEvent } from "@/models/CalendarEvent";
 import api from "../../shared/http/http.config";
-import { Visit } from "../../src/models/Visit";
 
-export default async function GetVisitsAPI(
+export default async function GetEventsAPI(
   clientId: string
-): Promise<Visit[] | null> {
+): Promise<CalendarEvent[] | null> {
   try {
-    const response = await api.get<Visit[]>(`/engineer/visits/${clientId}`);
+    const response = await api.get<CalendarEvent[]>(
+      `/engineer/events/${clientId}`
+    );
     return response.data;
   } catch (error) {
-    console.error("Error getting visits:", error);
+    console.error("Error getting events:", error);
     return null;
   }
 }

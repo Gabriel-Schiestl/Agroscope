@@ -11,11 +11,11 @@ import {
 import { Address } from '../../domain/models/Address';
 import { Crop, PersonType } from '../../domain/models/Client';
 import { AgriculturalEngineerModel } from './AgriculturalEngineer.model';
-import { VisitModel } from './Visit.model';
 
 export interface ClientModelProps {
     name: string;
     telephone: string;
+    email: string;
     person: PersonType;
     document: string;
     address: Address;
@@ -38,6 +38,9 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
     telephone: string;
 
     @Column()
+    email: string;
+
+    @Column()
     person: PersonType;
 
     @Column()
@@ -46,10 +49,10 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
     @Column('jsonb')
     address: Address;
 
-    @Column('float')
+    @Column('float', { name: 'total_area' })
     totalArea: number;
 
-    @Column('float')
+    @Column('float', { name: 'total_area_planted' })
     totalAreaPlanted: number;
 
     @ManyToOne(
@@ -68,7 +71,7 @@ export class ClientModel extends BaseEntity implements ClientModelProps {
     @Column({ name: 'active', default: true })
     active: boolean;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, name: 'actual_crop' })
     actualCrop?: Crop;
 
     setProps(props: ClientModelProps): ClientModel {

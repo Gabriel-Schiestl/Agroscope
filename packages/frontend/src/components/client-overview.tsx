@@ -1,25 +1,49 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Client } from "@/models/Client";
+import { Report } from "@/models/Report";
 
-interface ClientProps {
-  client: {
-    id: string;
-    name: string;
-    owner: string;
-    location: string;
-    coordinates: { lat: number; lng: number };
-    area: number;
-    crops: string[];
-    status: string;
-    lastVisit: string;
-    nextVisit: string;
-    soilType: string;
-    notes: string;
-  };
+interface ClientOverviewProps {
+  client: Client;
 }
 
-export default function ClientOverview({ client }: ClientProps) {
+export default function ClientOverview({ client }: ClientOverviewProps) {
+  // Função para formatar o endereço completo
+  const getFullAddress = () => {
+    const address = client.address;
+    return `${address.street}, ${address.number}${
+      address.complement ? `, ${address.complement}` : ""
+    }, ${address.neighborhood}, ${address.city} - ${address.state}, ${
+      address.country
+    }, ${address.zipCode}`;
+  };
+
+  // Função para obter as coordenadas se disponíveis
+  const getCoordinates = () => {
+    if (client.address.latitude && client.address.longitude) {
+      return `${client.address.latitude.toFixed(
+        4
+      )}, ${client.address.longitude.toFixed(4)}`;
+    }
+    return "Não definidas";
+  };
+
+  // Função segura para acessar propriedades do report
+  const getReportTitle = (report: any): string => {
+    return report && typeof report === "object" && "title" in report
+      ? String(report.title)
+      : "Visita de rotina";
+  };
+
+  const getReportContent = (report: any): string => {
+    return report && typeof report === "object" && "content" in report
+      ? String(report.content)
+      : "Sem conteúdo disponível";
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-2 space-y-6">
@@ -31,46 +55,52 @@ export default function ClientOverview({ client }: ClientProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-mediumGray">
-                  Tipo de Solo
+                  Documento
                 </h3>
-                <p>{client.soilType}</p>
+                <p>
+                  {client.document} ({client.person === "PF" ? "CPF" : "CNPJ"})
+                </p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-mediumGray">Status</h3>
                 <Badge
                   className={
-                    client.status === "active"
+                    client.active
                       ? "bg-primaryGreen/20 text-lightGreen mt-1"
                       : "bg-mediumGray/20 text-darkGray mt-1"
                   }
                 >
-                  {client.status === "active" ? "Ativo" : "Pendente"}
+                  {client.active ? "Ativo" : "Inativo"}
                 </Badge>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-mediumGray">
-                  Culturas
+                  Cultura Atual
                 </h3>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {client.crops.map((crop) => (
+                  {client.actualCrop ? (
                     <Badge
-                      key={crop}
                       variant="outline"
                       className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20"
                     >
-                      {crop}
+                      {client.actualCrop}
                     </Badge>
-                  ))}
+                  ) : (
+                    <span>Não definida</span>
+                  )}
                 </div>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-mediumGray">
                   Coordenadas
                 </h3>
-                <p>
-                  {client.coordinates.lat.toFixed(4)},{" "}
-                  {client.coordinates.lng.toFixed(4)}
-                </p>
+                <p>{getCoordinates()}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <h3 className="text-sm font-medium text-mediumGray">
+                  Endereço Completo
+                </h3>
+                <p>{getFullAddress()}</p>
               </div>
             </div>
           </CardContent>
@@ -78,10 +108,36 @@ export default function ClientOverview({ client }: ClientProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Notas Técnicas</CardTitle>
+            <CardTitle>Informações de Área</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{client.notes}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-mediumGray">
+                  Área Total
+                </h3>
+                <p>{client.totalArea.toLocaleString()} hectares</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-mediumGray">
+                  Área Plantada
+                </h3>
+                <p>{client.totalAreaPlanted.toLocaleString()} hectares</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-mediumGray">
+                  Porcentagem Utilizada
+                </h3>
+                <p>
+                  {client.totalArea > 0
+                    ? `${(
+                        (client.totalAreaPlanted / client.totalArea) *
+                        100
+                      ).toFixed(2)}%`
+                    : "0%"}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -117,44 +173,42 @@ export default function ClientOverview({ client }: ClientProps) {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Próximas Atividades</CardTitle>
+            <CardTitle>Histórico de Visitas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20">
-                <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
-                  22/04
-                </div>
-                <div>
-                  <h4 className="font-medium">Visita Técnica</h4>
-                  <p className="text-sm text-mediumGray">
-                    Monitoramento de pragas e análise de solo
-                  </p>
-                </div>
+            {client.visits && client.visits.length > 0 ? (
+              <div className="space-y-4">
+                {client.visits.slice(-3).map((visit) => (
+                  <div
+                    key={visit.id}
+                    className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
+                      {visit.scheduledDate
+                        ? new Date(visit.scheduledDate).toLocaleDateString(
+                            "pt-BR",
+                            { day: "2-digit", month: "2-digit" }
+                          )
+                        : "--/--"}
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Visita Técnica</h4>
+                      <p className="text-sm text-mediumGray">
+                        {visit.reports &&
+                        visit.reports.length > 0 &&
+                        visit.reports[0]
+                          ? getReportTitle(visit.reports[0])
+                          : "Visita de rotina"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20">
-                <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
-                  10/05
-                </div>
-                <div>
-                  <h4 className="font-medium">Aplicação de Defensivos</h4>
-                  <p className="text-sm text-mediumGray">
-                    Controle preventivo na área sul
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-md border border-mediumGray/20">
-                <div className="w-10 h-10 rounded-full bg-primaryGreen/20 flex items-center justify-center text-primaryGreen">
-                  15/05
-                </div>
-                <div>
-                  <h4 className="font-medium">Coleta de Amostras</h4>
-                  <p className="text-sm text-mediumGray">
-                    Análise foliar para culturas de soja
-                  </p>
-                </div>
-              </div>
-            </div>
+            ) : (
+              <p className="text-center py-4 text-mediumGray">
+                Nenhuma visita registrada para este cliente.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -163,24 +217,50 @@ export default function ClientOverview({ client }: ClientProps) {
             <CardTitle>Recomendações</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="p-3 rounded-md bg-secondaryGreen/10 border border-secondaryGreen/20">
-                <h4 className="font-medium text-lightGreen">
-                  Correção de Solo
-                </h4>
-                <p className="text-sm mt-1">
-                  Aplicação de calcário dolomítico na área norte da propriedade.
-                </p>
+            {client.visits &&
+            client.visits.some(
+              (visit) => visit.reports && visit.reports.length > 0
+            ) ? (
+              <div className="space-y-3">
+                {client.visits
+                  .filter((visit) => visit.reports && visit.reports.length > 0)
+                  .slice(-2)
+                  .map((visit, index) => {
+                    const report =
+                      visit.reports && visit.reports.length > 0
+                        ? visit.reports[0]
+                        : null;
+                    if (!report) return null;
+
+                    const title = getReportTitle(report);
+                    const content = getReportContent(report);
+
+                    return (
+                      <div
+                        key={index}
+                        className="p-3 rounded-md bg-secondaryGreen/10 border border-secondaryGreen/20"
+                      >
+                        <h4 className="font-medium text-lightGreen">
+                          {title ||
+                            `Relatório de ${
+                              visit.scheduledDate
+                                ? new Date(
+                                    visit.scheduledDate
+                                  ).toLocaleDateString("pt-BR")
+                                : "visita"
+                            }`}
+                        </h4>
+                        <p className="text-sm mt-1">{content}</p>
+                      </div>
+                    );
+                  })
+                  .filter(Boolean)}
               </div>
-              <div className="p-3 rounded-md bg-secondaryGreen/10 border border-secondaryGreen/20">
-                <h4 className="font-medium text-lightGreen">
-                  Manejo de Irrigação
-                </h4>
-                <p className="text-sm mt-1">
-                  Ajuste no sistema de irrigação para otimizar o uso de água.
-                </p>
-              </div>
-            </div>
+            ) : (
+              <p className="text-center py-4 text-mediumGray">
+                Nenhuma recomendação disponível.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

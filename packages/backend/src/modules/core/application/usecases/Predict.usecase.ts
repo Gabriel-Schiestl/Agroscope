@@ -29,7 +29,7 @@ export interface UseCasesResponse<T> {
 export class PredictUseCase extends AbstractUseCase<
     { imagePath: string; userId: string },
     Exception,
-    PredictUseCaseResponse
+    HistoryDto
 > {
     constructor(
         @Inject('SicknessRepository')

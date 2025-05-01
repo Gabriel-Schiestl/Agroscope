@@ -32,12 +32,6 @@ interface Data {
   handling: string;
 }
 
-interface Result {
-  data?: Data;
-  success: boolean;
-  exception?: Error;
-}
-
 // Mock history data
 const ANALYSIS_HISTORY = [
   {

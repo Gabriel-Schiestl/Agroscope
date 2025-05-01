@@ -11,6 +11,9 @@ import { ProducerService } from '../../domain/services/Producer.service';
 import FormData = require('form-data'); // Correção aqui
 import e = require('express');
 
+// Technical Exeption Import
+import { TechnicalException } from '../../../../shared/exceptions/Technical.exception'
+
 export interface PredictUseCaseResponse {
     prediction: string;
     handling: string;
@@ -26,7 +29,7 @@ export interface UseCasesResponse<T> {
 export class PredictUseCase extends AbstractUseCase<
     { imagePath: string; userId: string },
     Exception,
-    PredictUseCaseResponse
+    HistoryDto
 > {
     constructor(
         @Inject('SicknessRepository')
@@ -50,62 +53,88 @@ export class PredictUseCase extends AbstractUseCase<
         imagePath: string;
         userId: string;
     }): Promise<Result<Exception, PredictUseCaseResponse>> {
-        const result = await this.predictService.predict(imagePath);
-        if (result.isFailure()) return Res.failure(result.error);
+        try {
+        
+            // Verifica ambiente
+            if (!process.env.FLASK_API_URL) {
+                console.error('FLASK_API_URL não configurado');
+                return Res.failure(
+                    new TechnicalException('Configuração de API não encontrada')
+                );
+            }
 
-        const imageBase64 = await this.predictService.getImageBase64(imagePath);
-        if (imageBase64.isFailure()) return Res.failure(imageBase64.error);
+            const result = await this.predictService.predict(imagePath);
+            if (result.isFailure()) {
+                console.error('Falha na predição:', result.error);
+                return Res.failure(result.error);
+            }
 
-        if (result.value.prediction === 'saudavel') {
-            const history = History.create({
-                image: imageBase64.value,
-                userId: userId,
-                handling: 'Nenhuma ação necessária',
-                crop: null,
-                sickness: null,
-                cropConfidence: null,
-            });
+            const imageBase64 = await this.predictService.getImageBase64(imagePath);
+            if (imageBase64.isFailure()) return Res.failure(imageBase64.error);
 
-            const saveResult = await this.historyRepository.save(history);
-            if (saveResult.isFailure()) return Res.failure(saveResult.error);
+            if (result.value.prediction.includes('saudavel')) {
+                const history = History.create({
+                    image: imageBase64.value,
+                    userId: userId,
+                    handling: 'Nenhuma ação necessária',
+                    crop: null,
+                    sickness: null,
+                    cropConfidence: null,
+                });
 
-            this.sendImage('saudavel', imageBase64.value);
+                const saveResult = await this.historyRepository.save(history);
+                if (saveResult.isFailure()) return Res.failure(saveResult.error);
+
+                this.sendImage('saudavel', imageBase64.value);
+
+                return Res.success({
+                    prediction: 'saudavel',
+                    handling: 'Nenhuma ação necessária',
+                });
+            }
+
+            const sickness = await this.sicknessRepository.getSicknessByName(
+                result.value.prediction,
+            );
+            if (sickness.isFailure()) {
+                console.error('Doença não encontrada no banco de dados:', result.value.prediction)
+                return Res.failure(sickness.error);
+            }
+
+            const knowledge = await this.knowledgeRepository.getKnowledge(
+                sickness.value.id,
+            );
+            if (knowledge.isFailure()) {
+                console.error('Conhecimento não encontrado para a doença:', sickness.value.id);
+                console.error('Erro detalhado:', knowledge.error);
+                return Res.failure(knowledge.error)
+            };
+
+            // const history = History.create({
+            //     handling: knowledge.value.handling,
+            //     image: imageBase64.value,
+            //     sickness: sickness.value.id,
+            //     userId: userId,
+            //     crop: null,
+            //     cropConfidence: null,
+            // });
+
+            // const saveHistoryResult = await this.historyRepository.save(history);
+            // if (saveHistoryResult.isFailure())
+            //     return Res.failure(saveHistoryResult.error);
+
+            this.sendImage(result.value.prediction, imageBase64.value);
 
             return Res.success({
-                prediction: 'saudavel',
-                handling: 'Nenhuma ação necessária',
+                prediction: result.value.prediction,
+                handling: knowledge.value.handling,
             });
+        } catch(error) {
+            console.error('Erro não tratado no caso de uso de predição:', error);
+            return Res.failure(
+                new TechnicalException(`Erro inesperado: ${error.message}`)
+            );
         }
-
-        const sickness = await this.sicknessRepository.getSicknessByName(
-            result.value.prediction,
-        );
-        if (sickness.isFailure()) return Res.failure(sickness.error);
-
-        const knowledge = await this.knowledgeRepository.getKnowledge(
-            sickness.value.id,
-        );
-        if (knowledge.isFailure()) return Res.failure(knowledge.error);
-
-        const history = History.create({
-            handling: knowledge.value.handling,
-            image: imageBase64.value,
-            sickness: sickness.value,
-            userId: userId,
-            crop: null,
-            cropConfidence: null,
-        });
-
-        const saveHistoryResult = await this.historyRepository.save(history);
-        if (saveHistoryResult.isFailure())
-            return Res.failure(saveHistoryResult.error);
-
-        this.sendImage(result.value.prediction, imageBase64.value);
-
-        return Res.success({
-            prediction: result.value.prediction,
-            handling: knowledge.value.handling,
-        });
     }
 
     private async sendImage(prediction: string, image: string) {

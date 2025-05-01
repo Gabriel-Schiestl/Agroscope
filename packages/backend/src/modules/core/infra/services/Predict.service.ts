@@ -41,14 +41,29 @@ export class PredictServiceImpl implements PredictService {
                     )
                     .pipe(
                         catchError((error) => {
-                            throw new Error(`Error on predict`);
+                            const errorMessage = error.response?.data || error.message;
+                            console.error(`Erro na requisição: ${errorMessage}`);
+                            throw new Error(`Erro na comunicação com serviço de IA: ${errorMessage}`);
                         }),
                     ),
             );
 
-            return Res.success(data);
-        } catch (e) {
-            return Res.failure(new TechnicalException('Error on predict'));
+            if (!data.plant || !data.prediction || 
+                data.plantConfidence === undefined || 
+                data.predictionConfidence === undefined) {
+                console.error('Resposta incompleta do serviço de IA:', data);
+                return Res.failure(
+                    new TechnicalException('Resposta incompleta do serviço de IA')
+                );
+            } else {
+                return Res.success(data);
+            }
+
+        } catch (error) {
+            console.error('Erro ao processar predição:', error);
+            return Res.failure(
+                new TechnicalException(`Erro na predição: ${error.message}`)
+            );
         }
     }
 

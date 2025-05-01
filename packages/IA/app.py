@@ -202,7 +202,7 @@ def getCornProbabilities(predicted_index):
     class_names = [
         'Ferrugem Comum', 
         'Ferrugem Polissora', 
-        'Mancha Cinzenta', 
+        'Cercosporiose', 
         'Saudavel'
     ]
     return class_names[predicted_index]
@@ -211,7 +211,7 @@ def getCornProbabilities(predicted_index):
 def getSoybeanProbabilities(predicted_index):
     class_names = [
         'Cercosporiose',
-        'Ferrugem',
+        'Ferrugem Comum',
         'Lagarta',
         'Larva Alfinete',
         'Mancha Marrom',

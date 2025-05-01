@@ -11,12 +11,6 @@ interface Data {
   handling: string;
 }
 
-interface Result {
-  data?: Data;
-  success: boolean;
-  exception?: Error;
-}
-
 export default function Analytics() {
   const [file, setFile] = useState<File | undefined>();
   const [result, setResult] = useState<Data>({ prediction: "", handling: "" });
@@ -41,14 +35,16 @@ export default function Analytics() {
     setLoading(true);
 
     try {
-      const response = await api.post<Result>(`${apiUrl}/predict`, formData, {
+      const response = await api.post<Data>(`${apiUrl}/predict`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (response.data.success) {
+      console.log(response);
+
+      if (response.status === 201) {
         setResult({
-          prediction: response.data.data?.prediction || "Não identificado",
-          handling: response.data.data?.handling || "Sem orientação",
+          prediction: response.data.prediction || "Não identificado",
+          handling: response.data.handling || "Sem orientação",
         });
       } else {
         toast.error("Falha na análise. Tente novamente.");

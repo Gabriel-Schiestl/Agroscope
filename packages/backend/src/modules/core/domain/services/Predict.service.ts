@@ -2,7 +2,10 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Result } from 'src/shared/Result';
 
 export interface PredictServiceResponse {
-    prediction: string;
+    plant: string,
+    plant_confidence: number,
+    prediction: string,
+    prediction_confidence: number
 }
 
 export interface PredictService {

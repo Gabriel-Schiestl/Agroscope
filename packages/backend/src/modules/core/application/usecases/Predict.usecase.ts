@@ -59,7 +59,7 @@ export class PredictUseCase extends AbstractUseCase<
         const imageBase64 = await this.predictService.getImageBase64(imagePath);
         if (imageBase64.isFailure()) return Res.failure(imageBase64.error);
 
-        if (result.value.prediction === 'saudavel') {
+        if (result.value.prediction.includes('saudavel')) {
             const history = History.create({
                 image: imageBase64.value,
                 userId: userId,

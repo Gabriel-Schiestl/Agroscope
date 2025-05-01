@@ -1,13 +1,13 @@
 import { Address } from '../../domain/models/Address';
 import { Client } from '../../domain/models/Client';
 import { ClientModel } from '../models/Client.model';
-import { VisitMapper } from './Visit.mapper';
 
 export class ClientMapper {
     static domainToModel(client: Client): ClientModel {
         return new ClientModel().setProps({
             name: client.name,
             telephone: client.telephone,
+            email: client.email,
             person: client.person,
             document: client.document,
             address: client.address,
@@ -15,6 +15,7 @@ export class ClientMapper {
             totalAreaPlanted: client.totalAreaPlanted,
             active: client.active,
             actualCrop: client.actualCrop,
+            createdAt: client.createdAt,
         });
     }
 
@@ -23,6 +24,7 @@ export class ClientMapper {
             {
                 name: client.name,
                 telephone: client.telephone,
+                email: client.email,
                 person: client.person,
                 document: client.document,
                 address: Address.create(client.address),
@@ -30,6 +32,7 @@ export class ClientMapper {
                 totalAreaPlanted: client.totalAreaPlanted,
                 active: client.active,
                 actualCrop: client.actualCrop,
+                createdAt: client.createdAt,
             },
             client.id,
         );

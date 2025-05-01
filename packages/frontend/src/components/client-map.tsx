@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Layers, Maximize2, Minimize2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { Client } from "@/models/Client";
+
 const MapContainer = dynamic<any>(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
@@ -35,23 +37,11 @@ const Polygon = dynamic<any>(
   { ssr: false }
 );
 
-interface ClientProps {
-  client: {
-    id: string;
-    name: string;
-    owner: string;
-    location: string;
-    coordinates: { lat: number; lng: number };
-    area: number;
-    crops: string[];
-    status: string;
-    lastVisit: string;
-    nextVisit: string;
-    soilType: string;
-    notes: string;
-  };
+interface ClientMapProps {
+  client: Client;
 }
 
+// Função para gerar limites simulados da fazenda quando não temos coordenadas reais
 const getFarmBoundaries = (center: { lat: number; lng: number }) => {
   const offset = 0.02;
   return [
@@ -64,11 +54,12 @@ const getFarmBoundaries = (center: { lat: number; lng: number }) => {
   ];
 };
 
+// Função para gerar áreas simuladas da fazenda quando não temos dados reais
 const getFarmAreas = (center: { lat: number; lng: number }) => {
   const offset = 0.02;
   return [
     {
-      name: "Área de Soja",
+      name: "Área Principal",
       color: "#4CAF50",
       polygon: [
         [center.lat - offset * 0.8, center.lng - offset],
@@ -80,7 +71,7 @@ const getFarmAreas = (center: { lat: number; lng: number }) => {
       ],
     },
     {
-      name: "Área de Milho",
+      name: "Área Secundária",
       color: "#66BB6A",
       polygon: [
         [center.lat - offset * 0.5, center.lng + offset * 0.2],
@@ -102,7 +93,7 @@ const getFarmAreas = (center: { lat: number; lng: number }) => {
   ];
 };
 
-export default function ClientMap({ client }: ClientProps) {
+export default function ClientMap({ client }: ClientMapProps) {
   const [isClient, setIsClient] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
 
@@ -118,8 +109,25 @@ export default function ClientMap({ client }: ClientProps) {
     );
   }
 
-  const farmBoundaries = getFarmBoundaries(client.coordinates);
-  const farmAreas = getFarmAreas(client.coordinates);
+  // Usamos as coordenadas do cliente se disponíveis, ou coordenadas padrão caso contrário
+  const coordinates = {
+    lat: client.address.latitude || -19.9191,
+    lng: client.address.longitude || -43.9386,
+  };
+
+  const farmBoundaries = getFarmBoundaries(coordinates);
+  const farmAreas = getFarmAreas(coordinates);
+
+  // Formatar o nome da cultura atual para exibição
+  const cultureName = client.actualCrop
+    ? client.actualCrop === "SOJA"
+      ? "Soja"
+      : client.actualCrop === "MILHO"
+      ? "Milho"
+      : client.actualCrop === "TRIGO"
+      ? "Trigo"
+      : client.actualCrop
+    : "Não definida";
 
   return (
     <div
@@ -181,6 +189,42 @@ export default function ClientMap({ client }: ClientProps) {
                   <span>Topografia</span>
                 </div>
                 <input type="checkbox" className="accent-primaryGreen" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações da Área</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-mediumGray">Nome:</span>
+                <span className="font-medium">{client.name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-mediumGray">Área Total:</span>
+                <span className="font-medium">
+                  {client.totalArea.toLocaleString()} ha
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-mediumGray">Área Plantada:</span>
+                <span className="font-medium">
+                  {client.totalAreaPlanted.toLocaleString()} ha
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-mediumGray">Cultura Atual:</span>
+                <span className="font-medium">{cultureName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-mediumGray">Endereço:</span>
+                <span className="font-medium">
+                  {client.address.city}, {client.address.state}
+                </span>
               </div>
             </div>
           </CardContent>
@@ -251,7 +295,7 @@ export default function ClientMap({ client }: ClientProps) {
               }`}
             >
               <MapContainer
-                center={[client.coordinates.lat, client.coordinates.lng]}
+                center={[coordinates.lat, coordinates.lng]}
                 zoom={14}
                 style={{ height: "100%", width: "100%" }}
               >
@@ -259,13 +303,11 @@ export default function ClientMap({ client }: ClientProps) {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Marker
-                  position={[client.coordinates.lat, client.coordinates.lng]}
-                >
+                <Marker position={[coordinates.lat, coordinates.lng]}>
                   <Popup>
                     <strong>{client.name}</strong>
                     <br />
-                    {client.location}
+                    {client.address.city}, {client.address.state}
                   </Popup>
                 </Marker>
 

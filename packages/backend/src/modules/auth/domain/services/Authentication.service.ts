@@ -2,6 +2,7 @@ import { Result } from 'src/shared/Result';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 
 export interface JwtPayload {
+    name: string;
     email: string;
     sub: string;
     engineer?: boolean;

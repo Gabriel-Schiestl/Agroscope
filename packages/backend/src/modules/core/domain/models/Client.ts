@@ -2,7 +2,6 @@ import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
 import { Address } from './Address';
-import { Visit } from './Visit';
 
 export enum PersonType {
     CPF = 'PF',
@@ -18,6 +17,7 @@ export enum Crop {
 export interface ClientProps {
     name: string;
     telephone: string;
+    email: string;
     person: PersonType;
     document: string;
     address: Address;
@@ -25,15 +25,20 @@ export interface ClientProps {
     totalAreaPlanted: number;
     actualCrop?: Crop;
     active: boolean;
+    createdAt?: Date;
 }
 
-export type CreateClientProps = Omit<ClientProps, 'visits' | 'active'>;
+export type CreateClientProps = Omit<
+    ClientProps,
+    'visits' | 'active' | 'createdAt'
+>;
 export interface LoadClientProps extends ClientProps {}
 
 export class Client implements ClientProps {
     #id: string;
     #name: string;
     #telephone: string;
+    #email: string;
     #person: PersonType;
     #document: string;
     #address: Address;
@@ -41,11 +46,13 @@ export class Client implements ClientProps {
     #totalAreaPlanted: number;
     #active: boolean = true;
     #actualCrop?: Crop;
+    #createdAt?: Date;
 
     private constructor(props: ClientProps, id?: string) {
         this.#id = id || uuid();
         this.#name = props.name;
         this.#telephone = props.telephone;
+        this.#email = props.email;
         this.#person = props.person;
         this.#document = props.document;
         this.#address = props.address;
@@ -53,6 +60,7 @@ export class Client implements ClientProps {
         this.#totalAreaPlanted = props.totalAreaPlanted;
         this.#active = props.active;
         this.#actualCrop = props.actualCrop;
+        this.#createdAt = props.createdAt || new Date();
     }
 
     static create(props: CreateClientProps): Result<BusinessException, Client> {
@@ -79,6 +87,9 @@ export class Client implements ClientProps {
                 new BusinessException('Total area planted is required'),
             );
 
+        if (!props.email)
+            return Res.failure(new BusinessException('Email is required'));
+
         return Res.success(new Client({ ...props, active: true }));
     }
 
@@ -96,6 +107,10 @@ export class Client implements ClientProps {
 
     get telephone() {
         return this.#telephone;
+    }
+
+    get email() {
+        return this.#email;
     }
 
     get person() {
@@ -124,5 +139,9 @@ export class Client implements ClientProps {
 
     get actualCrop() {
         return this.#actualCrop;
+    }
+
+    get createdAt() {
+        return this.#createdAt;
     }
 }

@@ -25,6 +25,17 @@ import { EngineerGuard } from './infra/services/Engineer.guard';
                     },
                 },
             },
+            {
+                name: 'RABBITMQ_EMAIL_SERVICE',
+                transport: Transport.RMQ,
+                options: {
+                    urls: [process.env.RABBITMQ_URL],
+                    queue: 'email-service',
+                    queueOptions: {
+                        durable: true,
+                    },
+                },
+            },
         ]),
     ],
     controllers: [...controllers],
@@ -32,8 +43,8 @@ import { EngineerGuard } from './infra/services/Engineer.guard';
         ...useCases,
         ...queries,
         ...repositories,
-        ...services,
         EngineerGuard,
+        ...services,
     ],
     exports: [...repositories],
 })

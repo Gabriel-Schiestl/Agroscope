@@ -3,13 +3,15 @@ import {
     ExecutionContext,
     Injectable,
     NestInterceptor,
+    HttpStatus,
 } from '@nestjs/common';
-import { map } from 'rxjs';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Failure, Success } from './Result';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
-    intercept(context: ExecutionContext, next: CallHandler) {
+    intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
         const response = context.switchToHttp().getResponse();
         const method = context.switchToHttp().getRequest().method;
 
@@ -17,29 +19,26 @@ export class ResponseInterceptor implements NestInterceptor {
             map((data) => {
                 if (data instanceof Success) {
                     if (method === 'POST') {
-                        response.status(201);
-                    } else if (method === 'GET') {
-                        response.status(200);
+                        response.status(HttpStatus.CREATED);
+                    } else {
+                        response.status(HttpStatus.OK);
                     }
-
-                    response.json(data.value);
-                } else if (data instanceof Failure) {
-                    if (
-                        method === 'POST' ||
-                        method === 'PUT' ||
-                        method === 'PATCH'
-                    ) {
-                        response.status(400).json({
-                            message: data.error.message,
-                            key: data.error.key,
-                        });
-                    } else if (method === 'GET') {
-                        response.status(404).json({
-                            message: data.error.message,
-                            key: data.error.key,
-                        });
-                    }
+                    return data.value;
                 }
+
+                if (data instanceof Failure) {
+                    if (method === 'GET') {
+                        response.status(HttpStatus.NOT_FOUND);
+                    } else {
+                        response.status(HttpStatus.BAD_REQUEST);
+                    }
+                    return {
+                        message: data.error.message,
+                        key: data.error.key,
+                    };
+                }
+
+                return data;
             }),
         );
     }

@@ -8,7 +8,6 @@ import {
     JoinColumn,
     BaseEntity,
 } from 'typeorm';
-import { VisitModel } from './Visit.model';
 import { ReportStatus } from '../../domain/models/Report';
 
 export interface ReportModelProps {
@@ -16,7 +15,10 @@ export interface ReportModelProps {
     title: string;
     content: string;
     status: ReportStatus;
+    clientId: string;
+    engineerId: string;
     attachments?: string[];
+    eventId?: string;
     createdAt?: Date;
 }
 
@@ -37,11 +39,14 @@ export class ReportModel extends BaseEntity implements ReportModelProps {
     @Column({ type: 'jsonb', nullable: true })
     attachments: string[];
 
-    @ManyToOne(() => VisitModel, (visit) => visit.reports, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'visit_id' })
-    visit: VisitModel;
+    @Column({ name: 'client_id' })
+    clientId: string;
+
+    @Column({ name: 'engineer_id' })
+    engineerId: string;
+
+    @Column({ name: 'event_id', nullable: true })
+    eventId: string;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;

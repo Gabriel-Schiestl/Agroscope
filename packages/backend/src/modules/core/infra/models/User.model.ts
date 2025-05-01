@@ -17,7 +17,11 @@ export class UserModel extends BaseEntity implements UserModelProps {
     @Column({ unique: true })
     email: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        name: 'created_at',
+    })
     createdAt: Date;
 
     setProps(props: UserModelProps): this {

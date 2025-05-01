@@ -14,8 +14,17 @@ export class ReportDto {
     @IsString()
     status: ReportStatus;
 
+    @IsString()
+    clientId: string;
+
+    @IsString()
+    engineerId: string;
+
     @IsString({ each: true })
     attachments?: string[];
+
+    @IsString()
+    visitId?: string;
 
     @IsString()
     createdAt?: Date;

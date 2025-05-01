@@ -10,6 +10,8 @@ import { User } from 'src/modules/core/domain/models/User';
 import { Authentication } from 'src/modules/auth/domain/models/Authentication';
 import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/Authentication.repository';
 import { EncryptionService } from 'src/modules/auth/domain/services/Encryption.service';
+import { Calendar } from 'src/modules/core/domain/models/Calendar';
+import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
 
 export type CreateUserUseCaseExceptions =
     | RepositoryNoDataFound
@@ -29,6 +31,8 @@ export class CreateUserUseCase extends AbstractUseCase<
         private readonly authenticationRepository: AuthenticationRepository,
         @Inject('EncryptionService')
         private readonly encryptionService: EncryptionService,
+        @Inject('CalendarRepository')
+        private readonly calendarRepository: CalendarRepository,
     ) {
         super();
     }
@@ -40,6 +44,17 @@ export class CreateUserUseCase extends AbstractUseCase<
 
         const result = await this.userRepository.save(user.value);
         if (result.isFailure()) return Res.failure(result.error);
+
+        const calendar = Calendar.create({
+            userId: user.value.id,
+        });
+        if (calendar.isFailure()) return Res.failure(calendar.error);
+
+        const saveCalendarResult = await this.calendarRepository.save(
+            calendar.value,
+        );
+        if (saveCalendarResult.isFailure())
+            return Res.failure(saveCalendarResult.error);
 
         const hash = await this.encryptionService.encrypt(props.password);
 

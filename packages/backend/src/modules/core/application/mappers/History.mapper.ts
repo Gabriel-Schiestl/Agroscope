@@ -9,6 +9,10 @@ export class HistoryAppMapper {
             handling: history.handling,
             image: history.image,
             sickness: SicknessAppMapper.toDto(history.sickness),
+            crop: history.crop,
+            cropConfidence: history.cropConfidence,
+            sicknessConfidence: history.sicknessConfidence,
+            createdAt: history.createdAt,
         };
     }
 }

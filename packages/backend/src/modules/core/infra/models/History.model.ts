@@ -15,6 +15,9 @@ export interface HistoryModelProps {
     id: string;
     createdAt: Date;
     sickness: SicknessModel;
+    sicknessConfidence?: number;
+    crop: string;
+    cropConfidence: number;
     handling?: string;
     image: string;
     clientId?: string;
@@ -38,6 +41,15 @@ export class HistoryModel extends BaseEntity {
     @ManyToOne(() => SicknessModel, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'sickness_id' })
     sickness: SicknessModel;
+
+    @Column({ nullable: true, name: 'sickness_confidence', type: 'float' })
+    sicknessConfidence: number;
+
+    @Column()
+    crop: string;
+
+    @Column({ name: 'crop_confidence', type: 'float' })
+    cropConfidence: number;
 
     @Column({ nullable: true })
     handling: string;

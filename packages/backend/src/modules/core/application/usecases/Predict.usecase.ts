@@ -60,6 +60,10 @@ export class PredictUseCase extends AbstractUseCase<
             const history = History.create({
                 image: imageBase64.value,
                 userId: userId,
+                handling: 'Nenhuma ação necessária',
+                crop: null,
+                sickness: null,
+                cropConfidence: null,
             });
 
             const saveResult = await this.historyRepository.save(history);
@@ -88,6 +92,8 @@ export class PredictUseCase extends AbstractUseCase<
             image: imageBase64.value,
             sickness: sickness.value,
             userId: userId,
+            crop: null,
+            cropConfidence: null,
         });
 
         const saveHistoryResult = await this.historyRepository.save(history);

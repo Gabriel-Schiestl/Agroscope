@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import api from "../../../../shared/http/http.config";
-import { Client, Address, Crop } from "@/models/Client";
-import { Visit, VisitStatus } from "@/models/Visit";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -150,56 +147,54 @@ const CLIENTS = [
   },
 ];
 
-// Ajuste na função getFarmBoundaries para usar coordenadas do client
-const getFarmBoundaries = (client: Client) => {
-  const coordinates = getClientCoordinates(client);
+// Mock polygon data for farm boundaries
+const getFarmBoundaries = (center: { lat: number; lng: number }) => {
   // Create a simple polygon around the center point
   const offset = 0.02; // Roughly 2km
   return [
-    [coordinates.lat - offset, coordinates.lng - offset * 1.5],
-    [coordinates.lat - offset * 0.5, coordinates.lng - offset * 0.8],
-    [coordinates.lat + offset * 0.8, coordinates.lng - offset],
-    [coordinates.lat + offset, coordinates.lng + offset * 0.5],
-    [coordinates.lat - offset * 0.2, coordinates.lng + offset * 1.2],
-    [coordinates.lat - offset, coordinates.lng - offset * 0.5],
+    [center.lat - offset, center.lng - offset * 1.5],
+    [center.lat - offset * 0.5, center.lng - offset * 0.8],
+    [center.lat + offset * 0.8, center.lng - offset],
+    [center.lat + offset, center.lng + offset * 0.5],
+    [center.lat - offset * 0.2, center.lng + offset * 1.2],
+    [center.lat - offset, center.lng - offset * 0.5],
   ];
 };
 
-// Ajuste na função getFarmAreas para usar coordenadas do client
-const getFarmAreas = (client: Client) => {
-  const coordinates = getClientCoordinates(client);
+// Mock data for different areas within the farm
+const getFarmAreas = (center: { lat: number; lng: number }) => {
   const offset = 0.02;
   return [
     {
       name: "Área de Soja",
       color: "#4CAF50",
       polygon: [
-        [coordinates.lat - offset * 0.8, coordinates.lng - offset],
-        [coordinates.lat - offset * 0.2, coordinates.lng - offset * 0.6],
-        [coordinates.lat + offset * 0.4, coordinates.lng - offset * 0.8],
-        [coordinates.lat + offset * 0.6, coordinates.lng - offset * 0.2],
-        [coordinates.lat + offset * 0.2, coordinates.lng + offset * 0.4],
-        [coordinates.lat - offset * 0.4, coordinates.lng + offset * 0.2],
+        [center.lat - offset * 0.8, center.lng - offset],
+        [center.lat - offset * 0.2, center.lng - offset * 0.6],
+        [center.lat + offset * 0.4, center.lng - offset * 0.8],
+        [center.lat + offset * 0.6, center.lng - offset * 0.2],
+        [center.lat + offset * 0.2, center.lng + offset * 0.4],
+        [center.lat - offset * 0.4, center.lng + offset * 0.2],
       ],
     },
     {
       name: "Área de Milho",
       color: "#66BB6A",
       polygon: [
-        [coordinates.lat - offset * 0.5, coordinates.lng + offset * 0.2],
-        [coordinates.lat - offset * 0.8, coordinates.lng + offset * 0.6],
-        [coordinates.lat - offset * 0.2, coordinates.lng + offset * 0.8],
-        [coordinates.lat + offset * 0.2, coordinates.lng + offset * 0.4],
+        [center.lat - offset * 0.5, center.lng + offset * 0.2],
+        [center.lat - offset * 0.8, center.lng + offset * 0.6],
+        [center.lat - offset * 0.2, center.lng + offset * 0.8],
+        [center.lat + offset * 0.2, center.lng + offset * 0.4],
       ],
     },
     {
       name: "Reserva Legal",
       color: "#2E7D32",
       polygon: [
-        [coordinates.lat + offset * 0.4, coordinates.lng - offset * 0.2],
-        [coordinates.lat + offset * 0.8, coordinates.lng - offset * 0.4],
-        [coordinates.lat + offset * 0.6, coordinates.lng + offset * 0.2],
-        [coordinates.lat + offset * 0.2, coordinates.lng + offset * 0.4],
+        [center.lat + offset * 0.4, center.lng - offset * 0.2],
+        [center.lat + offset * 0.8, center.lng - offset * 0.4],
+        [center.lat + offset * 0.6, center.lng + offset * 0.2],
+        [center.lat + offset * 0.2, center.lng + offset * 0.4],
       ],
     },
   ];
@@ -225,147 +220,47 @@ const MAP_LAYERS = [
 ];
 
 // Available crop types for filtering
-const CROP_TYPES = Object.values(Crop);
-
-// Função auxiliar para obter coordenadas do cliente
-const getClientCoordinates = (client: Client) => {
-  if (client.address?.latitude && client.address?.longitude) {
-    return {
-      lat: client.address.latitude,
-      lng: client.address.longitude,
-    };
-  }
-
-  // Se não tiver coordenadas, retorna uma posição padrão no Brasil
-  return { lat: -19.9167, lng: -43.9345 };
-};
-
-// Função auxiliar para obter localização formatada
-const getFormattedLocation = (address: Address) => {
-  if (!address) return "Localização não disponível";
-  return `${address.city || ""}, ${address.state || ""}`;
-};
-
-// Função para obter a data da última visita
-const getLastVisitDate = (visits?: Visit[]) => {
-  if (!visits || visits.length === 0) return "Nenhuma visita";
-
-  const completedVisits = visits
-    .filter((visit) => visit.status === VisitStatus.COMPLETED)
-    .sort(
-      (a, b) =>
-        new Date(b.scheduledDate || 0).getTime() -
-        new Date(a.scheduledDate || 0).getTime()
-    );
-
-  if (completedVisits.length === 0) return "Nenhuma visita concluída";
-  return new Date(completedVisits[0].scheduledDate || 0).toLocaleDateString();
-};
-
-// Função para obter a data da próxima visita
-const getNextVisitDate = (visits?: Visit[]) => {
-  if (!visits || visits.length === 0) return "Nenhuma visita agendada";
-
-  const pendingVisits = visits
-    .filter((visit) => visit.status === VisitStatus.PENDING)
-    .sort(
-      (a, b) =>
-        new Date(a.scheduledDate || 0).getTime() -
-        new Date(b.scheduledDate || 0).getTime()
-    );
-
-  if (pendingVisits.length === 0) return "Nenhuma visita pendente";
-  return new Date(pendingVisits[0].scheduledDate || 0).toLocaleDateString();
-};
+const CROP_TYPES = [
+  "Soja",
+  "Milho",
+  "Café",
+  "Laranja",
+  "Algodão",
+  "Cana-de-açúcar",
+  "Sorgo",
+];
 
 export default function MapsPage() {
   const [isClient, setIsClient] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMapLayer, setActiveMapLayer] = useState("street");
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<
+    (typeof CLIENTS)[0] | null
+  >(null);
   const [showClientDetails, setShowClientDetails] = useState(false);
   const [activeCropFilters, setActiveCropFilters] = useState<string[]>([]);
   const [areaRange, setAreaRange] = useState([0, 5000]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const router = useRouter();
-
-  const handleClientSelect = (client: Client) => {
-    setSelectedClient(client);
-    setShowClientDetails(true);
-  };
 
   useEffect(() => {
     setIsClient(true);
-
-    // Buscar clientes
-    const fetchClients = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get("/clients");
-        setClients(response.data);
-        setError(null);
-      } catch (err) {
-        console.error("Erro ao buscar clientes:", err);
-        setError("Falha ao carregar os clientes. Tente novamente.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchClients();
   }, []);
 
-  // No início do retorno do componente, antes de renderizar o conteúdo principal
-  if (loading) {
-    return (
-      <div className="h-[calc(100vh-8rem)] bg-lightGray flex items-center justify-center">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primaryGreen mb-4"></div>
-          <p className="text-mediumGray">Carregando propriedades...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-[calc(100vh-8rem)] bg-lightGray flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="bg-primaryGreen hover:bg-lightGreen"
-          >
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   // Filter clients based on search query and crop filters
-  const filteredClients = clients.filter((client) => {
+  const filteredClients = CLIENTS.filter((client) => {
     const matchesSearch =
       searchQuery === "" ||
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (client.address?.city &&
-        client.address.city
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())) ||
-      (client.address?.state &&
-        client.address.state.toLowerCase().includes(searchQuery.toLowerCase()));
+      client.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Verifica se existe actualCrop e se está nos filtros
     const matchesCrops =
       activeCropFilters.length === 0 ||
-      (client.actualCrop && activeCropFilters.includes(client.actualCrop));
+      client.crops.some((crop) => activeCropFilters.includes(crop));
 
     const matchesArea =
-      client.totalArea >= areaRange[0] && client.totalArea <= areaRange[1];
+      client.area >= areaRange[0] && client.area <= areaRange[1];
 
     return matchesSearch && matchesCrops && matchesArea;
   });
@@ -384,6 +279,12 @@ export default function MapsPage() {
     setActiveCropFilters([]);
     setAreaRange([0, 5000]);
     setSearchQuery("");
+  };
+
+  // Handle client selection
+  const handleClientSelect = (client: (typeof CLIENTS)[0]) => {
+    setSelectedClient(client);
+    setShowClientDetails(true);
   };
 
   // Navigate to client details page
@@ -552,30 +453,36 @@ export default function MapsPage() {
                         <h3 className="font-medium">{client.name}</h3>
                         <Badge
                           className={
-                            client.active
+                            client.status === "active"
                               ? "bg-primaryGreen/20 text-lightGreen"
                               : "bg-mediumGray/20 text-darkGray"
                           }
                         >
-                          {client.active ? "Ativo" : "Inativo"}
+                          {client.status === "active" ? "Ativo" : "Pendente"}
                         </Badge>
                       </div>
                       <div className="flex items-center text-sm text-mediumGray mt-1">
                         <MapPin className="mr-1" size={14} />
-                        {getFormattedLocation(client.address)}
+                        {client.location}
                       </div>
                       <div className="flex justify-between items-center mt-2">
-                        <div className="text-sm">{client.totalArea} ha</div>
-                        {client.actualCrop && (
-                          <div className="flex flex-wrap gap-1 justify-end">
+                        <div className="text-sm">{client.area} ha</div>
+                        <div className="flex flex-wrap gap-1 justify-end">
+                          {client.crops.slice(0, 2).map((crop) => (
                             <Badge
+                              key={crop}
                               variant="outline"
                               className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20 text-xs"
                             >
-                              {client.actualCrop}
+                              {crop}
                             </Badge>
-                          </div>
-                        )}
+                          ))}
+                          {client.crops.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{client.crops.length - 2}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))
@@ -666,13 +573,14 @@ export default function MapsPage() {
                       url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                     />
                   )}
+
                   {/* Property Markers */}
                   {filteredClients.map((client) => (
                     <Marker
                       key={client.id}
                       position={[
-                        getClientCoordinates(client).lat,
-                        getClientCoordinates(client).lng,
+                        client.coordinates.lat,
+                        client.coordinates.lng,
                       ]}
                       eventHandlers={{
                         click: () => handleClientSelect(client),
@@ -684,22 +592,23 @@ export default function MapsPage() {
                             {client.name}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            {getFormattedLocation(client.address)}
+                            {client.location}
                           </p>
                           <p className="text-sm mt-1">
                             <span className="font-medium">Área:</span>{" "}
-                            {client.totalArea.toLocaleString()} ha
+                            {client.area} ha
                           </p>
-                          {client.actualCrop && (
-                            <div className="flex flex-wrap gap-1 mt-2">
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {client.crops.map((crop) => (
                               <Badge
+                                key={crop}
                                 variant="outline"
                                 className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20 text-xs"
                               >
-                                {client.actualCrop}
+                                {crop}
                               </Badge>
-                            </div>
-                          )}
+                            ))}
+                          </div>
                           <Button
                             size="sm"
                             className="w-full mt-3 bg-primaryGreen hover:bg-lightGreen"
@@ -711,11 +620,14 @@ export default function MapsPage() {
                       </Popup>
                     </Marker>
                   ))}
+
                   {/* Farm boundaries for selected client */}
                   {selectedClient && (
                     <>
                       <Polygon
-                        positions={getFarmBoundaries(selectedClient) as any}
+                        positions={
+                          getFarmBoundaries(selectedClient.coordinates) as any
+                        }
                         pathOptions={{
                           color: "#4CAF50",
                           weight: 3,
@@ -724,20 +636,22 @@ export default function MapsPage() {
                       />
 
                       {/* Farm areas */}
-                      {getFarmAreas(selectedClient).map((area, index) => (
-                        <Polygon
-                          key={index}
-                          positions={area.polygon as any}
-                          pathOptions={{
-                            color: area.color,
-                            weight: 2,
-                            fillColor: area.color,
-                            fillOpacity: 0.3,
-                          }}
-                        >
-                          <Popup>{area.name}</Popup>
-                        </Polygon>
-                      ))}
+                      {getFarmAreas(selectedClient.coordinates).map(
+                        (area, index) => (
+                          <Polygon
+                            key={index}
+                            positions={area.polygon as any}
+                            pathOptions={{
+                              color: area.color,
+                              weight: 2,
+                              fillColor: area.color,
+                              fillOpacity: 0.3,
+                            }}
+                          >
+                            <Popup>{area.name}</Popup>
+                          </Polygon>
+                        )
+                      )}
                     </>
                   )}
                 </MapContainer>
@@ -752,55 +666,67 @@ export default function MapsPage() {
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>{selectedClient?.name}</DrawerTitle>
-            <DrawerDescription>
-              {selectedClient?.address &&
-                getFormattedLocation(selectedClient.address)}
-            </DrawerDescription>
+            <DrawerDescription>{selectedClient?.location}</DrawerDescription>
           </DrawerHeader>
           {selectedClient && (
             <div className="p-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <h3 className="text-sm font-medium text-mediumGray">
-                    Documento
+                    Proprietário
                   </h3>
-                  <p>{selectedClient.document}</p>
+                  <p>{selectedClient.owner}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-mediumGray">
                     Área Total
                   </h3>
-                  <p>{selectedClient.totalArea.toLocaleString()} ha</p>
+                  <p>{selectedClient.area.toLocaleString()} ha</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-mediumGray">
                     Última Visita
                   </h3>
-                  <p>{getLastVisitDate(selectedClient.visits)}</p>
+                  <p>{selectedClient.lastVisit}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-mediumGray">
                     Próxima Visita
                   </h3>
-                  <p>{getNextVisitDate(selectedClient.visits)}</p>
+                  <p>{selectedClient.nextVisit}</p>
                 </div>
               </div>
 
-              {selectedClient.actualCrop && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-mediumGray mb-1">
-                    Cultura Atual
-                  </h3>
-                  <div className="flex flex-wrap gap-1">
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-mediumGray mb-1">
+                  Culturas
+                </h3>
+                <div className="flex flex-wrap gap-1">
+                  {selectedClient.crops.map((crop) => (
                     <Badge
+                      key={crop}
                       variant="outline"
                       className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20"
                     >
-                      {selectedClient.actualCrop}
+                      {crop}
                     </Badge>
-                  </div>
+                  ))}
                 </div>
-              )}
+              </div>
+
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-mediumGray mb-1">
+                  Tipo de Solo
+                </h3>
+                <p>{selectedClient.soilType}</p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-mediumGray mb-1">
+                  Notas
+                </h3>
+                <p className="text-sm">{selectedClient.notes}</p>
+              </div>
 
               <Tabs defaultValue="areas" className="mt-6">
                 <TabsList className="grid w-full grid-cols-2">
@@ -809,23 +735,25 @@ export default function MapsPage() {
                 </TabsList>
                 <TabsContent value="areas" className="pt-4">
                   <div className="space-y-2">
-                    {getFarmAreas(selectedClient).map((area, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-2 border rounded-md"
-                      >
-                        <div className="flex items-center">
-                          <div
-                            className="w-4 h-4 rounded-sm mr-2"
-                            style={{ backgroundColor: area.color }}
-                          ></div>
-                          <span>{area.name}</span>
+                    {getFarmAreas(selectedClient.coordinates).map(
+                      (area, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-2 border rounded-md"
+                        >
+                          <div className="flex items-center">
+                            <div
+                              className="w-4 h-4 rounded-sm mr-2"
+                              style={{ backgroundColor: area.color }}
+                            ></div>
+                            <span>{area.name}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {Math.floor(Math.random() * 500) + 100} ha
+                          </span>
                         </div>
-                        <span className="text-sm text-muted-foreground">
-                          {Math.floor(Math.random() * 500) + 100} ha
-                        </span>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </TabsContent>
                 <TabsContent value="activities" className="pt-4">

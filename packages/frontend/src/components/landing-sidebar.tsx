@@ -26,7 +26,7 @@ export default function LandingSidebar() {
 
       <nav className="flex-1 p-4">
         <ul className="space-y-1">
-          <li>
+          {/* <li>
             <Link
               href="/"
               className="flex items-center gap-3 px-3 py-2 rounded-md bg-lightGreen text-white hover:bg-primaryGreen transition-colors"
@@ -34,7 +34,7 @@ export default function LandingSidebar() {
               <Home size={18} />
               <span>Início</span>
             </Link>
-          </li>
+          </li> */}
           <li>
             <Link
               href="/dashboard"

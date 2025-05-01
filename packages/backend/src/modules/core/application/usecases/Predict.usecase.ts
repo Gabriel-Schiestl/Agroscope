@@ -8,25 +8,14 @@ import { KnowledgeRepository } from '../../domain/repositories/Knowledge.reposit
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
 import { PredictService } from '../../domain/services/Predict.service';
 import { ProducerService } from '../../domain/services/Producer.service';
-import FormData = require('form-data'); // Correção aqui
-import e = require('express');
-
-export interface PredictUseCaseResponse {
-    prediction: string;
-    handling: string;
-}
-
-export interface UseCasesResponse<T> {
-    data?: T | void;
-    success: boolean;
-    exception?: Error;
-}
+import { HistoryDto } from '../dto/History.dto';
+import { HistoryAppMapper } from '../mappers/History.mapper';
 
 @Injectable()
 export class PredictUseCase extends AbstractUseCase<
     { imagePath: string; userId: string },
     Exception,
-    PredictUseCaseResponse
+    HistoryDto
 > {
     constructor(
         @Inject('SicknessRepository')
@@ -49,7 +38,7 @@ export class PredictUseCase extends AbstractUseCase<
     }: {
         imagePath: string;
         userId: string;
-    }): Promise<Result<Exception, PredictUseCaseResponse>> {
+    }): Promise<Result<Exception, HistoryDto>> {
         const result = await this.predictService.predict(imagePath);
         if (result.isFailure()) return Res.failure(result.error);
 
@@ -61,9 +50,8 @@ export class PredictUseCase extends AbstractUseCase<
                 image: imageBase64.value,
                 userId: userId,
                 handling: 'Nenhuma ação necessária',
-                crop: null,
-                sickness: null,
-                cropConfidence: null,
+                crop: result.value.plant,
+                cropConfidence: result.value.plantConfidence,
             });
 
             const saveResult = await this.historyRepository.save(history);
@@ -71,10 +59,7 @@ export class PredictUseCase extends AbstractUseCase<
 
             this.sendImage('saudavel', imageBase64.value);
 
-            return Res.success({
-                prediction: 'saudavel',
-                handling: 'Nenhuma ação necessária',
-            });
+            return Res.success(HistoryAppMapper.toDto(history));
         }
 
         const sickness = await this.sicknessRepository.getSicknessByName(
@@ -92,8 +77,9 @@ export class PredictUseCase extends AbstractUseCase<
             image: imageBase64.value,
             sickness: sickness.value,
             userId: userId,
-            crop: null,
-            cropConfidence: null,
+            crop: result.value.plant,
+            cropConfidence: result.value.plantConfidence,
+            sicknessConfidence: result.value.predictionConfidence,
         });
 
         const saveHistoryResult = await this.historyRepository.save(history);
@@ -102,10 +88,7 @@ export class PredictUseCase extends AbstractUseCase<
 
         this.sendImage(result.value.prediction, imageBase64.value);
 
-        return Res.success({
-            prediction: result.value.prediction,
-            handling: knowledge.value.handling,
-        });
+        return Res.success(HistoryAppMapper.toDto(history));
     }
 
     private async sendImage(prediction: string, image: string) {

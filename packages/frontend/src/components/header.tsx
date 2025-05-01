@@ -56,7 +56,7 @@ export default function Header() {
                   <AvatarFallback className="bg-primaryGreen text-white">
                     {user?.name
                       ?.split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")
                       .toUpperCase() || "AG"}
                   </AvatarFallback>

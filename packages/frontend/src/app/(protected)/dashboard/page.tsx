@@ -391,14 +391,14 @@ export default function DashboardPage() {
                   <span className="text-xs md:text-sm font-medium">Agenda</span>
                 </div>
               </Link>
-              <Link href="/reports">
+              {/* <Link href="/reports">
                 <div className="flex flex-col items-center justify-center p-2 md:p-4 rounded-md border border-mediumGray/20 hover:border-primaryGreen hover:bg-primaryGreen/5 transition-colors">
                   <FileText className="h-6 w-6 md:h-8 md:w-8 text-primaryGreen mb-1 md:mb-2" />
                   <span className="text-xs md:text-sm font-medium">
                     Relatórios
                   </span>
                 </div>
-              </Link>
+              </Link> */}
               <Link href="/analytics">
                 <div className="flex flex-col items-center justify-center p-2 md:p-4 rounded-md border border-mediumGray/20 hover:border-primaryGreen hover:bg-primaryGreen/5 transition-colors">
                   <BarChart2 className="h-6 w-6 md:h-8 md:w-8 text-primaryGreen mb-1 md:mb-2" />

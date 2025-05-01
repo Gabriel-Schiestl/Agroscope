@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="text-lg text-mediumGray mb-8">
         A página que você está procurando não existe ou foi movida.
       </p>
-      <Link href="/">
+      <Link href="/dashboard">
         <Button className="bg-primaryGreen hover:bg-lightGreen">
           Voltar para a página inicial
         </Button>

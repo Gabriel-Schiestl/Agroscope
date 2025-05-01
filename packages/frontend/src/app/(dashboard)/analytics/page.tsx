@@ -90,14 +90,14 @@ export default function AnalyticsPage() {
     setLoading(true);
 
     try {
-      const response = await api.post<Result>(`${apiUrl}/predict`, formData, {
+      const response = await api.post<Data>(`${apiUrl}/predict`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (response.data.success) {
+      if (response.status === 201) {
         setResult({
-          prediction: response.data.data?.prediction || "Não identificado",
-          handling: response.data.data?.handling || "Sem orientação",
+          prediction: response.data.prediction || "Não identificado",
+          handling: response.data.handling || "Sem orientação",
         });
       } else {
         toast.error("Falha na análise. Tente novamente.");

@@ -49,8 +49,8 @@ export class PredictServiceImpl implements PredictService {
             );
 
             if (!data.plant || !data.prediction || 
-                data.plant_confidence === undefined || 
-                data.prediction_confidence === undefined) {
+                data.plantConfidence === undefined || 
+                data.predictionConfidence === undefined) {
                 console.error('Resposta incompleta do serviço de IA:', data);
                 return Res.failure(
                     new TechnicalException('Resposta incompleta do serviço de IA')

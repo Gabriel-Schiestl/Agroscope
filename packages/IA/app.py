@@ -185,9 +185,9 @@ def predict():
                 predicted_class = "doença não identificada."
 
     return jsonify({'plant': generalPrediction.lower(), 
-                    'plant_confidence': generalConfidence,
+                    'plantConfidence': generalConfidence,
                     'prediction': predicted_class.lower(), 
-                    'prediction_confidence': sicknessConfidence}), 200
+                    'predictionConfidence': sicknessConfidence}), 200
 
 
 ## Não vai precisar existir no futuro! ##

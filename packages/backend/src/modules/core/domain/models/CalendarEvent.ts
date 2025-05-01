@@ -29,7 +29,7 @@ export interface CalendarEventProps {
 }
 
 export interface CreateCalendarEventProps
-    extends Omit<CalendarEventProps, 'status'> {}
+    extends Omit<CalendarEventProps, 'status' | 'reportId'> {}
 
 export interface LoadCalendarEventProps extends CalendarEventProps {}
 

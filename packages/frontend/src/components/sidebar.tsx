@@ -11,6 +11,7 @@ import {
   Settings,
   HelpCircle,
   LogOut,
+  History,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -94,6 +95,19 @@ export default function Sidebar() {
             >
               <Calendar size={18} />
               <span>Calendário</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/history"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                isActive("/history")
+                  ? "bg-primaryGreen/10 text-primaryGreen font-medium"
+                  : "text-foreground hover:bg-muted"
+              }`}
+            >
+              <History size={18} />
+              <span>Histórico</span>
             </Link>
           </li>
           <li>

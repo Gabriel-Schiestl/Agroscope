@@ -12,7 +12,9 @@ import FormData = require('form-data'); // Correção aqui
 import e = require('express');
 
 // Technical Exeption Import
-import { TechnicalException } from '../../../../shared/exceptions/Technical.exception'
+import { TechnicalException } from '../../../../shared/exceptions/Technical.exception';
+import { HistoryDto } from '../dto/History.dto';
+import { HistoryAppMapper } from '../mappers/History.mapper';
 
 export interface PredictUseCaseResponse {
     prediction: string;
@@ -52,24 +54,16 @@ export class PredictUseCase extends AbstractUseCase<
     }: {
         imagePath: string;
         userId: string;
-    }): Promise<Result<Exception, PredictUseCaseResponse>> {
+    }): Promise<Result<Exception, HistoryDto>> {
         try {
-        
-            // Verifica ambiente
-            if (!process.env.FLASK_API_URL) {
-                console.error('FLASK_API_URL não configurado');
-                return Res.failure(
-                    new TechnicalException('Configuração de API não encontrada')
-                );
-            }
-
             const result = await this.predictService.predict(imagePath);
             if (result.isFailure()) {
                 console.error('Falha na predição:', result.error);
                 return Res.failure(result.error);
             }
 
-            const imageBase64 = await this.predictService.getImageBase64(imagePath);
+            const imageBase64 =
+                await this.predictService.getImageBase64(imagePath);
             if (imageBase64.isFailure()) return Res.failure(imageBase64.error);
 
             if (result.value.prediction.includes('saudavel')) {
@@ -83,21 +77,22 @@ export class PredictUseCase extends AbstractUseCase<
                 });
 
                 const saveResult = await this.historyRepository.save(history);
-                if (saveResult.isFailure()) return Res.failure(saveResult.error);
+                if (saveResult.isFailure())
+                    return Res.failure(saveResult.error);
 
                 this.sendImage('saudavel', imageBase64.value);
 
-                return Res.success({
-                    prediction: 'saudavel',
-                    handling: 'Nenhuma ação necessária',
-                });
+                return Res.success(HistoryAppMapper.toDto(history));
             }
 
             const sickness = await this.sicknessRepository.getSicknessByName(
                 result.value.prediction,
             );
             if (sickness.isFailure()) {
-                console.error('Doença não encontrada no banco de dados:', result.value.prediction)
+                console.error(
+                    'Doença não encontrada no banco de dados:',
+                    result.value.prediction,
+                );
                 return Res.failure(sickness.error);
             }
 
@@ -105,34 +100,38 @@ export class PredictUseCase extends AbstractUseCase<
                 sickness.value.id,
             );
             if (knowledge.isFailure()) {
-                console.error('Conhecimento não encontrado para a doença:', sickness.value.id);
+                console.error(
+                    'Conhecimento não encontrado para a doença:',
+                    sickness.value.id,
+                );
                 console.error('Erro detalhado:', knowledge.error);
-                return Res.failure(knowledge.error)
-            };
+                return Res.failure(knowledge.error);
+            }
 
-            // const history = History.create({
-            //     handling: knowledge.value.handling,
-            //     image: imageBase64.value,
-            //     sickness: sickness.value.id,
-            //     userId: userId,
-            //     crop: null,
-            //     cropConfidence: null,
-            // });
+            const history = History.create({
+                handling: knowledge.value.handling,
+                image: imageBase64.value,
+                sickness: sickness.value,
+                userId: userId,
+                crop: result.value.plant,
+                cropConfidence: result.value.plantConfidence,
+            });
 
-            // const saveHistoryResult = await this.historyRepository.save(history);
-            // if (saveHistoryResult.isFailure())
-            //     return Res.failure(saveHistoryResult.error);
+            const saveHistoryResult =
+                await this.historyRepository.save(history);
+            if (saveHistoryResult.isFailure())
+                return Res.failure(saveHistoryResult.error);
 
             this.sendImage(result.value.prediction, imageBase64.value);
 
-            return Res.success({
-                prediction: result.value.prediction,
-                handling: knowledge.value.handling,
-            });
-        } catch(error) {
-            console.error('Erro não tratado no caso de uso de predição:', error);
+            return Res.success(HistoryAppMapper.toDto(history));
+        } catch (error) {
+            console.error(
+                'Erro não tratado no caso de uso de predição:',
+                error,
+            );
             return Res.failure(
-                new TechnicalException(`Erro inesperado: ${error.message}`)
+                new TechnicalException(`Erro inesperado: ${error.message}`),
             );
         }
     }

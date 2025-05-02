@@ -23,7 +23,7 @@ export class EventMonitorService {
         private readonly emailProducer: ProducerService,
     ) {}
 
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_DAY_AT_8AM)
     async checkUpcomingEvents() {
         this.logger.log(
             'Iniciando verificação de eventos próximos à data de vencimento',

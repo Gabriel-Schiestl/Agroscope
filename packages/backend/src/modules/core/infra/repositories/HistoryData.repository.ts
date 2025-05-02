@@ -27,7 +27,9 @@ export class HistoryRepositoryImpl implements HistoryRepository {
 
             return Res.success();
         } catch (error) {
-            return Res.failure(new TechnicalException('Error on save history'));
+            return Res.failure(
+                new TechnicalException('Error on save history' + error),
+            );
         }
     }
 

@@ -26,11 +26,7 @@ import {
 } from "lucide-react";
 import api from "../../../../shared/http/http.config";
 import { toast } from "react-toastify";
-
-interface Data {
-  prediction: string;
-  handling: string;
-}
+import { Sickness } from "@/models/Sickness";
 
 // Mock history data
 const ANALYSIS_HISTORY = [
@@ -60,9 +56,23 @@ const ANALYSIS_HISTORY = [
   },
 ];
 
+export interface PredicResponse {
+  sickness: Sickness;
+  handling: string;
+  sicknessConfidence: number;
+  crop: string;
+  cropConfidence: number;
+}
+
 export default function AnalyticsPage() {
   const [file, setFile] = useState<File | undefined>();
-  const [result, setResult] = useState<Data>({ prediction: "", handling: "" });
+  const [result, setResult] = useState<PredicResponse>({
+    crop: "",
+    handling: "",
+    sickness: { name: "", description: "", symptoms: [] },
+    cropConfidence: 0,
+    sicknessConfidence: 0,
+  });
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -73,7 +83,13 @@ export default function AnalyticsPage() {
     if (selectedFile) {
       setFile(selectedFile);
       setUrl(URL.createObjectURL(selectedFile));
-      setResult({ prediction: "", handling: "" });
+      setResult({
+        crop: "",
+        handling: "",
+        sickness: { name: "", description: "", symptoms: [] },
+        cropConfidence: 0,
+        sicknessConfidence: 0,
+      });
     }
   };
 
@@ -84,14 +100,21 @@ export default function AnalyticsPage() {
     setLoading(true);
 
     try {
-      const response = await api.post<Data>(`${apiUrl}/predict`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await api.post<PredicResponse>(
+        `${apiUrl}/predict`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       if (response.status === 201) {
         setResult({
-          prediction: response.data.prediction || "Não identificado",
+          sickness: response.data.sickness || "Não identificado",
           handling: response.data.handling || "Sem orientação",
+          crop: response.data.crop || "Não identificado",
+          cropConfidence: response.data.cropConfidence || 0,
+          sicknessConfidence: response.data.sicknessConfidence || 0,
         });
       } else {
         toast.error("Falha na análise. Tente novamente.");
@@ -201,7 +224,7 @@ export default function AnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="min-h-[300px]">
-                {!result.prediction && !loading && (
+                {!result.sickness && !loading && (
                   <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                     <Leaf className="h-12 w-12 mb-4 text-primaryGreen/30" />
                     <p>
@@ -235,7 +258,7 @@ export default function AnalyticsPage() {
                         )} */}
                       </div>
                       <p className="mt-1 text-lg font-semibold text-primaryGreen">
-                        {result.prediction}
+                        {result.sickness.name}
                       </p>
                     </div>
 

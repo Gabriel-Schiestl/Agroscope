@@ -4,12 +4,9 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
-    OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { SicknessModel } from './Sickness.model';
-import { ClientModel } from './Client.model';
-import { UserModel } from './User.model';
 
 export interface HistoryModelProps {
     id: string;

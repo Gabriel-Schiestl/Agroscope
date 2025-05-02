@@ -1,9 +1,9 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useAuthModal } from "@/contexts/auth-modal-context";
+import { Button } from "../components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
+import { useAuthModal } from "../contexts/auth-modal-context";
 import LandingSidebar from "./landing-sidebar";
 import Link from "next/link";
 

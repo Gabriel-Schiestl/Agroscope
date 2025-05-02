@@ -1,5 +1,5 @@
-import ClientList from "@/components/client-list";
-import { Button } from "@/components/ui/button";
+import ClientList from "../../../components/client-list";
+import { Button } from "../../../components/ui/button";
 import { Plus } from "lucide-react";
 
 export default function ClientsPage() {

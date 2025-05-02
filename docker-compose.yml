@@ -16,14 +16,9 @@ services:
       - ./packages/backend:/app
       - ./packages/backend/uploads:/app/uploads
     environment:
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=postgres
-      - DB_SSL=false
-      - DB_PORT=5432
       - FLASK_API_URL=http://flask:5000
       - NODE_ENV=production
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost,http://nginx
     # depends_on:
     #   - db
     #   - flask

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Home, BarChart2, LogIn, User } from "lucide-react";
-import { useAuthModal } from "@/contexts/auth-modal-context";
+import { useAuthModal } from "../contexts/auth-modal-context";
 
 export default function LandingMobileNav() {
   const { openLogin, openSignup } = useAuthModal();

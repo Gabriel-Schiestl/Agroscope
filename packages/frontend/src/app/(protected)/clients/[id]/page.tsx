@@ -3,15 +3,20 @@
 import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "../../../../components/ui/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../../../components/ui/tabs";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "../../../../components/ui/card";
 import {
   ArrowLeft,
   MapPin,
@@ -21,12 +26,12 @@ import {
   BarChart2,
   Users,
 } from "lucide-react";
-import ClientOverview from "@/components/client-overview";
-import ClientMap from "@/components/client-map";
-import { Client, Crop } from "@/models/Client";
-import { Report, ReportStatus, getStatus } from "@/models/Report";
-import GetClientAPI from "@/../../api/engineer/GetClient";
-import { EventStatus } from "@/models/CalendarEvent";
+import ClientOverview from "../../../../components/client-overview";
+import ClientMap from "../../../../components/client-map";
+import { Client, Crop } from "../../../../models/Client";
+import { Report, ReportStatus, getStatus } from "../../../../models/Report";
+import GetClientAPI from "../../../../../api/engineer/GetClient";
+import { EventStatus } from "../../../../models/CalendarEvent";
 
 export default function ClientPage({ params }: { params: { id: string } }) {
   const [client, setClient] = useState<Client | null>(null);

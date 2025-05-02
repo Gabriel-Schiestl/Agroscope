@@ -7,8 +7,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
 import {
   ArrowRight,
   Users,
@@ -19,11 +19,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import GetClientsAPI from "../../../../api/engineer/GetClients";
-import { Client } from "@/models/Client";
-import { useAuth } from "@/contexts/auth-context";
+import { Client } from "../../../models/Client";
+import { useAuth } from "../../../contexts/auth-context";
 import GetAllReportsAPI from "../../../../api/engineer/GetAllReports";
-import { getStatus, Report } from "@/models/Report";
-import { EventStatus } from "@/models/CalendarEvent";
+import { getStatus, Report } from "../../../models/Report";
+import { EventStatus } from "../../../models/CalendarEvent";
 
 export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);

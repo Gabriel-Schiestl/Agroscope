@@ -6,10 +6,10 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Upload, Leaf, Check, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAuthModal } from "@/contexts/auth-modal-context";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
+import { useAuthModal } from "../../contexts/auth-modal-context";
 import placeholder from "../../../public/assets/placeholder300x300.svg";
 
 export default function LandingPage() {

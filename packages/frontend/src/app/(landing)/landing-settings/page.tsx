@@ -7,9 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "../../../components/ui/label";
+import { Switch } from "../../../components/ui/switch";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../../components/ui/tabs";
 
 export default function PublicSettingsPage() {
   return (

@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   ReactNode,
+  useCallback,
 } from "react";
 import api from "../../shared/http/http.config";
 import { useRouter } from "next/navigation";
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const validateAuth = async () => {
+  const validateAuth = useCallback(async () => {
     try {
       const response = await Validate();
 
@@ -72,11 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     validateAuth();
-  }, [router]);
+  }, [validateAuth]);
 
   const logout = async () => {
     try {

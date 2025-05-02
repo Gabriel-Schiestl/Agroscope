@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, Menu } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,15 +9,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+} from "../components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
 import Sidebar from "./sidebar";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "../contexts/auth-context";
 import Link from "next/link";
 import { User, LogOut, Settings } from "lucide-react";
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { auth, logout } = useAuth();
 
   return (
     <header className="bg-background border-b border-border py-3 px-4 md:px-6">
@@ -50,11 +50,11 @@ export default function Header() {
               <button className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
-                    src={user?.avatar || "https://placehold.co/32x32"}
+                    src={"https://placehold.co/32x32"}
                     alt="Foto do usuário"
                   />
                   <AvatarFallback className="bg-primaryGreen text-white">
-                    {user?.name
+                    {auth?.name
                       ?.split(" ")
                       .map((n: string) => n[0])
                       .join("")
@@ -63,11 +63,9 @@ export default function Header() {
                 </Avatar>
                 <div className="text-left hidden md:block">
                   <p className="text-sm font-medium text-foreground">
-                    {user?.name || "Usuário"}
+                    {auth?.name || "Usuário"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {user?.role || "Agrônomo"}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{"Agrônomo"}</p>
                 </div>
               </button>
             </DropdownMenuTrigger>

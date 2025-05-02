@@ -1,7 +1,7 @@
 import type React from "react";
-import LandingHeader from "@/components/landing-header";
-import LandingMobileNav from "@/components/landing-mobile-nav";
-import AuthModals from "@/components/auth-modals";
+import LandingHeader from "../../components/landing-header";
+import LandingMobileNav from "../../components/landing-mobile-nav";
+import AuthModals from "../../components/auth-modals";
 
 export default function LandingLayout({
   children,

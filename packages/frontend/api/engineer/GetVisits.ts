@@ -1,4 +1,4 @@
-import { CalendarEvent } from "@/models/CalendarEvent";
+import { CalendarEvent } from "../../src/models/CalendarEvent";
 import api from "../../shared/http/http.config";
 
 export default async function GetEventsAPI(

@@ -11,23 +11,23 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Badge } from "../../../components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../components/ui/select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+} from "../../../components/ui/popover";
+import { Calendar } from "../../../components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -35,14 +35,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "../../../components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../../../components/ui/dropdown-menu";
 import {
   Pagination,
   PaginationContent,
@@ -51,9 +51,13 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+} from "../../../components/ui/pagination";
+import { Separator } from "../../../components/ui/separator";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "../../../components/ui/alert";
 import {
   Search,
   CalendarIcon,
@@ -71,8 +75,8 @@ import {
   ArrowUpDown,
   X,
 } from "lucide-react";
-import { History } from "@/models/History";
-import { Sickness } from "@/models/Sickness";
+import { History } from "../../../models/History";
+import { Sickness } from "../../../models/Sickness";
 
 // Status personalizado para o histórico (não definido no modelo)
 type Status = "confirmed" | "unconfirmed" | "incorrect";

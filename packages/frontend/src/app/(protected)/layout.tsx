@@ -1,7 +1,7 @@
-import Header from "@/components/header";
-import MobileNav from "@/components/mobile-nav";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Sidebar from "@/components/sidebar";
+import Header from "../../components/header";
+import MobileNav from "../../components/mobile-nav";
+import ProtectedRoute from "../../components/ProtectedRoute";
+import Sidebar from "../../components/sidebar";
 
 export default function ProtectedLayout({
   children,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Users, Settings } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "../contexts/auth-context";
 
 export default function MobileNav() {
   const { logout } = useAuth();

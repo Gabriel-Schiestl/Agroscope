@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthModal } from "@/contexts/auth-modal-context";
+import { useAuthModal } from "../contexts/auth-modal-context";
 import LoginModal from "./login-modal";
 import SignupModal from "./signup-modal";
 

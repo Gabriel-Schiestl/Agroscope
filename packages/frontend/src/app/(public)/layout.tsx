@@ -1,7 +1,6 @@
 "use client";
 
-import PublicRoutes from "@/components/PublicRoutes";
-import { useAuth } from "@/contexts/auth-context";
+import PublicRoutes from "../../components/PublicRoutes";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 

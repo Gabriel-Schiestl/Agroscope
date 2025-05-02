@@ -3,18 +3,18 @@
 import type React from "react";
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "../contexts/auth-context";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from "../components/ui/dialog";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Alert, AlertDescription } from "../components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 
 interface SignupModalProps {
@@ -36,7 +36,7 @@ export default function SignupModal({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const { signup, loginWithGoogle } = useAuth();
+  //const {  } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +48,7 @@ export default function SignupModal({
     }
 
     try {
-      await signup(name, email, password);
+      //await signup(name, email, password);
       onClose();
     } catch (error) {
       setError("Erro ao criar conta. Tente novamente.");
@@ -57,7 +57,7 @@ export default function SignupModal({
 
   const handleGoogleSignup = async () => {
     try {
-      await loginWithGoogle();
+      //await loginWithGoogle();
       onClose();
     } catch (error) {
       setError("Erro ao fazer cadastro com Google. Tente novamente.");

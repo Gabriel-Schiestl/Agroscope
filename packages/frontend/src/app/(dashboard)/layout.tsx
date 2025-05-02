@@ -4,10 +4,9 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/auth-context";
-import Sidebar from "@/components/sidebar";
-import Header from "@/components/header";
-import MobileNav from "@/components/mobile-nav";
+import Sidebar from "../../components/sidebar";
+import Header from "../../components/header";
+import MobileNav from "../../components/mobile-nav";
 
 export default function DashboardLayout({
   children,

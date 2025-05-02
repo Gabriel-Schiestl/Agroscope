@@ -30,9 +30,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Badge } from "../../../components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -41,27 +41,31 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "../../../components/ui/dialog";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+} from "../../../components/ui/select";
+import { Textarea } from "../../../components/ui/textarea";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { EventType, EventStatus, CalendarEvent } from "@/models/CalendarEvent";
+} from "../../../components/ui/popover";
+import { cn } from "../../../lib/utils";
+import {
+  EventType,
+  EventStatus,
+  CalendarEvent,
+} from "../../../models/CalendarEvent";
 import GetAllEventsAPI from "../../../../api/engineer/GetAllEvents";
 import GetClientsAPI from "../../../../api/engineer/GetClients";
-import { Client } from "@/models/Client";
+import { Client } from "../../../models/Client";
 
 // Event type configuration for styling and icons
 const EVENT_TYPES = {
@@ -542,7 +546,7 @@ export default function CalendarPage() {
                   <CalendarIcon className="mx-auto h-12 w-12 text-muted-foreground/50 mb-2" />
                   <p>Nenhum evento agendado para esta data.</p>
                   <p className="text-sm mt-2">
-                    Clique em "Novo Evento" para adicionar.
+                    Clique em &quot;Novo Evento&quot; para adicionar.
                   </p>
                 </div>
               ) : (

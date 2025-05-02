@@ -8,8 +8,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+} from "./ui/card";
+import { Input } from "./ui/input";
 import {
   Table,
   TableBody,
@@ -17,18 +17,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+} from "./ui/table";
+import { Badge } from "./ui/badge";
 import { Search, MapPin, ArrowUpDown, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Client, Crop } from "@/models/Client";
-import GetClientsAPI from "@/../../api/engineer/GetClients";
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
+import { Client, Crop } from "../models/Client";
+import GetClientsAPI from "../../api/engineer/GetClients";
 
 export default function ClientList() {
   const [clients, setClients] = useState<Client[]>([]);

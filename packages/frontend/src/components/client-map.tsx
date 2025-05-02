@@ -7,35 +7,17 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+} from "../components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
+import { Button } from "../components/ui/button";
 import { Layers, Maximize2, Minimize2 } from "lucide-react";
-import dynamic from "next/dynamic";
-import { Client } from "@/models/Client";
-
-const MapContainer = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  {
-    ssr: false,
-  }
-);
-const Polygon = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.Polygon),
-  { ssr: false }
-);
+import { Client } from "../models/Client";
+import initLeaflet from "../lib/leaflet-wrapper";
 
 interface ClientMapProps {
   client: Client;
@@ -96,9 +78,11 @@ const getFarmAreas = (center: { lat: number; lng: number }) => {
 export default function ClientMap({ client }: ClientMapProps) {
   const [isClient, setIsClient] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [leaflet, setLeaflet] = useState<any>(null);
 
   useEffect(() => {
     setIsClient(true);
+    setLeaflet(initLeaflet());
   }, []);
 
   if (!isClient) {
@@ -109,7 +93,6 @@ export default function ClientMap({ client }: ClientMapProps) {
     );
   }
 
-  // Usamos as coordenadas do cliente se disponíveis, ou coordenadas padrão caso contrário
   const coordinates = {
     lat: client.address.latitude || -19.9191,
     lng: client.address.longitude || -43.9386,
@@ -118,7 +101,6 @@ export default function ClientMap({ client }: ClientMapProps) {
   const farmBoundaries = getFarmBoundaries(coordinates);
   const farmAreas = getFarmAreas(coordinates);
 
-  // Formatar o nome da cultura atual para exibição
   const cultureName = client.actualCrop
     ? client.actualCrop === "SOJA"
       ? "Soja"
@@ -128,6 +110,10 @@ export default function ClientMap({ client }: ClientMapProps) {
       ? "Trigo"
       : client.actualCrop
     : "Não definida";
+
+  const { MapContainer, TileLayer, Marker, Popup, Polygon } = leaflet || {};
+  const renderMap =
+    leaflet && MapContainer && TileLayer && Marker && Popup && Polygon;
 
   return (
     <div
@@ -294,47 +280,53 @@ export default function ClientMap({ client }: ClientMapProps) {
                 mapExpanded ? "h-[70vh]" : "h-[400px] md:h-[500px]"
               }`}
             >
-              <MapContainer
-                center={[coordinates.lat, coordinates.lng]}
-                zoom={14}
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={[coordinates.lat, coordinates.lng]}>
-                  <Popup>
-                    <strong>{client.name}</strong>
-                    <br />
-                    {client.address.city}, {client.address.state}
-                  </Popup>
-                </Marker>
+              {renderMap ? (
+                <MapContainer
+                  center={[coordinates.lat, coordinates.lng]}
+                  zoom={14}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker position={[coordinates.lat, coordinates.lng]}>
+                    <Popup>
+                      <strong>{client.name}</strong>
+                      <br />
+                      {client.address.city}, {client.address.state}
+                    </Popup>
+                  </Marker>
 
-                <Polygon
-                  positions={farmBoundaries as any}
-                  pathOptions={{
-                    color: "#4CAF50",
-                    weight: 3,
-                    fillOpacity: 0.1,
-                  }}
-                />
-
-                {farmAreas.map((area, index) => (
                   <Polygon
-                    key={index}
-                    positions={area.polygon as any}
+                    positions={farmBoundaries as any}
                     pathOptions={{
-                      color: area.color,
-                      weight: 2,
-                      fillColor: area.color,
-                      fillOpacity: 0.3,
+                      color: "#4CAF50",
+                      weight: 3,
+                      fillOpacity: 0.1,
                     }}
-                  >
-                    <Popup>{area.name}</Popup>
-                  </Polygon>
-                ))}
-              </MapContainer>
+                  />
+
+                  {farmAreas.map((area, index) => (
+                    <Polygon
+                      key={index}
+                      positions={area.polygon as any}
+                      pathOptions={{
+                        color: area.color,
+                        weight: 2,
+                        fillColor: area.color,
+                        fillOpacity: 0.3,
+                      }}
+                    >
+                      <Popup>{area.name}</Popup>
+                    </Polygon>
+                  ))}
+                </MapContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primaryGreen"></div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

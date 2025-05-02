@@ -9,12 +9,21 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../../components/ui/tabs";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "../../../components/ui/alert";
+import { Badge } from "../../../components/ui/badge";
+import { Separator } from "../../../components/ui/separator";
 import {
   Upload,
   Search,
@@ -26,7 +35,7 @@ import {
 } from "lucide-react";
 import api from "../../../../shared/http/http.config";
 import { toast } from "react-toastify";
-import { Sickness } from "@/models/Sickness";
+import { Sickness } from "../../../models/Sickness";
 
 // Mock history data
 const ANALYSIS_HISTORY = [
@@ -228,8 +237,8 @@ export default function AnalyticsPage() {
                   <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                     <Leaf className="h-12 w-12 mb-4 text-primaryGreen/30" />
                     <p>
-                      Selecione uma imagem e clique em "Analisar Imagem" para
-                      obter o diagnóstico.
+                      Selecione uma imagem e clique em &quot;Analisar
+                      Imagem&quot; para obter o diagnóstico.
                     </p>
                   </div>
                 )}

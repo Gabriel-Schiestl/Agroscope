@@ -11,8 +11,8 @@ import {
   LogIn,
   Settings,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuthModal } from "@/contexts/auth-modal-context";
+import { Button } from "../components/ui/button";
+import { useAuthModal } from "../contexts/auth-modal-context";
 
 export default function LandingSidebar() {
   const { openLogin } = useAuthModal();

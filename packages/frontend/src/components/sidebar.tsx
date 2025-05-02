@@ -13,7 +13,7 @@ import {
   LogOut,
   History,
 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "../contexts/auth-context";
 
 export default function Sidebar() {
   const { logout } = useAuth();

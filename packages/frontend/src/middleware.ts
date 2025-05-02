@@ -5,22 +5,54 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
-  // if (req.nextUrl.pathname === "/") {
-  //   return NextResponse.next();
-  // }
-  // if (
-  //   req.nextUrl.pathname.startsWith("/login") ||
-  //   req.nextUrl.pathname.startsWith("/signin")
-  // ) {
-  //   const cookie = req.cookies.get("agroscope-authentication")?.value;
-  //   if (cookie) {
-  //     return NextResponse.redirect(new URL("/", req.url));
-  //   }
-  //   return NextResponse.next();
-  // }
-  // const cookie = req.cookies.get("agroscope-authentication")?.value;
-  // if (!cookie) {
-  //   return NextResponse.redirect(new URL("/login", req.url));
-  // }
-  // return NextResponse.next();
+  const cookie = req.cookies.get("agroscope-authentication")?.value;
+
+  if (
+    req.nextUrl.pathname.startsWith("/login") ||
+    req.nextUrl.pathname.startsWith("/signin")
+  ) {
+    if (cookie) {
+      try {
+        const response = await fetch("http://nginx/api/auth/validate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `agroscope-authentication=${cookie}`,
+          },
+          cache: "no-store",
+        });
+
+        if (response.ok) {
+          return NextResponse.redirect(new URL("/", req.url));
+        }
+      } catch (error) {
+        console.error("Erro ao validar cookie no login/signin:", error);
+      }
+    }
+    return NextResponse.next();
+  }
+
+  if (!cookie) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  try {
+    const response = await fetch("http://nginx/api/auth/validate", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `agroscope-authentication=${cookie}`,
+      },
+      cache: "no-store",
+    });
+
+    if (response.ok) {
+      return NextResponse.next();
+    }
+
+    return NextResponse.redirect(new URL("/login", req.url));
+  } catch (error) {
+    console.error("Erro ao validar cookie para tela privada:", error);
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 }

@@ -5,10 +5,9 @@ import type React from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/auth-context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../../contexts/auth-context";
+import { Button } from "../../../components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,9 +15,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+} from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { Alert, AlertDescription } from "../../../components/ui/alert";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -28,7 +28,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
-  const { signup, loginWithGoogle } = useAuth();
+  const { auth } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,7 +41,7 @@ export default function SignupPage() {
     }
 
     try {
-      await signup(name, email, password);
+      //await signup(name, email, password);
       router.push("/dashboard");
     } catch (error) {
       setError("Erro ao criar conta. Tente novamente.");
@@ -50,7 +50,7 @@ export default function SignupPage() {
 
   const handleGoogleSignup = async () => {
     try {
-      await loginWithGoogle();
+      //await loginWithGoogle();
     } catch (error) {
       setError("Erro ao fazer cadastro com Google. Tente novamente.");
     }

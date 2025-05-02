@@ -42,6 +42,26 @@ const nextConfig = {
   //     },
   //   ];
   // },
+
+  // Configure webpack to handle browser-only modules
+  webpack: (config, { isServer }) => {
+    // Replace the previous externals config with this approach
+    if (isServer) {
+      // Use path joining instead of require.resolve for ESM compatibility
+      const path = new URL("../src/mocks/leaflet-mock.js", import.meta.url)
+        .pathname;
+      const reactLeafletPath = new URL(
+        "../src/mocks/react-leaflet-mock.js",
+        import.meta.url
+      ).pathname;
+
+      // During server-side rendering, mock the leaflet module
+      config.resolve.alias.leaflet = path;
+      config.resolve.alias["react-leaflet"] = reactLeafletPath;
+    }
+
+    return config;
+  },
 };
 
 export default nextConfig;

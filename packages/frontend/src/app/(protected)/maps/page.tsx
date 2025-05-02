@@ -8,14 +8,19 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+} from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Badge } from "../../../components/ui/badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../../components/ui/tabs";
+import { Checkbox } from "../../../components/ui/checkbox";
+import { Label } from "../../../components/ui/label";
+import { Slider } from "../../../components/ui/slider";
 import {
   Layers,
   Search,
@@ -31,7 +36,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../../../components/ui/dropdown-menu";
 import {
   Drawer,
   DrawerClose,
@@ -41,32 +46,10 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import dynamic from "next/dynamic";
-import "leaflet/dist/leaflet.css";
-import MapIconFixComponent from "@/components/ui/map-icons";
+} from "../../../components/ui/drawer";
 
-// Dynamically import the map components to avoid SSR issues
-const MapContainer = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false }
-);
-const Polygon = dynamic<any>(
-  () => import("react-leaflet").then((mod) => mod.Polygon),
-  { ssr: false }
-);
+// Instead of importing from leaflet directly, use our wrapper
+import initLeaflet from "../../../lib/leaflet-wrapper";
 
 // Mock data for clients/properties
 const CLIENTS = [
@@ -243,8 +226,13 @@ export default function MapsPage() {
   const [areaRange, setAreaRange] = useState([0, 5000]);
   const router = useRouter();
 
+  // New state to hold Leaflet components
+  const [leaflet, setLeaflet] = useState<any>(null);
+
   useEffect(() => {
     setIsClient(true);
+    // Initialize Leaflet only on the client side
+    setLeaflet(initLeaflet());
   }, []);
 
   // Filter clients based on search query and crop filters
@@ -299,6 +287,13 @@ export default function MapsPage() {
       </div>
     );
   }
+
+  // Extract the Leaflet components from our initialized leaflet object
+  const { MapContainer, TileLayer, Marker, Popup, Polygon } = leaflet || {};
+
+  // Don't render the map if Leaflet components are not available yet
+  const renderMap =
+    leaflet && MapContainer && TileLayer && Marker && Popup && Polygon;
 
   return (
     <div className="space-y-6 pb-16 md:pb-0">
@@ -546,115 +541,118 @@ export default function MapsPage() {
                   mapExpanded ? "h-[calc(100vh-12rem)]" : "h-[500px]"
                 }`}
               >
-                <MapContainer
-                  center={[-19.9167, -43.9345]} // Center on Brazil
-                  zoom={5}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  {/* Fix for Leaflet marker icons */}
-                  <MapIconFixComponent />
-
-                  {/* Map Layers */}
-                  {activeMapLayer === "street" && (
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                  )}
-                  {activeMapLayer === "satellite" && (
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-                      url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                    />
-                  )}
-                  {activeMapLayer === "terrain" && (
-                    <TileLayer
-                      attribution='&copy; <a href="https://opentopomap.org">OpenTopoMap</a> contributors'
-                      url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                    />
-                  )}
-
-                  {/* Property Markers */}
-                  {filteredClients.map((client) => (
-                    <Marker
-                      key={client.id}
-                      position={[
-                        client.coordinates.lat,
-                        client.coordinates.lng,
-                      ]}
-                      eventHandlers={{
-                        click: () => handleClientSelect(client),
-                      }}
-                    >
-                      <Popup>
-                        <div className="p-1">
-                          <h3 className="font-medium text-base">
-                            {client.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {client.location}
-                          </p>
-                          <p className="text-sm mt-1">
-                            <span className="font-medium">Área:</span>{" "}
-                            {client.area} ha
-                          </p>
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {client.crops.map((crop) => (
-                              <Badge
-                                key={crop}
-                                variant="outline"
-                                className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20 text-xs"
-                              >
-                                {crop}
-                              </Badge>
-                            ))}
-                          </div>
-                          <Button
-                            size="sm"
-                            className="w-full mt-3 bg-primaryGreen hover:bg-lightGreen"
-                            onClick={() => navigateToClientDetails(client.id)}
-                          >
-                            Ver Detalhes
-                          </Button>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-
-                  {/* Farm boundaries for selected client */}
-                  {selectedClient && (
-                    <>
-                      <Polygon
-                        positions={
-                          getFarmBoundaries(selectedClient.coordinates) as any
-                        }
-                        pathOptions={{
-                          color: "#4CAF50",
-                          weight: 3,
-                          fillOpacity: 0.1,
-                        }}
+                {renderMap ? (
+                  <MapContainer
+                    center={[-19.9167, -43.9345]} // Center on Brazil
+                    zoom={5}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    {/* Map Layers */}
+                    {activeMapLayer === "street" && (
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       />
+                    )}
+                    {activeMapLayer === "satellite" && (
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                      />
+                    )}
+                    {activeMapLayer === "terrain" && (
+                      <TileLayer
+                        attribution='&copy; <a href="https://opentopomap.org">OpenTopoMap</a> contributors'
+                        url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                      />
+                    )}
 
-                      {/* Farm areas */}
-                      {getFarmAreas(selectedClient.coordinates).map(
-                        (area, index) => (
-                          <Polygon
-                            key={index}
-                            positions={area.polygon as any}
-                            pathOptions={{
-                              color: area.color,
-                              weight: 2,
-                              fillColor: area.color,
-                              fillOpacity: 0.3,
-                            }}
-                          >
-                            <Popup>{area.name}</Popup>
-                          </Polygon>
-                        )
-                      )}
-                    </>
-                  )}
-                </MapContainer>
+                    {/* Property Markers */}
+                    {filteredClients.map((client) => (
+                      <Marker
+                        key={client.id}
+                        position={[
+                          client.coordinates.lat,
+                          client.coordinates.lng,
+                        ]}
+                        eventHandlers={{
+                          click: () => handleClientSelect(client),
+                        }}
+                      >
+                        <Popup>
+                          <div className="p-1">
+                            <h3 className="font-medium text-base">
+                              {client.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {client.location}
+                            </p>
+                            <p className="text-sm mt-1">
+                              <span className="font-medium">Área:</span>{" "}
+                              {client.area} ha
+                            </p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {client.crops.map((crop) => (
+                                <Badge
+                                  key={crop}
+                                  variant="outline"
+                                  className="bg-secondaryGreen/10 text-lightGreen border-secondaryGreen/20 text-xs"
+                                >
+                                  {crop}
+                                </Badge>
+                              ))}
+                            </div>
+                            <Button
+                              size="sm"
+                              className="w-full mt-3 bg-primaryGreen hover:bg-lightGreen"
+                              onClick={() => navigateToClientDetails(client.id)}
+                            >
+                              Ver Detalhes
+                            </Button>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+
+                    {/* Farm boundaries for selected client */}
+                    {selectedClient && (
+                      <>
+                        <Polygon
+                          positions={
+                            getFarmBoundaries(selectedClient.coordinates) as any
+                          }
+                          pathOptions={{
+                            color: "#4CAF50",
+                            weight: 3,
+                            fillOpacity: 0.1,
+                          }}
+                        />
+
+                        {/* Farm areas */}
+                        {getFarmAreas(selectedClient.coordinates).map(
+                          (area, index) => (
+                            <Polygon
+                              key={index}
+                              positions={area.polygon as any}
+                              pathOptions={{
+                                color: area.color,
+                                weight: 2,
+                                fillColor: area.color,
+                                fillOpacity: 0.3,
+                              }}
+                            >
+                              <Popup>{area.name}</Popup>
+                            </Polygon>
+                          )
+                        )}
+                      </>
+                    )}
+                  </MapContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primaryGreen"></div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

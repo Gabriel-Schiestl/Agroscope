@@ -1,10 +1,20 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Client } from "@/models/Client";
-import { Report } from "@/models/Report";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
+import { Client } from "../models/Client";
+import { Report } from "../models/Report";
 
 interface ClientOverviewProps {
   client: Client;
@@ -176,7 +186,7 @@ export default function ClientOverview({ client }: ClientOverviewProps) {
             <CardTitle>Histórico de Visitas</CardTitle>
           </CardHeader>
           <CardContent>
-            {client.visits && client.visits.length > 0 ? (
+            {/* {client.visits && client.visits.length > 0 ? (
               <div className="space-y-4">
                 {client.visits.slice(-3).map((visit) => (
                   <div
@@ -204,11 +214,11 @@ export default function ClientOverview({ client }: ClientOverviewProps) {
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-center py-4 text-mediumGray">
-                Nenhuma visita registrada para este cliente.
-              </p>
-            )}
+            ) : ( */}
+            <p className="text-center py-4 text-mediumGray">
+              Nenhuma visita registrada para este cliente.
+            </p>
+            {/* )} */}
           </CardContent>
         </Card>
 
@@ -217,7 +227,7 @@ export default function ClientOverview({ client }: ClientOverviewProps) {
             <CardTitle>Recomendações</CardTitle>
           </CardHeader>
           <CardContent>
-            {client.visits &&
+            {/* {client.visits &&
             client.visits.some(
               (visit) => visit.reports && visit.reports.length > 0
             ) ? (
@@ -256,11 +266,11 @@ export default function ClientOverview({ client }: ClientOverviewProps) {
                   })
                   .filter(Boolean)}
               </div>
-            ) : (
-              <p className="text-center py-4 text-mediumGray">
-                Nenhuma recomendação disponível.
-              </p>
-            )}
+            ) : ( */}
+            <p className="text-center py-4 text-mediumGray">
+              Nenhuma recomendação disponível.
+            </p>
+            {/* )} */}
           </CardContent>
         </Card>
       </div>

@@ -1,15 +1,19 @@
 # AgroScope 🌾  
 
 ## Descrição do Projeto (Português)  
-O **AgroScope** é uma solução tecnológica inovadora voltada para o diagnóstico de doenças em plantas. O sistema permite que produtores rurais enviem imagens de folhas das plantas pelo frontend, que são processadas por uma inteligência artificial baseada em redes neurais convolucionais (CNN). A IA analisa as imagens e prediz possíveis doenças, fornecendo suporte para o manejo e controle das mesmas.  
+O **AgroScope** é uma solução tecnológica inovadora que visa auxíliar produtores, engenheiros agrônomos e cooperativas a gerencias suas atividades. Entre as funcionalidades em destaque, podemos citar:
+- Predição de aplicações de insumos e calendário de aplicação (analisando o tempo, clima, cultura e etc).
+- Análise de mercado e predição para venda.
+- Análise de crédito e gasto de produtores (prospectar clientes aos agrônomos).
+- Outras..
 
-Atualmente, o sistema está configurado para identificar as doenças **ferrugem** e **cercosporiose do milho**, sendo uma base para expansões futuras.  
+Atualmente, a inteligência artificial está configurada para identificar diferentes doenças em diferentes plantas (milho, soja, trigo).
 
 ---
 
 ## Recursos Principais  
 - **Interface Simples e Intuitiva**: O produtor pode fazer upload da imagem diretamente pelo frontend.  
-- **Predição de Doenças**: Uso de redes neurais convolucionais para identificar características das folhas.  
+- **Predição de Doenças**: Uso de redes neurais convolucionais para identificar características das folhas. Além de outros modelos inteligêntes que visam auxíliar o cliente.
 - **Automatização do Processo**: Resposta ágil e automática sobre as possíveis doenças.  
 - **Escalabilidade**: Sistema projetado para incluir novas doenças e plantas no futuro.  
 
@@ -27,33 +31,14 @@ Atualmente, o sistema está configurado para identificar as doenças **ferrugem*
 
 ### **Inteligência Artificial**  
 - Modelo treinado utilizando **CNN (Convolutional Neural Networks)**.  
-- Base de dados contendo imagens de folhas infectadas por ferrugem e cercosporiose.  
-- Pipeline de pré-processamento que inclui:  
-  - Redimensionamento das imagens para 300x300 pixels.  
-  - Normalização para valores entre 0 e 1.  
-
----
-
-## Como Usar o AgroScope  
-1. **Upload de Imagem**: Faça o upload de uma imagem da folha pelo frontend.  
-2. **Processamento**: A imagem será enviada ao backend, que irá redimensioná-la e processá-la.  
-3. **Predição**: O modelo CNN retornará a probabilidade de a planta estar infectada por ferrugem ou cercosporiose.  
-4. **Resultado**: O resultado será exibido na tela, juntamente com recomendações.  
+- Base de dados contendo imagens de folhas infectadas por diversas doenças diferentes.
+- Capacidade de identificar doenças com os menores indícios possíveis.
 
 ---
 
 ## Tecnologias Utilizadas  
-- **Frontend**: React.js, Tailwind CSS (ou outra biblioteca de estilização).  
-- **Backend**: Flask, Flask-CORS.  
-- **Inteligência Artificial**: TensorFlow/Keras.  
-- **Pré-processamento de Imagens**: PIL (Python Imaging Library).  
-
----
-
-## Instalação e Execução  
-
-### **Backend**  
-1. Clone o repositório:  
-   ```bash
-   git clone https://github.com/seu-usuario/agroscope.git
-   cd agroscope/backend
+- **Frontend**: React.js, Tailwind CSS
+- **Backend**: Flask, Flask-CORS
+- **Filtros Personalizados**: openCV/CV2
+- **Inteligência Artificial**: pyTorch
+- **Pré-processamento de Imagens**: PIL (Python Imaging Library), Numpy

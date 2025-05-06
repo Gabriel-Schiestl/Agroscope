@@ -44,7 +44,7 @@ services:
       - app-network
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost/api
-      - API_URL=http://nginx/api
+      - NEXT_PUBLIC_API_URL_PROD=http://nginx/api
     ports:
       - "3000:3000"
     restart: always

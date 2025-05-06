@@ -13,14 +13,17 @@ export async function middleware(req: NextRequest) {
   ) {
     if (cookie) {
       try {
-        const response = await fetch("http://nginx/api/auth/validate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Cookie: `agroscope-authentication=${cookie}`,
-          },
-          cache: "no-store",
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL_PROD}/auth/validate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Cookie: `agroscope-authentication=${cookie}`,
+            },
+            cache: "no-store",
+          }
+        );
 
         if (response.ok) {
           return NextResponse.redirect(new URL("/", req.url));
@@ -37,14 +40,17 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    const response = await fetch("http://nginx/api/auth/validate", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: `agroscope-authentication=${cookie}`,
-      },
-      cache: "no-store",
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL_PROD}/auth/validate`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `agroscope-authentication=${cookie}`,
+        },
+        cache: "no-store",
+      }
+    );
 
     if (response.ok) {
       return NextResponse.next();

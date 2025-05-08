@@ -13,6 +13,7 @@ export class AuthenticationMapper {
             recoveryCode: authentication.recoveryCode,
             recoveryCodeExpiration: authentication.recoveryCodeExpiration,
             incorrectPasswordAttempts: authentication.incorrectPasswordAttempts,
+            incorrectRecoveryAttempts: authentication.incorrectRecoveryAttempts,
         });
     }
 
@@ -27,6 +28,8 @@ export class AuthenticationMapper {
                     authenticationModel.recoveryCodeExpiration,
                 incorrectPasswordAttempts:
                     authenticationModel.incorrectPasswordAttempts,
+                incorrectRecoveryAttempts:
+                    authenticationModel.incorrectRecoveryAttempts,
             },
             authenticationModel.id,
         );

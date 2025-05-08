@@ -6,10 +6,18 @@ import {
 import { Response, Request } from 'express';
 import { Public } from 'PublicRoutes';
 import { minutes, Throttle } from '@nestjs/throttler';
+import { PasswordRecoveryUseCase } from '../application/usecases/PasswordRecovery.usecase';
+import { ValidateRecoveryTokenUseCase } from '../application/usecases/ValidateRecoveryToken.usecase';
+import { ChangePasswordUseCase } from '../application/usecases/ChangePassword.usecase';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly loginUseCase: LoginUseCase) {}
+    constructor(
+        private readonly loginUseCase: LoginUseCase,
+        private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
+        private readonly validateRecoveryTokenUseCase: ValidateRecoveryTokenUseCase,
+        private readonly changePasswordUseCase: ChangePasswordUseCase,
+    ) {}
 
     @Public()
     @Throttle({ medium: { limit: 10, ttl: minutes(1) } })
@@ -46,5 +54,42 @@ export class AuthController {
     getCsrfToken(@Req() req: Request, @Res() res: Response) {
         const csrfToken = req.csrfToken();
         res.json({ csrfToken });
+    }
+
+    @Public()
+    @Post('recovery-token')
+    async passwordRecovery(@Body() body: { email: string }) {
+        const result = await this.passwordRecoveryUseCase.execute({
+            email: body.email,
+        });
+
+        return result;
+    }
+
+    @Public()
+    @Post('validate-recovery-token')
+    async validateRecoveryToken(
+        @Body() body: { email: string; token: string },
+    ) {
+        const result = await this.validateRecoveryTokenUseCase.execute({
+            email: body.email,
+            token: body.token,
+        });
+
+        return result;
+    }
+
+    @Public()
+    @Post('change-password')
+    async changePassword(
+        @Body() body: { email: string; newPassword: string; token: string },
+    ) {
+        const result = await this.changePasswordUseCase.execute({
+            email: body.email,
+            token: body.token,
+            newPassword: body.newPassword,
+        });
+
+        return result;
     }
 }

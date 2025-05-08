@@ -46,6 +46,6 @@ import { EngineerGuard } from './infra/services/Engineer.guard';
         EngineerGuard,
         ...services,
     ],
-    exports: [...repositories],
+    exports: [...repositories, ...services],
 })
 export class CoreModule {}

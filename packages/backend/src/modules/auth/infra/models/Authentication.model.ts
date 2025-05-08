@@ -8,6 +8,7 @@ export interface AuthenticationModelProps {
     recoveryCode?: string;
     recoveryCodeExpiration?: Date;
     incorrectPasswordAttempts?: number;
+    incorrectRecoveryAttempts?: number;
 }
 
 @Entity('authentication')
@@ -35,6 +36,9 @@ export class AuthenticationModel
 
     @Column({ nullable: true })
     incorrectPasswordAttempts?: number;
+
+    @Column({ nullable: true })
+    incorrectRecoveryAttempts?: number;
 
     setProps(props: AuthenticationModelProps): AuthenticationModel {
         Object.assign(this, props);

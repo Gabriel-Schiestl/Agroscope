@@ -8,6 +8,7 @@ export interface AuthenticationProps {
     recoveryCode?: string;
     recoveryCodeExpiration?: Date;
     incorrectPasswordAttempts?: number;
+    incorrectRecoveryAttempts?: number;
 }
 
 export interface CreateAuthenticationProps extends AuthenticationProps {}
@@ -22,6 +23,7 @@ export class Authentication implements AuthenticationProps {
     #recoveryCode?: string;
     #recoveryCodeExpiration?: Date;
     #incorrectPasswordAttempts?: number;
+    #incorrectRecoveryAttempts?: number;
 
     private constructor(props: AuthenticationProps, id?: string) {
         this.#id = id;
@@ -30,6 +32,7 @@ export class Authentication implements AuthenticationProps {
         this.#lastLogin = props.lastLogin;
         this.#recoveryCode = props.recoveryCode;
         this.#recoveryCodeExpiration = props.recoveryCodeExpiration;
+        this.#incorrectRecoveryAttempts = props.incorrectRecoveryAttempts;
     }
 
     static create(
@@ -65,6 +68,62 @@ export class Authentication implements AuthenticationProps {
         this.#incorrectPasswordAttempts += 1;
     }
 
+    incrementIncorrectRecoveryAttempts(): void {
+        if (!this.#incorrectRecoveryAttempts) {
+            this.#incorrectRecoveryAttempts = 0;
+        }
+        this.#incorrectRecoveryAttempts += 1;
+    }
+
+    setRecoveryToken(token: string) {
+        this.#incorrectRecoveryAttempts = 0;
+        this.#recoveryCode = token;
+        this.#recoveryCodeExpiration = new Date(
+            new Date().getTime() + 5 * 60 * 1000,
+        );
+    }
+
+    validateRecoveryToken(token: string): Result<BusinessException, void> {
+        if (this.#incorrectRecoveryAttempts > 4)
+            return Res.failure(
+                new BusinessException('You exceed incorrect attempts limit'),
+            );
+
+        if (new Date().getTime() > this.#recoveryCodeExpiration.getTime())
+            return Res.failure(new BusinessException('Invalid Token'));
+
+        if (this.#recoveryCode !== token)
+            return Res.failure(new BusinessException('Invalid Token'));
+
+        this.#incorrectRecoveryAttempts = 0;
+        this.#recoveryCodeExpiration = new Date(
+            new Date().getTime() + 5 * 60 * 1000,
+        );
+
+        return Res.success();
+    }
+
+    applyPasswordChange(
+        token: string,
+        newPassword: string,
+    ): Result<BusinessException, void> {
+        if (this.#recoveryCode !== token)
+            return Res.failure(new BusinessException('Invalid token'));
+        if (new Date().getTime() > this.#recoveryCodeExpiration.getTime())
+            return Res.failure(
+                new BusinessException(
+                    'You exceed change password time limit. Please, request a new recovery password token',
+                ),
+            );
+
+        this.#password = newPassword;
+        this.#recoveryCode = null;
+        this.#recoveryCodeExpiration = null;
+        this.#incorrectRecoveryAttempts = 0;
+
+        return Res.success();
+    }
+
     get id() {
         return this.#id;
     }
@@ -91,5 +150,9 @@ export class Authentication implements AuthenticationProps {
 
     get incorrectPasswordAttempts() {
         return this.#incorrectPasswordAttempts;
+    }
+
+    get incorrectRecoveryAttempts() {
+        return this.#incorrectRecoveryAttempts;
     }
 }

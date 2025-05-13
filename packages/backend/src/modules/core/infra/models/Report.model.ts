@@ -1,12 +1,10 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
+    BaseEntity,
     Column,
     CreateDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
     UpdateDateColumn,
-    ManyToOne,
-    JoinColumn,
-    BaseEntity,
 } from 'typeorm';
 import { ReportStatus } from '../../domain/models/Report';
 

@@ -5,7 +5,6 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
-    OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../domain/models/Address';

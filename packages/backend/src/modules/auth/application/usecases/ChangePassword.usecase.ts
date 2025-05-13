@@ -2,7 +2,6 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/Authentication.repository';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
-import generateRandomNumber from 'src/shared/RandomNumberGenerator';
 import { Res, Result } from 'src/shared/Result';
 
 export interface ChangePasswordUseCaseProps {

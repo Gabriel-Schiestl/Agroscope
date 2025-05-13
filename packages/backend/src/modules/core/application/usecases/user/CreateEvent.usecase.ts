@@ -1,12 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CreateClientDto } from '../../dto/Client.dto';
+import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
+import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { Res, Result } from 'src/shared/Result';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
-import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
-import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { CreateCalendarEventDto } from '../../dto/CalendarEvent.dto';
-import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
-import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
 
 export type CreateEventUseCaseException = BusinessException;
 

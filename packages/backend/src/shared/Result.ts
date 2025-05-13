@@ -42,7 +42,7 @@ export abstract class Res {
     static success(): Result<never, void>;
     static success<T>(value: T): Result<never, T>;
     static success<T>(value?: T): Result<never, T> {
-        return new Success(value!);
+        return new Success(value);
     }
 
     static failure<E extends Exception>(error: E): Result<E, never> {

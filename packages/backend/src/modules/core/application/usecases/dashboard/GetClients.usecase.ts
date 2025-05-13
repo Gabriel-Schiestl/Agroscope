@@ -1,18 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
+import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
+import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { ClientDto } from '../../dto/Client.dto';
-import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
-import { AgriculturalEngineerAppMapper } from '../../mappers/AgriculturalEngineer.mapper';
-import { AgriculturalEngineerDto } from '../../dto/AgriculturalEngineer.dto';
-import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
-import { ClientAppMapper } from '../../mappers/Client.mapper';
-import { AbstractUseCase } from 'src/shared/AbstractUseCase';
-import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
-import { ReportAppMapper } from '../../mappers/Report.mapper';
-import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
 import { CalendarEventAppMapper } from '../../mappers/CalendarEvent.mapper';
+import { ClientAppMapper } from '../../mappers/Client.mapper';
+import { ReportAppMapper } from '../../mappers/Report.mapper';
 
 export type GetClientesUseCaseExceptions =
     | RepositoryNoDataFound
@@ -67,7 +64,7 @@ export class GetClientesUseCase extends AbstractUseCase<
                 reportsQuery,
             ]);
             if (reports.isSuccess()) {
-                reports.value.map((report) =>
+                reports.value.forEach((report) =>
                     reportsToSet.push(ReportAppMapper.toDto(report)),
                 );
             }
@@ -75,7 +72,7 @@ export class GetClientesUseCase extends AbstractUseCase<
             if (calendar.isSuccess()) {
                 calendar.value.events
                     .filter((event) => event.clientId === client.id)
-                    .map((event) =>
+                    .forEach((event) =>
                         calendarEventsToSet.push(
                             CalendarEventAppMapper.toDto(event),
                         ),

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { User } from '../../domain/models/User';
 import { UserModel } from '../models/User.model';
 

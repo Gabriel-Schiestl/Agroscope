@@ -1,9 +1,4 @@
-import {
-    CalendarEvent,
-    EventType,
-    EventStatus,
-} from '../../domain/models/CalendarEvent';
-import { Calendar } from '../../domain/models/Calendar';
+import { CalendarEvent } from '../../domain/models/CalendarEvent';
 import { CalendarEventDto } from '../dto/CalendarEvent.dto';
 
 export class CalendarEventAppMapper {

@@ -1,13 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { config } from 'dotenv';
-import { ResponseInterceptor } from './shared/Response.interceptor';
-import { AuthGuard } from './modules/auth/infra/services/Auth.guard';
 import { Transport } from '@nestjs/microservices';
-import { doubleCsrf } from 'csrf-csrf';
 import * as cookieParser from 'cookie-parser';
+import { doubleCsrf } from 'csrf-csrf';
+import { config } from 'dotenv';
 import helmet from 'helmet';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { AppModule } from './app.module';
+import { AuthGuard } from './modules/auth/infra/services/Auth.guard';
+import { ResponseInterceptor } from './shared/Response.interceptor';
 
 config();
 

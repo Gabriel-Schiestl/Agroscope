@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { ImageModel } from '../models/Image.model';
 
 export class ImageMapper {

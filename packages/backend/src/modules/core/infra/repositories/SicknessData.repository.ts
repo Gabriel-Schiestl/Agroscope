@@ -52,7 +52,7 @@ export class SicknessDataRepository implements SicknessRepository {
         try {
             const model = SicknessMapper.domainToModel(sickness);
 
-            const result = await model.save();
+            await model.save();
 
             return Res.success();
         } catch (e) {

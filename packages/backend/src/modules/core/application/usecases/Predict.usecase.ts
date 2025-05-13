@@ -8,24 +8,11 @@ import { KnowledgeRepository } from '../../domain/repositories/Knowledge.reposit
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
 import { PredictService } from '../../domain/services/Predict.service';
 import { ProducerService } from '../../domain/services/Producer.service';
-import FormData = require('form-data'); // Correção aqui
-import e = require('express');
 
 // Technical Exeption Import
 import { TechnicalException } from '../../../../shared/exceptions/Technical.exception';
 import { HistoryDto } from '../dto/History.dto';
 import { HistoryAppMapper } from '../mappers/History.mapper';
-
-export interface PredictUseCaseResponse {
-    prediction: string;
-    handling: string;
-}
-
-export interface UseCasesResponse<T> {
-    data?: T | void;
-    success: boolean;
-    exception?: Error;
-}
 
 @Injectable()
 export class PredictUseCase extends AbstractUseCase<

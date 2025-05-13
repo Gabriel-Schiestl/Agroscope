@@ -4,7 +4,6 @@ import {
     Entity,
     JoinColumn,
     OneToOne,
-    PrimaryColumn,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { SicknessModel } from './Sickness.model';

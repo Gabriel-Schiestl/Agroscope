@@ -1,4 +1,3 @@
-// filepath: c:\Users\notho\Documents\github\Agroscope\packages\backend\src\modules\core\infra\services\ProducerFactory.service.ts
 import { Injectable, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ProducerService } from '../../domain/services/Producer.service';

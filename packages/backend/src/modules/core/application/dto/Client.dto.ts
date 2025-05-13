@@ -1,6 +1,6 @@
+import { OmitType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import {
-    IsArray,
     IsBoolean,
     IsDate,
     IsEmail,
@@ -8,12 +8,10 @@ import {
     IsOptional,
     IsString,
 } from 'class-validator';
-import { HistoryDto } from './History.dto';
-import { Crop, PersonType } from '../../domain/models/Client';
 import { Address } from '../../domain/models/Address';
-import { OmitType } from '@nestjs/mapped-types';
-import { ReportDto } from './Report.dto';
+import { Crop, PersonType } from '../../domain/models/Client';
 import { CalendarEventDto } from './CalendarEvent.dto';
+import { ReportDto } from './Report.dto';
 
 export class ClientDto {
     @IsString()

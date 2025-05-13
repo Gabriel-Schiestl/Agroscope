@@ -1,18 +1,15 @@
 import {
     Controller,
     Get,
-    HttpStatus,
     Post,
     Req,
-    Res,
     UploadedFile,
     UseInterceptors,
 } from '@nestjs/common';
+import { Request } from 'express';
+import { GetHistoryUseCase } from '../application/usecases/GetHistory.usecase';
 import { PredictUseCase } from '../application/usecases/Predict.usecase';
 import { UseFileInterceptor } from '../infra/services/File.interceptor';
-import { Request, Response } from 'express';
-import { GetHistoryUseCase } from '../application/usecases/GetHistory.usecase';
-import { Failure } from 'src/shared/Result';
 
 @Controller()
 export class CoreController {

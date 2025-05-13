@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
+import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
+import { Res, Result } from 'src/shared/Result';
+import { History } from '../../domain/models/History';
 import {
     HistoryExceptions,
     HistoryRepository,
 } from '../../domain/repositories/History.repository';
 import { HistoryMapper } from '../mappers/History.mapper';
-import { History } from '../../domain/models/History';
-import { KnowledgeExceptions } from '../../domain/repositories/Knowledge.repository';
 import { HistoryModel } from '../models/History.model';
-import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
-import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
-import { Failure, Res, Result, Success } from 'src/shared/Result';
 
 @Injectable()
 export class HistoryRepositoryImpl implements HistoryRepository {

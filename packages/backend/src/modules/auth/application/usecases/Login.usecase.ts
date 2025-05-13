@@ -65,9 +65,7 @@ export class LoginUseCase {
         if (isPasswordValid.isFailure()) {
             authentication.value.incrementIncorrectPasswordAttempts();
 
-            const saveAuthentication = await this.authenticationRepository.save(
-                authentication.value,
-            );
+            await this.authenticationRepository.save(authentication.value);
 
             return Res.failure(new UnauthorizedException('Error on login'));
         }

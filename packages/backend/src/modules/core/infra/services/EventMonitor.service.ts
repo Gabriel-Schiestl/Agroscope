@@ -1,7 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CalendarRepository } from 'src/modules/core/domain/repositories/Calendar.repository';
-import { Inject } from '@nestjs/common';
 import { CalendarEvent } from '../../domain/models/CalendarEvent';
 import { UserRepository } from '../../domain/repositories/User.repository';
 import { ProducerService } from '../../domain/services/Producer.service';

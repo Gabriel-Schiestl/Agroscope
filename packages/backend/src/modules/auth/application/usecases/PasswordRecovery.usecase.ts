@@ -4,8 +4,8 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { Res, Result } from 'src/shared/Result';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import generateRandomNumber from 'src/shared/RandomNumberGenerator';
-import { ProducerService } from 'src/modules/core/domain/services/Producer.service';
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { ProducerService } from 'src/shared/domain/services/Producer.service';
 
 export interface PasswordRecoveryUseCaseProps {
     email: string;

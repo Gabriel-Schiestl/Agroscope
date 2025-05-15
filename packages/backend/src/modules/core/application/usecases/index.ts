@@ -1,5 +1,4 @@
 import { dashboardUseCases } from './dashboard';
-import { engineerUseCases } from './engineer';
 import { GetHistoryUseCase } from './GetHistory.usecase';
 import { PredictUseCase } from './Predict.usecase';
 import { userUseCases } from './user';
@@ -9,5 +8,4 @@ export const useCases = [
     PredictUseCase,
     GetHistoryUseCase,
     ...dashboardUseCases,
-    ...engineerUseCases,
 ];

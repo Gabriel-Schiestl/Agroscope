@@ -6,7 +6,7 @@ import { ReportDto } from '../../dto/Report.dto';
 import { ReportAppMapper } from '../../mappers/Report.mapper';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { ReportRepository } from 'src/modules/core/domain/repositories/Report.repository';
-import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
+import { AgriculturalEngineerRepository } from 'src/modules/engineer/domain/repositories/AgriculturalEngineer.repository';
 
 export type GetAllReportsUseCaseExceptions =
     | RepositoryNoDataFound

@@ -1,4 +1,4 @@
-import { CreateEventUseCase } from './CreateEvent.usecase';
+import { CreateEventUseCase } from '../../../../calendar/application/usecases/CreateEvent.usecase';
 import { CreateUserUseCase } from './CreateUser.usecase';
 
 export const userUseCases = [CreateUserUseCase, CreateEventUseCase];

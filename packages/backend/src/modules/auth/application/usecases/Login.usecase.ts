@@ -8,7 +8,7 @@ import {
     JwtPayload,
 } from '../../domain/services/Authentication.service';
 import { EncryptionService } from '../../domain/services/Encryption.service';
-import { AgriculturalEngineerRepository } from 'src/modules/core/domain/repositories/AgriculturalEngineer.repository';
+import { AgriculturalEngineerRepository } from 'src/modules/engineer/domain/repositories/AgriculturalEngineer.repository';
 import { AESService } from '../../domain/services/AES.service';
 
 export interface LoginUseCaseProps {

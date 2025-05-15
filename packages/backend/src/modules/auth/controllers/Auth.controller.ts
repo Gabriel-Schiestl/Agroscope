@@ -1,14 +1,17 @@
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { minutes, Throttle } from '@nestjs/throttler';
+import { Request, Response } from 'express';
+import { Public } from 'PublicRoutes';
+import { ChangePasswordUseCase } from '../application/usecases/ChangePassword.usecase';
+import { CreateAuthenticationUseCase } from '../application/usecases/CreateAuthentication.usecase';
 import {
     LoginUseCase,
     LoginUseCaseProps,
 } from '../application/usecases/Login.usecase';
-import { Response, Request } from 'express';
-import { Public } from 'PublicRoutes';
-import { minutes, Throttle } from '@nestjs/throttler';
 import { PasswordRecoveryUseCase } from '../application/usecases/PasswordRecovery.usecase';
 import { ValidateRecoveryTokenUseCase } from '../application/usecases/ValidateRecoveryToken.usecase';
-import { ChangePasswordUseCase } from '../application/usecases/ChangePassword.usecase';
+import { UserDto } from '../application/dto/User.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,6 +20,7 @@ export class AuthController {
         private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
         private readonly validateRecoveryTokenUseCase: ValidateRecoveryTokenUseCase,
         private readonly changePasswordUseCase: ChangePasswordUseCase,
+        private readonly createAuthenticationUseCase: CreateAuthenticationUseCase,
     ) {}
 
     @Public()
@@ -88,6 +92,16 @@ export class AuthController {
             email: body.email,
             token: body.token,
             newPassword: body.newPassword,
+        });
+
+        return result;
+    }
+
+    @OnEvent('user.created')
+    async createCalendar(user: UserDto) {
+        const result = await this.createAuthenticationUseCase.execute({
+            email: user.email,
+            password: user.password,
         });
 
         return result;

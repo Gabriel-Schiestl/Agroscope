@@ -7,12 +7,12 @@ import { HistoryRepository } from '../../domain/repositories/History.repository'
 import { KnowledgeRepository } from '../../domain/repositories/Knowledge.repository';
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
 import { PredictService } from '../../domain/services/Predict.service';
-import { ProducerService } from '../../domain/services/Producer.service';
 
 // Technical Exeption Import
 import { TechnicalException } from '../../../../shared/exceptions/Technical.exception';
 import { HistoryDto } from '../dto/History.dto';
 import { HistoryAppMapper } from '../mappers/History.mapper';
+import { ProducerService } from 'src/shared/domain/services/Producer.service';
 
 @Injectable()
 export class PredictUseCase extends AbstractUseCase<

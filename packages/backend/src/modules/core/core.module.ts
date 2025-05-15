@@ -1,51 +1,25 @@
+import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
+import { CalendarModule } from '../calendar/calendar.module';
+import { EngineerModule } from '../engineer/engineer.module';
 import { queries } from './application/query';
 import { useCases } from './application/usecases';
-import { repositories } from './infra/repositories';
-import { AuthModule } from '../auth/auth.module';
 import { controllers } from './controllers';
-import { HttpModule } from '@nestjs/axios';
+import { repositories } from './infra/repositories';
 import { services } from './infra/services';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { EngineerGuard } from './infra/services/Engineer.guard';
+import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
     imports: [
         forwardRef(() => AuthModule),
         HttpModule,
-        ClientsModule.register([
-            {
-                name: 'RABBITMQ_SERVICE',
-                transport: Transport.RMQ,
-                options: {
-                    urls: [process.env.RABBITMQ_URL],
-                    queue: 'images',
-                    queueOptions: {
-                        durable: true,
-                    },
-                },
-            },
-            {
-                name: 'RABBITMQ_EMAIL_SERVICE',
-                transport: Transport.RMQ,
-                options: {
-                    urls: [process.env.RABBITMQ_URL],
-                    queue: 'email-service',
-                    queueOptions: {
-                        durable: true,
-                    },
-                },
-            },
-        ]),
+        forwardRef(() => CalendarModule),
+        forwardRef(() => EngineerModule),
+        SharedModule,
     ],
     controllers: [...controllers],
-    providers: [
-        ...useCases,
-        ...queries,
-        ...repositories,
-        EngineerGuard,
-        ...services,
-    ],
+    providers: [...useCases, ...queries, ...repositories, ...services],
     exports: [...repositories, ...services],
 })
 export class CoreModule {}

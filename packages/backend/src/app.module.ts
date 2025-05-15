@@ -1,18 +1,21 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { OrmConfig } from 'ormconfig';
-import { AuthModule } from './modules/auth/auth.module';
-import { CoreModule } from './modules/core/core.module';
-import { ResponseInterceptor } from './shared/Response.interceptor';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import {
     ThrottlerGuard,
     ThrottlerModule,
     ThrottlerStorage,
 } from '@nestjs/throttler';
-import { ScheduleModule } from '@nestjs/schedule';
-import { APP_GUARD, Reflector } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { OrmConfig } from 'ormconfig';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
+import { CoreModule } from './modules/core/core.module';
+import { ResponseInterceptor } from './shared/Response.interceptor';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
     imports: [
@@ -20,6 +23,9 @@ import { AppService } from './app.service';
         ScheduleModule.forRoot(),
         CoreModule,
         AuthModule,
+        CalendarModule,
+        SharedModule,
+        EventEmitterModule.forRoot(),
         ThrottlerModule.forRoot([
             {
                 name: 'short',

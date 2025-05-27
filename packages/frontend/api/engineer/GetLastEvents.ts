@@ -5,7 +5,7 @@ export default async function GetLastEventsAPI(): Promise<
   CalendarEvent[] | null
 > {
   try {
-    const response = await api.get<CalendarEvent[]>("/engineer/last-events");
+    const response = await api.get<CalendarEvent[]>("/calendar/last-events");
     return response.data;
   } catch (error) {
     console.error("Error getting last events:", error);

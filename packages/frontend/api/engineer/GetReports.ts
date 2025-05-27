@@ -5,7 +5,7 @@ export default async function GetReportsAPI(
   visitId: string
 ): Promise<Report[] | null> {
   try {
-    const response = await api.get<Report[]>(`/engineer/reports/${visitId}`);
+    const response = await api.get<Report[]>(`/reports/${visitId}`);
     return response.data;
   } catch (error) {
     console.error("Error getting reports:", error);

@@ -3,7 +3,7 @@ import { Report } from "../../src/models/Report";
 
 export default async function GetAllReportsAPI(): Promise<Report[] | null> {
   try {
-    const response = await api.get<Report[]>(`/engineer/reports`);
+    const response = await api.get<Report[]>(`/reports`);
     return response.data;
   } catch (error) {
     console.error("Error getting reports:", error);

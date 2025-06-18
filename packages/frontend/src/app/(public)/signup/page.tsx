@@ -19,6 +19,7 @@ import {
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
+import CreateUserAPI from "../../../../api/user/CreateUser";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -41,8 +42,10 @@ export default function SignupPage() {
     }
 
     try {
-      //await signup(name, email, password);
-      router.push("/dashboard");
+      const result = await CreateUserAPI({ email, name, password });
+      if (result) {
+        router.push("/login");
+      }
     } catch (error) {
       setError("Erro ao criar conta. Tente novamente.");
     }

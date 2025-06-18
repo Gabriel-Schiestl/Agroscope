@@ -23,7 +23,10 @@ export class ResponseInterceptor implements NestInterceptor {
                     } else {
                         response.status(HttpStatus.OK);
                     }
-                    return data.value;
+                    if (!data.value) {
+                        return response.json({ message: 'No content' });
+                    }
+                    return response.json(data.value);
                 }
 
                 if (data instanceof Failure) {

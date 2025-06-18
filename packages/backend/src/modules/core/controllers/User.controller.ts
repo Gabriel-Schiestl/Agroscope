@@ -1,15 +1,11 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
+import { Public } from 'PublicRoutes';
 import { CreateUserDto } from '../application/dto/User.dto';
 import { CreateUserUseCase } from '../application/usecases/user/CreateUser.usecase';
-import { Public } from 'PublicRoutes';
-import { CreateEventUseCase } from '../../calendar/application/usecases/CreateEvent.usecase';
 
 @Controller('user')
 export class UserController {
-    constructor(
-        private readonly createUserUseCase: CreateUserUseCase,
-        private readonly createEventUseCase: CreateEventUseCase,
-    ) {}
+    constructor(private readonly createUserUseCase: CreateUserUseCase) {}
 
     @Public()
     @Post()

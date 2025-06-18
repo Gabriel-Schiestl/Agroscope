@@ -9,7 +9,8 @@ export async function middleware(req: NextRequest) {
 
   if (
     req.nextUrl.pathname.startsWith("/login") ||
-    req.nextUrl.pathname.startsWith("/signin")
+    req.nextUrl.pathname.startsWith("/signin") ||
+    req.nextUrl.pathname.startsWith("/signup")
   ) {
     if (cookie) {
       try {

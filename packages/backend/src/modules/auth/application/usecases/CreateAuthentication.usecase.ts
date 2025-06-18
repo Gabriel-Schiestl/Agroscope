@@ -43,7 +43,6 @@ export class CreateAuthenticationUseCase extends AbstractUseCase<
         const saveAuthentication = await this.authenticationRepository.save(
             authentication.value,
         );
-        if (saveAuthentication.isFailure())
-            return Res.failure(saveAuthentication.error);
+        return saveAuthentication;
     }
 }

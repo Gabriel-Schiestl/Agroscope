@@ -99,11 +99,9 @@ export class AuthController {
 
     @OnEvent('user.created')
     async createCalendar(user: UserDto) {
-        const result = await this.createAuthenticationUseCase.execute({
+        this.createAuthenticationUseCase.execute({
             email: user.email,
             password: user.password,
         });
-
-        return result;
     }
 }

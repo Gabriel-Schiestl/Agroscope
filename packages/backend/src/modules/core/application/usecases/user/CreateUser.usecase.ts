@@ -37,7 +37,9 @@ export class CreateUserUseCase extends AbstractUseCase<
         if (result.isFailure()) return Res.failure(result.error);
 
         this.eventEmitter.emit('user.created', {
-            ...user.value,
+            id: user.value.id,
+            name: user.value.name,
+            email: user.value.email,
             password: props.password,
         });
 

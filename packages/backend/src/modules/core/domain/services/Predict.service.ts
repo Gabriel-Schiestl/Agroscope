@@ -8,6 +8,13 @@ export interface PredictServiceResponse {
     predictionConfidence: number;
 }
 
+export interface HandlingServiceResponse {
+    diagnostico: string;
+    explicacao: string;
+    causas: string;
+    manejo: string;
+}
+
 export interface PredictService {
     predict(
         imagePath: string,
@@ -15,4 +22,8 @@ export interface PredictService {
     getImageBase64(
         imagePath: string,
     ): Promise<Result<TechnicalException, string>>;
+    getHandling(
+        prediction: string,
+        crop: string,
+    ): Promise<Result<TechnicalException, HandlingServiceResponse>>;
 }

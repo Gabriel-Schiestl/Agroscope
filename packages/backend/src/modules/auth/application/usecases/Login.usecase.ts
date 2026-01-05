@@ -30,7 +30,6 @@ export class LoginUseCase {
         private readonly authenticationService: AuthenticationService,
         @Inject('EncryptionService')
         private readonly encryptionService: EncryptionService,
-        @Inject('AgriculturalEngineerRepository')
         @Inject('AESService')
         private readonly aesService: AESService,
     ) {}

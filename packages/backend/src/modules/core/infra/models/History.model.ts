@@ -3,22 +3,21 @@ import {
     Column,
     Entity,
     JoinColumn,
-    ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { SicknessModel } from './Sickness.model';
 
 export interface HistoryModelProps {
     id: string;
     createdAt: Date;
-    sickness: SicknessModel;
+    sickness: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
     handling?: string;
     image: string;
-    clientId?: string;
+    explanation?: string;
     userId?: string;
+    causes?: string;
 }
 
 @Entity('history')
@@ -32,12 +31,8 @@ export class HistoryModel extends BaseEntity {
     })
     createdAt: Date;
 
-    @Column({ nullable: true, name: 'sickness_id' })
-    sicknessId?: string;
-
-    @ManyToOne(() => SicknessModel, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'sickness_id' })
-    sickness: SicknessModel;
+    @Column({ name: 'sickness' })
+    sickness: string;
 
     @Column({ nullable: true, name: 'sickness_confidence', type: 'float' })
     sicknessConfidence: number;
@@ -54,11 +49,14 @@ export class HistoryModel extends BaseEntity {
     @Column('text')
     image: string;
 
-    @Column({ nullable: true, name: 'client_id' })
-    clientId?: string;
+    @Column({ nullable: true, name: 'explanation' })
+    explanation?: string;
 
     @Column({ nullable: true, name: 'user_id' })
     userId?: string;
+
+    @Column({ name: 'causes' })
+    causes: string;
 
     setProps(props: HistoryModelProps): HistoryModel {
         Object.assign(this, props);

@@ -1,52 +1,55 @@
 import { v4 as uuid } from 'uuid';
-import { Sickness } from './Sickness';
 
 export interface HistoryProps {
     createdAt: Date;
-    sickness?: Sickness;
+    sickness?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
     handling?: string;
     image: string;
-    clientId?: string;
+    explanation?: string;
     userId?: string;
+    causes?: string;
 }
 
 export interface CreateHistoryProps {
-    sickness?: Sickness;
+    sickness?: string;
     handling?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
     image: string;
-    clientId?: string;
+    explanation?: string;
     userId?: string;
+    causes?: string;
 }
 
 export interface LoadHistoryProps {
     createdAt: Date;
-    sickness?: Sickness;
+    sickness?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
     handling?: string;
     image: string;
-    clientId?: string;
+    explanation?: string;
     userId?: string;
+    causes?: string;
 }
 
 export class History {
     _id: string;
     _createdAt: Date;
-    _sickness: Sickness;
+    _sickness: string;
     _sicknessConfidence?: number;
     _crop: string;
     _cropConfidence: number;
     _handling: string;
     _image: string;
-    _clientId?: string;
+    _explanation?: string;
     _userId?: string;
+    _causes?: string;
 
     private constructor(props: HistoryProps, id?: string) {
         this._id = id || uuid();
@@ -57,8 +60,9 @@ export class History {
         this._cropConfidence = props.cropConfidence;
         this._handling = props.handling;
         this._image = props.image;
-        this._clientId = props.clientId;
+        this._explanation = props.explanation;
         this._userId = props.userId;
+        this._causes = props.causes;
     }
 
     static create(props: CreateHistoryProps): History {
@@ -77,7 +81,7 @@ export class History {
         return this._createdAt;
     }
 
-    get sickness(): Sickness {
+    get sickness(): string {
         return this._sickness;
     }
 
@@ -101,11 +105,15 @@ export class History {
         return this._image;
     }
 
-    get clientId(): string {
-        return this._clientId;
+    get explanation(): string {
+        return this._explanation;
     }
 
     get userId(): string {
         return this._userId;
+    }
+
+    get causes(): string {
+        return this._causes;
     }
 }

@@ -7,16 +7,15 @@ export class HistoryMapper {
         return new HistoryModel().setProps({
             id: domain.id,
             createdAt: domain.createdAt,
-            sickness: domain.sickness
-                ? SicknessMapper.domainToModel(domain.sickness)
-                : null,
+            sickness: domain.sickness,
             sicknessConfidence: domain.sicknessConfidence,
             crop: domain.crop,
             cropConfidence: domain.cropConfidence,
             handling: domain.handling,
             image: domain.image,
-            clientId: domain.clientId,
+            explanation: domain.explanation,
             userId: domain.userId,
+            causes: domain.causes,
         });
     }
 
@@ -24,14 +23,15 @@ export class HistoryMapper {
         return History.load(
             {
                 createdAt: model.createdAt,
-                sickness: SicknessMapper.modelToDomain(model.sickness),
+                sickness: model.sickness,
                 sicknessConfidence: model.sicknessConfidence,
                 crop: model.crop,
                 cropConfidence: model.cropConfidence,
                 handling: model.handling,
                 image: model.image,
-                clientId: model.clientId,
+                explanation: model.explanation,
                 userId: model.userId,
+                causes: model.causes,
             },
             model.id,
         );

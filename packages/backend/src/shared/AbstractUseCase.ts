@@ -25,9 +25,9 @@ export abstract class AbstractUseCase<P, E, R> {
                     `[FALHA] ${this.constructor.name} falhou após ${executionTime}ms com erro: ${JSON.stringify(result.error)}`,
                 );
             } else {
-                this.logger.debug(
-                    `[SUCESSO] ${this.constructor.name} concluído em ${executionTime}ms. Resultado: ${JSON.stringify(result.value)}`,
-                );
+                // this.logger.debug(
+                //     `[SUCESSO] ${this.constructor.name} concluído em ${executionTime}ms. Resultado: ${JSON.stringify(result.value)}`,
+                // );
             }
 
             return result;

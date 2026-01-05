@@ -72,36 +72,24 @@ export class PredictUseCase extends AbstractUseCase<
                 return Res.success(HistoryAppMapper.toDto(history));
             }
 
-            const sickness = await this.sicknessRepository.getSicknessByName(
+            const handling = await this.predictService.getHandling(
                 result.value.prediction,
+                result.value.plant,
             );
-            if (sickness.isFailure()) {
-                console.error(
-                    'Doença não encontrada no banco de dados:',
-                    result.value.prediction,
-                );
-                return Res.failure(sickness.error);
-            }
-
-            const knowledge = await this.knowledgeRepository.getKnowledge(
-                sickness.value.id,
-            );
-            if (knowledge.isFailure()) {
-                console.error(
-                    'Conhecimento não encontrado para a doença:',
-                    sickness.value.id,
-                );
-                console.error('Erro detalhado:', knowledge.error);
-                return Res.failure(knowledge.error);
+            if (handling.isFailure()) {
+                return Res.failure(handling.error);
             }
 
             const history = History.create({
-                handling: knowledge.value.handling,
+                handling: handling.value.manejo,
                 image: imageBase64.value,
-                sickness: sickness.value,
+                sickness: result.value.prediction,
                 userId: userId,
                 crop: result.value.plant,
                 cropConfidence: result.value.plantConfidence,
+                explanation: handling.value.explicacao,
+                sicknessConfidence: result.value.predictionConfidence,
+                causes: handling.value.causas,
             });
 
             const saveHistoryResult =

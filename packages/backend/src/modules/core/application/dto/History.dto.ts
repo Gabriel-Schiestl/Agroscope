@@ -12,8 +12,8 @@ export class HistoryDto {
     @IsString()
     image: string;
 
-    @Type(() => SicknessDto)
-    sickness: SicknessDto;
+    @IsString()
+    sickness: string;
 
     @IsOptional()
     @IsNumber()
@@ -27,4 +27,10 @@ export class HistoryDto {
 
     @IsDate()
     createdAt: Date;
+
+    @IsString()
+    explanation?: string;
+
+    @IsString()
+    causes?: string;
 }

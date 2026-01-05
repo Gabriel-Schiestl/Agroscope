@@ -14,7 +14,7 @@ import { HistoryModel } from '../models/History.model';
 export class HistoryRepositoryImpl implements HistoryRepository {
     async save(history: History): Promise<Result<HistoryExceptions, void>> {
         const model = HistoryMapper.domainToModel(history);
-
+        console.log(model);
         try {
             const result = await model.save();
 
@@ -63,27 +63,6 @@ export class HistoryRepositoryImpl implements HistoryRepository {
         } catch (error) {
             return Res.failure(
                 new TechnicalException('Error on get history by id'),
-            );
-        }
-    }
-
-    async getByClientId(
-        clientId: string,
-    ): Promise<Result<HistoryExceptions, History[]>> {
-        try {
-            const models = await HistoryModel.find({ where: { clientId } });
-            if (!models || models.length === 0) {
-                return Res.failure(
-                    new RepositoryNoDataFound('History not found'),
-                );
-            }
-
-            return Res.success(
-                models.map((model) => HistoryMapper.modelToDomain(model)),
-            );
-        } catch (error) {
-            return Res.failure(
-                new TechnicalException('Error on get history by clientId'),
             );
         }
     }

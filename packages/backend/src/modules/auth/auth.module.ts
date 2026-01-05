@@ -7,7 +7,6 @@ import { mappers } from './infra/mappers';
 import { CoreModule } from '../core/core.module';
 import { AuthGuard } from './infra/services/Auth.guard';
 import { AuthController } from './controllers/Auth.controller';
-import { EngineerModule } from '../engineer/engineer.module';
 import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
@@ -18,7 +17,6 @@ import { SharedModule } from 'src/shared/shared.module';
             secret: process.env.JWT_SECRET,
         }),
         forwardRef(() => CoreModule),
-        EngineerModule,
         SharedModule,
     ],
     controllers: [AuthController],

@@ -12,7 +12,6 @@ import { OrmConfig } from 'ormconfig';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
-import { CalendarModule } from './modules/calendar/calendar.module';
 import { CoreModule } from './modules/core/core.module';
 import { ResponseInterceptor } from './shared/Response.interceptor';
 import { SharedModule } from './shared/shared.module';
@@ -23,7 +22,6 @@ import { SharedModule } from './shared/shared.module';
         ScheduleModule.forRoot(),
         CoreModule,
         AuthModule,
-        CalendarModule,
         SharedModule,
         EventEmitterModule.forRoot(),
         ThrottlerModule.forRoot([

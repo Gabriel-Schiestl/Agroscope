@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class Db111745966681201 implements MigrationInterface {
-    name = 'Db111745966681201'
+    name = 'Db111745966681201';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -45,21 +45,6 @@ export class Db111745966681201 implements MigrationInterface {
             ALTER TABLE "history" DROP COLUMN "sicknessId"
         `);
         await queryRunner.query(`
-            ALTER TABLE "agricultural_engineer" DROP COLUMN "userId"
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "agricultural_engineer" DROP COLUMN "createdAt"
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "clients" DROP COLUMN "totalArea"
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "clients" DROP COLUMN "totalAreaPlanted"
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "clients" DROP COLUMN "actualCrop"
-        `);
-        await queryRunner.query(`
             ALTER TABLE "sickness"
             ADD "created_at" TIMESTAMP NOT NULL DEFAULT now()
         `);
@@ -98,26 +83,6 @@ export class Db111745966681201 implements MigrationInterface {
         await queryRunner.query(`
             ALTER TABLE "history"
             ADD "user_id" character varying
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "agricultural_engineer"
-            ADD "user_id" character varying NOT NULL
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "agricultural_engineer"
-            ADD "created_at" TIMESTAMP NOT NULL DEFAULT now()
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "clients"
-            ADD "total_area" double precision NOT NULL
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "clients"
-            ADD "total_area_planted" double precision NOT NULL
-        `);
-        await queryRunner.query(`
-            ALTER TABLE "clients"
-            ADD "actual_crop" character varying
         `);
         await queryRunner.query(`
             ALTER TABLE "knowledge"
@@ -254,5 +219,4 @@ export class Db111745966681201 implements MigrationInterface {
             ADD CONSTRAINT "FK_4b17eed0236cdebf24367846108" FOREIGN KEY ("sicknessId") REFERENCES "sickness"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     }
-
 }

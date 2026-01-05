@@ -8,7 +8,6 @@ import {
     JwtPayload,
 } from '../../domain/services/Authentication.service';
 import { EncryptionService } from '../../domain/services/Encryption.service';
-import { AgriculturalEngineerRepository } from 'src/modules/engineer/domain/repositories/AgriculturalEngineer.repository';
 import { AESService } from '../../domain/services/AES.service';
 
 export interface LoginUseCaseProps {
@@ -32,7 +31,6 @@ export class LoginUseCase {
         @Inject('EncryptionService')
         private readonly encryptionService: EncryptionService,
         @Inject('AgriculturalEngineerRepository')
-        private readonly agriculturalEngineerRepository: AgriculturalEngineerRepository,
         @Inject('AESService')
         private readonly aesService: AESService,
     ) {}
@@ -74,16 +72,7 @@ export class LoginUseCase {
             name: user.value.name,
             email: user.value.email,
             sub: user.value.id,
-            engineer: false,
         };
-
-        const isEngineer =
-            await this.agriculturalEngineerRepository.getByUserId(
-                user.value.id,
-            );
-        if (isEngineer.isSuccess()) {
-            jwtPayload.engineer = true;
-        }
 
         const token = await this.authenticationService.sign(jwtPayload);
 

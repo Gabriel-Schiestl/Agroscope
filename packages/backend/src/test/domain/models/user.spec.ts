@@ -1,4 +1,4 @@
-import { User, UserRole } from 'src/modules/core/domain/models/User';
+import { User } from 'src/modules/core/domain/models/User';
 import { Failure, Success } from 'src/shared/Result';
 
 describe('User domain model', () => {
@@ -6,7 +6,6 @@ describe('User domain model', () => {
         const user = User.create({
             email: 'test@test',
             name: 'test',
-            role: UserRole.Admin,
         });
 
         expect(user).toBeInstanceOf(Success);
@@ -16,7 +15,6 @@ describe('User domain model', () => {
     it('should return failure creating a new user', () => {
         const user = User.create({
             email: '',
-            role: UserRole.Admin,
             name: 'Test',
         });
 

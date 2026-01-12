@@ -39,13 +39,13 @@ export default function LoginPage() {
 
       if (response) {
         refreshAuth();
-        router.push("/dashboard");
+        router.push("/analytics");
       }
     } catch (error) {
       setError("Email ou senha inválidos. Tente novamente.");
     }
 
-    router.push("/dashboard");
+    router.push("/analytics");
   };
 
   const handleGoogleLogin = async () => {

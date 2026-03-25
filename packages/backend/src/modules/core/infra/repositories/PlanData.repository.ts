@@ -37,4 +37,17 @@ export class PlanDataRepository implements PlanRepository {
             return Res.failure(new TechnicalException(e.message));
         }
     }
+
+    async getAll(): Promise<Result<PlanExceptions, Plan[]>> {
+        try {
+            const models = await PlanModel.find();
+            const plans = models.map((model) =>
+                PlanMapper.modelToDomain(model),
+            );
+
+            return Res.success(plans);
+        } catch (e) {
+            return Res.failure(new TechnicalException(e.message));
+        }
+    }
 }

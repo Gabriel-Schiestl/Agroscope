@@ -11,8 +11,8 @@ import { UserModel } from './User.model';
 export interface LimitModelProps {
     id: string;
     userId: string;
-    imageCount: number;
-    chatCount: number;
+    imageRequests: number;
+    chatRequests: number;
     lastAnalysis?: Date;
     lastMessage?: Date;
 }
@@ -32,11 +32,11 @@ export class LimitModel extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user_relation?: UserModel;
 
-    @Column({ name: 'image_count', type: 'int', default: 0 })
-    imageCount: number;
+    @Column({ name: 'image_requests', type: 'int', default: 0 })
+    imageRequests: number;
 
-    @Column({ name: 'chat_count', type: 'int', default: 0 })
-    chatCount: number;
+    @Column({ name: 'chat_requests', type: 'int', default: 0 })
+    chatRequests: number;
 
     @Column({ name: 'last_analysis', nullable: true, type: 'timestamp' })
     lastAnalysis?: Date;

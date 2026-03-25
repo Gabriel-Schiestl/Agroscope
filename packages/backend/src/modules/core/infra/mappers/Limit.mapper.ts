@@ -6,8 +6,8 @@ export class LimitMapper {
         return new LimitModel().setProps({
             id: domain.id,
             userId: domain.userId,
-            imageCount: domain.imageCount,
-            chatCount: domain.chatCount,
+            imageRequests: domain.imageRequests,
+            chatRequests: domain.chatRequests,
             lastAnalysis: domain.lastAnalysis,
             lastMessage: domain.lastMessage,
         });
@@ -17,8 +17,8 @@ export class LimitMapper {
         return Limit.load(
             {
                 userId: model.userId,
-                imageCount: model.imageCount,
-                chatCount: model.chatCount,
+                imageRequests: model.imageRequests,
+                chatRequests: model.chatRequests,
                 lastAnalysis: model.lastAnalysis,
                 lastMessage: model.lastMessage,
             },

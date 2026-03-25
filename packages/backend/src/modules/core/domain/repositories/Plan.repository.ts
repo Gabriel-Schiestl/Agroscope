@@ -12,4 +12,5 @@ export type PlanExceptions =
 export interface PlanRepository {
     getById(id: string): Promise<Result<PlanExceptions, Plan>>;
     getByType(type: string): Promise<Result<PlanExceptions, Plan>>;
+    getAll(): Promise<Result<PlanExceptions, Plan[]>>;
 }

@@ -2,24 +2,24 @@ import { v4 as uuid } from 'uuid';
 
 export interface LimitProps {
     userId: string;
-    imageCount: number;
-    chatCount: number;
+    imageRequests: number;
+    chatRequests: number;
     lastAnalysis?: Date;
     lastMessage?: Date;
 }
 
 export interface CreateLimitProps {
     userId: string;
-    imageCount?: number;
-    chatCount?: number;
+    imageRequests?: number;
+    chatRequests?: number;
     lastAnalysis?: Date;
     lastMessage?: Date;
 }
 
 export interface LoadLimitProps {
     userId: string;
-    imageCount: number;
-    chatCount: number;
+    imageRequests: number;
+    chatRequests: number;
     lastAnalysis?: Date;
     lastMessage?: Date;
 }
@@ -27,16 +27,16 @@ export interface LoadLimitProps {
 export class Limit {
     _id: string;
     _userId: string;
-    _imageCount: number;
-    _chatCount: number;
+    _imageRequests: number;
+    _chatRequests: number;
     _lastAnalysis?: Date;
     _lastMessage?: Date;
 
     private constructor(props: LimitProps, id?: string) {
         this._id = id || uuid();
         this._userId = props.userId;
-        this._imageCount = props.imageCount;
-        this._chatCount = props.chatCount;
+        this._imageRequests = props.imageRequests;
+        this._chatRequests = props.chatRequests;
         this._lastAnalysis = props.lastAnalysis;
         this._lastMessage = props.lastMessage;
     }
@@ -44,8 +44,8 @@ export class Limit {
     static create(props: CreateLimitProps): Limit {
         return new Limit({
             userId: props.userId,
-            imageCount: props.imageCount ?? 0,
-            chatCount: props.chatCount ?? 0,
+            imageRequests: props.imageRequests ?? 0,
+            chatRequests: props.chatRequests ?? 0,
             lastAnalysis: props.lastAnalysis,
             lastMessage: props.lastMessage,
         });
@@ -63,12 +63,12 @@ export class Limit {
         return this._userId;
     }
 
-    get imageCount(): number {
-        return this._imageCount;
+    get imageRequests(): number {
+        return this._imageRequests;
     }
 
-    get chatCount(): number {
-        return this._chatCount;
+    get chatRequests(): number {
+        return this._chatRequests;
     }
 
     get lastAnalysis(): Date {
@@ -79,12 +79,12 @@ export class Limit {
         return this._lastMessage;
     }
 
-    incrementImageCount(): void {
-        this._imageCount++;
+    incrementImageRequests(): void {
+        this._imageRequests++;
     }
 
-    incrementChatCount(): void {
-        this._chatCount++;
+    incrementChatRequests(): void {
+        this._chatRequests++;
     }
 
     setLastAnalysis(date: Date): void {

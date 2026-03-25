@@ -1,6 +1,5 @@
 import { History } from '../../domain/models/History';
 import { HistoryDto } from '../dto/History.dto';
-import { SicknessAppMapper } from './Sickness.mapper';
 
 export class HistoryAppMapper {
     static toDto(history: History): HistoryDto {

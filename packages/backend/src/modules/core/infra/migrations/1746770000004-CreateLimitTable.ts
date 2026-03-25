@@ -8,8 +8,8 @@ export class CreateLimitTable1746770000004 implements MigrationInterface {
       CREATE TABLE "limit" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         "user_id" uuid NOT NULL UNIQUE,
-        "image_count" int DEFAULT 0,
-        "chat_count" int DEFAULT 0,
+        "image_requests" int DEFAULT 0,
+        "chat_requests" int DEFAULT 0,
         "last_analysis" timestamp NULL,
         "last_message" timestamp NULL,
         "created_at" timestamp DEFAULT CURRENT_TIMESTAMP,

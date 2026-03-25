@@ -1,4 +1,5 @@
-import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { HistoryModel } from './History.model';
 
 interface SicknessModelProps {
     id: string;
@@ -34,6 +35,11 @@ export class SicknessModel extends BaseEntity implements SicknessModelProps {
         name: 'updated_at',
     })
     updatedAt: Date;
+
+    @OneToMany(() => HistoryModel, (history) => history.sickness_relation, {
+        nullable: true,
+    })
+    histories: HistoryModel[];
 
     setProps(props: SicknessModelProps): SicknessModel {
         Object.assign(this, props);

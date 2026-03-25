@@ -6,9 +6,9 @@ export class HistoryAppMapper {
     static toDto(history: History): HistoryDto {
         return {
             id: history.id,
+            sicknessId: history.sicknessId,
             handling: history.handling,
             image: history.image,
-            sickness: history.sickness ?? null,
             crop: history.crop,
             cropConfidence: history.cropConfidence,
             sicknessConfidence: history.sicknessConfidence,

@@ -3,13 +3,15 @@ import {
     Column,
     Entity,
     JoinColumn,
+    ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { SicknessModel } from './Sickness.model';
 
 export interface HistoryModelProps {
     id: string;
     createdAt: Date;
-    sickness: string;
+    sicknessId?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
@@ -31,8 +33,15 @@ export class HistoryModel extends BaseEntity {
     })
     createdAt: Date;
 
-    @Column({ name: 'sickness' })
-    sickness: string;
+    @Column({ nullable: true, name: 'sickness_id' })
+    sicknessId?: string;
+
+    @ManyToOne(() => SicknessModel, (sickness) => sickness.histories, {
+        nullable: true,
+        onDelete: 'SET NULL',
+    })
+    @JoinColumn({ name: 'sickness_id' })
+    sickness_relation?: SicknessModel;
 
     @Column({ nullable: true, name: 'sickness_confidence', type: 'float' })
     sicknessConfidence: number;

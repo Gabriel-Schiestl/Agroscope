@@ -59,7 +59,7 @@ export class PredictUseCase extends AbstractUseCase<
                     userId: userId,
                     handling: 'Nenhuma ação necessária',
                     crop: null,
-                    sickness: null,
+                    sicknessId: null,
                     cropConfidence: null,
                 });
 
@@ -80,10 +80,19 @@ export class PredictUseCase extends AbstractUseCase<
                 return Res.failure(handling.error);
             }
 
+            const sicknessResult =
+                await this.sicknessRepository.getSicknessByName(
+                    result.value.prediction,
+                );
+
+            if (sicknessResult.isFailure()) {
+                return Res.failure(sicknessResult.error);
+            }
+
             const history = History.create({
                 handling: handling.value.manejo,
                 image: imageBase64.value,
-                sickness: result.value.prediction,
+                sicknessId: sicknessResult.value.id,
                 userId: userId,
                 crop: result.value.plant,
                 cropConfidence: result.value.plantConfidence,

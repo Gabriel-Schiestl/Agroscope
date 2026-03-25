@@ -1,7 +1,6 @@
 import { v4 as uuid } from 'uuid';
 
 export interface LimitProps {
-    userId: string;
     imageRequests: number;
     chatRequests: number;
     lastAnalysis?: Date;
@@ -9,7 +8,6 @@ export interface LimitProps {
 }
 
 export interface CreateLimitProps {
-    userId: string;
     imageRequests?: number;
     chatRequests?: number;
     lastAnalysis?: Date;
@@ -17,7 +15,6 @@ export interface CreateLimitProps {
 }
 
 export interface LoadLimitProps {
-    userId: string;
     imageRequests: number;
     chatRequests: number;
     lastAnalysis?: Date;
@@ -26,7 +23,6 @@ export interface LoadLimitProps {
 
 export class Limit {
     _id: string;
-    _userId: string;
     _imageRequests: number;
     _chatRequests: number;
     _lastAnalysis?: Date;
@@ -34,7 +30,6 @@ export class Limit {
 
     private constructor(props: LimitProps, id?: string) {
         this._id = id || uuid();
-        this._userId = props.userId;
         this._imageRequests = props.imageRequests;
         this._chatRequests = props.chatRequests;
         this._lastAnalysis = props.lastAnalysis;
@@ -43,7 +38,6 @@ export class Limit {
 
     static create(props: CreateLimitProps): Limit {
         return new Limit({
-            userId: props.userId,
             imageRequests: 0,
             chatRequests: 0,
         });
@@ -55,10 +49,6 @@ export class Limit {
 
     get id(): string {
         return this._id;
-    }
-
-    get userId(): string {
-        return this._userId;
     }
 
     get imageRequests(): number {

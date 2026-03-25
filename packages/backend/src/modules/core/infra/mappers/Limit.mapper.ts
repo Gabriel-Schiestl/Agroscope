@@ -5,7 +5,6 @@ export class LimitMapper {
     static domainToModel(domain: Limit): LimitModel {
         return new LimitModel().setProps({
             id: domain.id,
-            userId: domain.userId,
             imageRequests: domain.imageRequests,
             chatRequests: domain.chatRequests,
             lastAnalysis: domain.lastAnalysis,
@@ -16,7 +15,6 @@ export class LimitMapper {
     static modelToDomain(model: LimitModel): Limit {
         return Limit.load(
             {
-                userId: model.userId,
                 imageRequests: model.imageRequests,
                 chatRequests: model.chatRequests,
                 lastAnalysis: model.lastAnalysis,

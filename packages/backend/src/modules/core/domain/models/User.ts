@@ -1,10 +1,12 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
+import { Limit } from './Limit';
 
 export interface UserProps {
     name: string;
     email: string;
+    limit: Limit;
     planId?: string;
 }
 
@@ -15,12 +17,14 @@ export class User implements UserProps {
     #id: string;
     #name: string;
     #email: string;
+    #limit: Limit;
     #planId?: string;
 
     private constructor(props: UserProps, id?: string) {
         this.#id = id || uuid();
         this.#name = props.name;
         this.#email = props.email;
+        this.#limit = props.limit;
         this.#planId = props.planId;
     }
 
@@ -30,6 +34,9 @@ export class User implements UserProps {
         }
         if (!props.email) {
             return Res.failure(new BusinessException('Email is required'));
+        }
+        if (!props.limit) {
+            return Res.failure(new BusinessException('Limit is required'));
         }
 
         return Res.success(new User(props));
@@ -53,5 +60,9 @@ export class User implements UserProps {
 
     get planId() {
         return this.#planId;
+    }
+
+    get limit() {
+        return this.#limit;
     }
 }

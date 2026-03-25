@@ -10,7 +10,6 @@ import { UserModel } from './User.model';
 
 export interface LimitModelProps {
     id: string;
-    userId: string;
     imageRequests: number;
     chatRequests: number;
     lastAnalysis?: Date;
@@ -25,7 +24,7 @@ export class LimitModel extends BaseEntity {
     @Column({ name: 'user_id' })
     userId: string;
 
-    @ManyToOne(() => UserModel, (user) => user.limit_relation, {
+    @ManyToOne(() => UserModel, (user) => user.limit, {
         nullable: false,
         onDelete: 'CASCADE',
     })

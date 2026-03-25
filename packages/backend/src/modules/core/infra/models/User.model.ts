@@ -14,6 +14,7 @@ export interface UserModelProps {
     id: string;
     name: string;
     email: string;
+    limit: LimitModel;
     planId?: string;
 }
 
@@ -42,7 +43,7 @@ export class UserModel extends BaseEntity implements UserModelProps {
         nullable: true,
         onDelete: 'CASCADE',
     })
-    limit_relation?: LimitModel;
+    limit: LimitModel;
 
     @Column({
         type: 'timestamp',

@@ -304,7 +304,7 @@ export default function LandingDashboardPage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/signup">
-            <Button className="bg-primaryGreen hover:bg-lightGreen">
+            <Button className="bg-[#4dae50] hover:bg-[#334f36]">
               Criar Conta Grátis
             </Button>
           </Link>

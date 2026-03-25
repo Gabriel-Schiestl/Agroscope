@@ -96,13 +96,13 @@ export default function LoginModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[#3C493B]">
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <h2 className="text-primaryGreen font-bold text-2xl">AgroScope</h2>
+            <h2 className="text-[#4DAE50] font-bold text-2xl">AgroScope</h2>
           </div>
-          <DialogTitle className="text-2xl text-center">Entrar</DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogTitle className="text-2xl text-center text-[#F4FFF4]">Entrar</DialogTitle>
+          <DialogDescription className="text-center text-gray-400">
             Entre com sua conta para acessar o sistema
           </DialogDescription>
         </DialogHeader>
@@ -116,7 +116,7 @@ export default function LoginModal({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-2 text-[#F4FFF4]">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -128,7 +128,7 @@ export default function LoginModal({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-[#F4FFF4]">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Senha</Label>
                 <button
@@ -150,7 +150,7 @@ export default function LoginModal({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#text-[#F4FFF4]] hover:text-[#F4FFF4]/50"
                   aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -160,22 +160,13 @@ export default function LoginModal({
 
             <Button
               type="submit"
-              className="w-full bg-primaryGreen hover:bg-lightGreen"
+              className="w-full bg-[#4dae50] hover:bg-[#4dae50]/60"
             >
               Entrar
             </Button>
           </form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t"></span>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Ou continue com
-              </span>
-            </div>
-          </div>
+       
 
           <Button
             variant="outline"
@@ -204,10 +195,10 @@ export default function LoginModal({
           </Button>
         </div>
 
-        <div className="text-sm text-center mt-4">
+        <div className="text-sm text-center text-[#F4FFF4] mt-4">
           Não tem uma conta?{" "}
           <button
-            className="text-primaryGreen hover:underline"
+            className="text-[#4dae50] hover:underline"
             onClick={handleOpenSignup}
           >
             Cadastre-se

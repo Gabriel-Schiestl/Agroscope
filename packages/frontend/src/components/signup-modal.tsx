@@ -71,15 +71,15 @@ export default function SignupModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[#3C493B]">
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <h2 className="text-primaryGreen font-bold text-2xl">AgroScope</h2>
+            <h2 className="text-[#4DAE50] font-bold text-2xl">AgroScope</h2>
           </div>
-          <DialogTitle className="text-2xl text-center">
+          <DialogTitle className="text-2xl text-center text-[#F4FFF4]">
             Criar Conta
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center text-gray-400">
             Preencha os dados abaixo para criar sua conta
           </DialogDescription>
         </DialogHeader>
@@ -93,7 +93,7 @@ export default function SignupModal({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-2 text-[#F4FFF4]">
               <Label htmlFor="name">Nome Completo</Label>
               <Input
                 id="name"
@@ -104,7 +104,7 @@ export default function SignupModal({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-[#F4FFF4]">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -116,7 +116,7 @@ export default function SignupModal({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-[#F4FFF4]">
               <Label htmlFor="password">Senha</Label>
               <div className="relative">
                 <Input
@@ -129,7 +129,7 @@ export default function SignupModal({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#F4FFF4] hover:text-[#F4FFF4]/50"
                   aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -137,7 +137,7 @@ export default function SignupModal({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-[#F4FFF4]">
               <Label htmlFor="confirmPassword">Confirmar Senha</Label>
               <div className="relative">
                 <Input
@@ -150,7 +150,7 @@ export default function SignupModal({
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#F4FFF4] hover:text-[#F4FFF4]/50"
                   aria-label={
                     showConfirmPassword ? "Esconder senha" : "Mostrar senha"
                   }
@@ -166,7 +166,7 @@ export default function SignupModal({
 
             <Button
               type="submit"
-              className="w-full bg-primaryGreen hover:bg-lightGreen"
+              className="w-full bg-[#4dae50] hover:bg-[#4dae50]/60"
             >
               Criar Conta
             </Button>
@@ -174,10 +174,10 @@ export default function SignupModal({
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t"></span>
+              <span className="w-full border-t border-[#F4FFF4]/20"></span>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+              <span className="bg-[#3C493B] px-2 text-gray-400">
                 Ou continue com
               </span>
             </div>
@@ -210,10 +210,10 @@ export default function SignupModal({
           </Button>
         </div>
 
-        <div className="text-sm text-center mt-4">
+        <div className="text-sm text-center text-[#F4FFF4] mt-4">
           Já tem uma conta?{" "}
           <button
-            className="text-primaryGreen hover:underline"
+            className="text-[#4dae50] hover:underline"
             onClick={handleOpenLogin}
           >
             Entrar

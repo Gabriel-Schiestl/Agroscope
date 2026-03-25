@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 export interface UserProps {
     name: string;
     email: string;
+    planId?: string;
 }
 
 export interface CreateUserProps extends UserProps {}
@@ -14,11 +15,13 @@ export class User implements UserProps {
     #id: string;
     #name: string;
     #email: string;
+    #planId?: string;
 
     private constructor(props: UserProps, id?: string) {
         this.#id = id || uuid();
         this.#name = props.name;
         this.#email = props.email;
+        this.#planId = props.planId;
     }
 
     static create(props: CreateUserProps): Result<BusinessException, User> {
@@ -46,5 +49,9 @@ export class User implements UserProps {
 
     get email() {
         return this.#email;
+    }
+
+    get planId() {
+        return this.#planId;
     }
 }

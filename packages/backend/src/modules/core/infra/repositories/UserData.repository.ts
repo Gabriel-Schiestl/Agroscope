@@ -44,6 +44,10 @@ export class UserDataRepository implements UserRepository {
         }
     }
 
+    async getUser(id: string): Promise<Result<UserRepositoryExceptions, User>> {
+        return this.getById(id);
+    }
+
     async getByEmail(
         email: string,
     ): Promise<Result<UserRepositoryExceptions, User>> {

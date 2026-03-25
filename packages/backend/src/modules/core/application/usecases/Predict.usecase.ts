@@ -6,10 +6,14 @@ import { History } from '../../domain/models/History';
 import { HistoryRepository } from '../../domain/repositories/History.repository';
 import { KnowledgeRepository } from '../../domain/repositories/Knowledge.repository';
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
+import { PlanRepository } from '../../domain/repositories/Plan.repository';
+import { LimitRepository } from '../../domain/repositories/Limit.repository';
+import { UserRepository } from '../../domain/repositories/User.repository';
 import { PredictService } from '../../domain/services/Predict.service';
 
 // Technical Exeption Import
 import { TechnicalException } from '../../../../shared/exceptions/Technical.exception';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { HistoryDto } from '../dto/History.dto';
 import { HistoryAppMapper } from '../mappers/History.mapper';
 import { ProducerService } from 'src/shared/domain/services/Producer.service';
@@ -27,6 +31,12 @@ export class PredictUseCase extends AbstractUseCase<
         private readonly knowledgeRepository: KnowledgeRepository,
         @Inject('HistoryRepository')
         private readonly historyRepository: HistoryRepository,
+        @Inject('PlanRepository')
+        private readonly planRepository: PlanRepository,
+        @Inject('LimitRepository')
+        private readonly limitRepository: LimitRepository,
+        @Inject('UserRepository')
+        private readonly userRepository: UserRepository,
         @Inject('PredictService')
         private readonly predictService: PredictService,
         @Inject('ProducerService')
@@ -43,6 +53,49 @@ export class PredictUseCase extends AbstractUseCase<
         userId: string;
     }): Promise<Result<Exception, HistoryDto>> {
         try {
+            const userResult = await this.userRepository.getById(userId);
+            if (userResult.isFailure()) {
+                return Res.failure(
+                    new BusinessException('Usuário não encontrado'),
+                );
+            }
+
+            const user = userResult.value;
+
+            if (!user.planId) {
+                return Res.failure(
+                    new BusinessException('Usuário sem plano ativo'),
+                );
+            }
+
+            const [planResult, limitResult] = await Promise.all([
+                this.planRepository.getPlan(user.planId),
+                this.limitRepository.getLimitByUserId(userId),
+            ]);
+
+            if (planResult.isFailure()) {
+                return Res.failure(
+                    new BusinessException('Plano não encontrado'),
+                );
+            }
+
+            if (limitResult.isFailure()) {
+                return Res.failure(
+                    new BusinessException('Limite do usuário não encontrado'),
+                );
+            }
+
+            const plan = planResult.value;
+            const limit = limitResult.value;
+
+            if (limit.imageCount >= plan.imageLimit) {
+                return Res.failure(
+                    new BusinessException(
+                        `Limite de ${plan.imageLimit} análises de imagens atingido`,
+                    ),
+                );
+            }
+
             const result = await this.predictService.predict(imagePath);
             if (result.isFailure()) {
                 console.error('Falha na predição:', result.error);
@@ -66,6 +119,10 @@ export class PredictUseCase extends AbstractUseCase<
                 const saveResult = await this.historyRepository.save(history);
                 if (saveResult.isFailure())
                     return Res.failure(saveResult.error);
+
+                limit.incrementImageCount();
+                limit.setLastAnalysis(new Date());
+                await this.limitRepository.save(limit);
 
                 this.sendImage('saudavel', imageBase64.value);
 
@@ -105,6 +162,10 @@ export class PredictUseCase extends AbstractUseCase<
                 await this.historyRepository.save(history);
             if (saveHistoryResult.isFailure())
                 return Res.failure(saveHistoryResult.error);
+
+            limit.incrementImageCount();
+            limit.setLastAnalysis(new Date());
+            await this.limitRepository.save(limit);
 
             this.sendImage(result.value.prediction, imageBase64.value);
 

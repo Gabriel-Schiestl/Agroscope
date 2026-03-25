@@ -44,10 +44,8 @@ export class Limit {
     static create(props: CreateLimitProps): Limit {
         return new Limit({
             userId: props.userId,
-            imageRequests: props.imageRequests ?? 0,
-            chatRequests: props.chatRequests ?? 0,
-            lastAnalysis: props.lastAnalysis,
-            lastMessage: props.lastMessage,
+            imageRequests: 0,
+            chatRequests: 0,
         });
     }
 

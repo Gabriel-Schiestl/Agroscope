@@ -12,7 +12,7 @@ import { Res, Result } from 'src/shared/Result';
 
 @Injectable()
 export class PlanDataRepository implements PlanRepository {
-    async getPlan(id: string): Promise<Result<PlanExceptions, Plan>> {
+    async getById(id: string): Promise<Result<PlanExceptions, Plan>> {
         try {
             const model = await PlanModel.findOneBy({ id });
             if (!model) {
@@ -25,7 +25,7 @@ export class PlanDataRepository implements PlanRepository {
         }
     }
 
-    async getPlanByType(type: string): Promise<Result<PlanExceptions, Plan>> {
+    async getByType(type: string): Promise<Result<PlanExceptions, Plan>> {
         try {
             const model = await PlanModel.findOneBy({ type });
             if (!model) {
@@ -33,16 +33,6 @@ export class PlanDataRepository implements PlanRepository {
             }
 
             return Res.success(PlanMapper.modelToDomain(model));
-        } catch (e) {
-            return Res.failure(new TechnicalException(e.message));
-        }
-    }
-
-    async save(plan: Plan): Promise<Result<PlanExceptions, void>> {
-        try {
-            const model = PlanMapper.domainToModel(plan);
-            await model.save();
-            return Res.success();
         } catch (e) {
             return Res.failure(new TechnicalException(e.message));
         }

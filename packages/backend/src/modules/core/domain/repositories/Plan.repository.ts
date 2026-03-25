@@ -10,7 +10,6 @@ export type PlanExceptions =
     | TechnicalException;
 
 export interface PlanRepository {
-    getPlan(id: string): Promise<Result<PlanExceptions, Plan>>;
-    getPlanByType(type: string): Promise<Result<PlanExceptions, Plan>>;
-    save(plan: Plan): Promise<Result<PlanExceptions, void>>;
+    getById(id: string): Promise<Result<PlanExceptions, Plan>>;
+    getByType(type: string): Promise<Result<PlanExceptions, Plan>>;
 }

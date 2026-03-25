@@ -12,7 +12,7 @@ import { Res, Result } from 'src/shared/Result';
 
 @Injectable()
 export class LimitDataRepository implements LimitRepository {
-    async getLimit(id: string): Promise<Result<LimitExceptions, Limit>> {
+    async getById(id: string): Promise<Result<LimitExceptions, Limit>> {
         try {
             const model = await LimitModel.findOneBy({ id });
             if (!model) {
@@ -27,9 +27,7 @@ export class LimitDataRepository implements LimitRepository {
         }
     }
 
-    async getLimitByUserId(
-        userId: string,
-    ): Promise<Result<LimitExceptions, Limit>> {
+    async getByUserId(userId: string): Promise<Result<LimitExceptions, Limit>> {
         try {
             const model = await LimitModel.findOneBy({ userId });
             if (!model) {

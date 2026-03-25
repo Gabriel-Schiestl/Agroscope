@@ -6,7 +6,7 @@ import { Result } from 'src/shared/Result';
 export type LimitExceptions = RepositoryNoDataFound | TechnicalException;
 
 export interface LimitRepository {
-    getLimit(id: string): Promise<Result<LimitExceptions, Limit>>;
-    getLimitByUserId(userId: string): Promise<Result<LimitExceptions, Limit>>;
+    getById(id: string): Promise<Result<LimitExceptions, Limit>>;
+    getByUserId(userId: string): Promise<Result<LimitExceptions, Limit>>;
     save(limit: Limit): Promise<Result<LimitExceptions, void>>;
 }

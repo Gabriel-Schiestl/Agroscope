@@ -30,8 +30,6 @@ export class PredictUseCase extends AbstractUseCase<
         private readonly historyRepository: HistoryRepository,
         @Inject('PlanRepository')
         private readonly planRepository: PlanRepository,
-        @Inject('LimitRepository')
-        private readonly limitRepository: LimitRepository,
         @Inject('UserRepository')
         private readonly userRepository: UserRepository,
         @Inject('PredictService')
@@ -65,9 +63,8 @@ export class PredictUseCase extends AbstractUseCase<
                 );
             }
 
-            const [planResult, limitResult] = await Promise.all([
+            const [planResult] = await Promise.all([
                 this.planRepository.getById(user.planId),
-                this.limitRepository.getByUserId(userId),
             ]);
 
             if (planResult.isFailure()) {
@@ -76,16 +73,9 @@ export class PredictUseCase extends AbstractUseCase<
                 );
             }
 
-            if (limitResult.isFailure()) {
-                return Res.failure(
-                    new BusinessException('Limite do usuário não encontrado'),
-                );
-            }
-
             const plan = planResult.value;
-            const limit = limitResult.value;
 
-            if (limit.imageRequests >= plan.imageLimit) {
+            if (user.limit.imageRequests >= plan.imageLimit) {
                 return Res.failure(
                     new BusinessException(
                         `Limite de ${plan.imageLimit} análises de imagens atingido`,
@@ -117,11 +107,12 @@ export class PredictUseCase extends AbstractUseCase<
                 if (saveResult.isFailure())
                     return Res.failure(saveResult.error);
 
-                limit.incrementImageRequests();
-                limit.setLastAnalysis(new Date());
-                const saveLimitResult = await this.limitRepository.save(limit);
-                if (saveLimitResult.isFailure())
-                    return Res.failure(saveLimitResult.error);
+                user.limit.incrementImageRequests();
+                user.limit.setLastAnalysis(new Date());
+
+                const saveUserResult = await this.userRepository.save(user);
+                if (saveUserResult.isFailure())
+                    return Res.failure(saveUserResult.error);
 
                 this.sendImage('saudavel', imageBase64.value);
 
@@ -162,11 +153,12 @@ export class PredictUseCase extends AbstractUseCase<
             if (saveHistoryResult.isFailure())
                 return Res.failure(saveHistoryResult.error);
 
-            limit.incrementImageRequests();
-            limit.setLastAnalysis(new Date());
-            const saveLimitResult = await this.limitRepository.save(limit);
-            if (saveLimitResult.isFailure())
-                return Res.failure(saveLimitResult.error);
+            user.limit.incrementImageRequests();
+            user.limit.setLastAnalysis(new Date());
+
+            const saveUserResult = await this.userRepository.save(user);
+            if (saveUserResult.isFailure())
+                return Res.failure(saveUserResult.error);
 
             this.sendImage(result.value.prediction, imageBase64.value);
 

@@ -3,6 +3,7 @@ import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/A
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export interface ValidateRecoveryTokenUseCaseProps {
     email: string;
@@ -14,13 +15,19 @@ export type ValidateRecoveryTokenUseCaseExceptions =
     | UnauthorizedException;
 
 @Injectable()
-export class ValidateRecoveryTokenUseCase {
+export class ValidateRecoveryTokenUseCase extends AbstractUseCase<
+    ValidateRecoveryTokenUseCaseProps,
+    ValidateRecoveryTokenUseCaseExceptions,
+    void
+> {
     constructor(
         @Inject('AuthenticationRepository')
         private readonly authenticationRepository: AuthenticationRepository,
-    ) {}
+    ) {
+        super();
+    }
 
-    async execute(
+    protected async onExecute(
         props: ValidateRecoveryTokenUseCaseProps,
     ): Promise<Result<ValidateRecoveryTokenUseCaseExceptions, void>> {
         const authentication = await this.authenticationRepository.findByEmail(

@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from 'src/modules/core/domain/models/User';
-import { Limit } from 'src/modules/core/domain/models/Limit';
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
-import { LimitRepository } from 'src/modules/core/domain/repositories/Limit.repository';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
@@ -25,8 +23,6 @@ export class CreateUserUseCase extends AbstractUseCase<
     constructor(
         @Inject('UserRepository')
         private readonly userRepository: UserRepository,
-        @Inject('LimitRepository')
-        private readonly limitRepository: LimitRepository,
         private readonly eventEmitter: EventEmitter2,
     ) {
         super();
@@ -39,13 +35,6 @@ export class CreateUserUseCase extends AbstractUseCase<
 
         const result = await this.userRepository.save(user.value);
         if (result.isFailure()) return Res.failure(result.error);
-
-        const limit = Limit.create({
-            userId: user.value.id,
-        });
-
-        const limitResult = await this.limitRepository.save(limit);
-        if (limitResult.isFailure()) return Res.failure(limitResult.error);
 
         this.eventEmitter.emit('user.created', {
             id: user.value.id,

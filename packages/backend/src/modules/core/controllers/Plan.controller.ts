@@ -10,15 +10,6 @@ export class PlanController {
     @Public()
     @Get()
     async getAllPlans() {
-        const result = await this.getAllPlansQuery.execute();
-
-        if (result.isSuccess()) {
-            return {
-                success: true,
-                data: result.value,
-            };
-        }
-
-        return result;
+        return await this.getAllPlansQuery.execute();
     }
 }

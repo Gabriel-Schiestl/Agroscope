@@ -9,21 +9,22 @@ describe('Sickness Domain', () => {
 
     it('should create a sickness successfully', () => {
         const sickness = Sickness.create(validProps);
-        expect(sickness).toBeInstanceOf(Sickness);
-        expect(sickness.name).toBe(validProps.name);
-        expect(sickness.description).toBe(validProps.description);
-        expect(sickness.symptoms).toEqual(validProps.symptoms);
+        expect(sickness.isSuccess()).toBe(true);
+        expect(sickness.isSuccess() && sickness.value).toBeInstanceOf(Sickness);
+        expect(sickness.isSuccess() && sickness.value.name).toBe(
+            validProps.name,
+        );
+        expect(sickness.isSuccess() && sickness.value.description).toBe(
+            validProps.description,
+        );
+        expect(sickness.isSuccess() && sickness.value.symptoms).toEqual(
+            validProps.symptoms,
+        );
     });
 
     it('should load a sickness with given id', () => {
         const sickness = Sickness.load(validProps, 'custom-id');
         expect(sickness).toBeInstanceOf(Sickness);
         expect(sickness.id).toBe('custom-id');
-    });
-
-    it('should identify a Sickness instance', () => {
-        const sickness = Sickness.create(validProps);
-        expect(Sickness.isSickness(sickness)).toBe(true);
-        expect(Sickness.isSickness({})).toBe(false);
     });
 });

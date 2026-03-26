@@ -7,13 +7,6 @@ export interface LimitProps {
     lastMessage?: Date;
 }
 
-export interface CreateLimitProps {
-    imageRequests?: number;
-    chatRequests?: number;
-    lastAnalysis?: Date;
-    lastMessage?: Date;
-}
-
 export interface LoadLimitProps {
     imageRequests: number;
     chatRequests: number;
@@ -22,21 +15,21 @@ export interface LoadLimitProps {
 }
 
 export class Limit {
-    _id: string;
-    _imageRequests: number;
-    _chatRequests: number;
-    _lastAnalysis?: Date;
-    _lastMessage?: Date;
+    #id: string;
+    #imageRequests: number;
+    #chatRequests: number;
+    #lastAnalysis?: Date;
+    #lastMessage?: Date;
 
     private constructor(props: LimitProps, id?: string) {
-        this._id = id || uuid();
-        this._imageRequests = props.imageRequests;
-        this._chatRequests = props.chatRequests;
-        this._lastAnalysis = props.lastAnalysis;
-        this._lastMessage = props.lastMessage;
+        this.#id = id || uuid();
+        this.#imageRequests = props.imageRequests;
+        this.#chatRequests = props.chatRequests;
+        this.#lastAnalysis = props.lastAnalysis;
+        this.#lastMessage = props.lastMessage;
     }
 
-    static create(props: CreateLimitProps): Limit {
+    static create(): Limit {
         return new Limit({
             imageRequests: 0,
             chatRequests: 0,
@@ -48,38 +41,38 @@ export class Limit {
     }
 
     get id(): string {
-        return this._id;
+        return this.#id;
     }
 
     get imageRequests(): number {
-        return this._imageRequests;
+        return this.#imageRequests;
     }
 
     get chatRequests(): number {
-        return this._chatRequests;
+        return this.#chatRequests;
     }
 
     get lastAnalysis(): Date {
-        return this._lastAnalysis;
+        return this.#lastAnalysis;
     }
 
     get lastMessage(): Date {
-        return this._lastMessage;
+        return this.#lastMessage;
     }
 
     incrementImageRequests(): void {
-        this._imageRequests++;
+        this.#imageRequests++;
     }
 
     incrementChatRequests(): void {
-        this._chatRequests++;
+        this.#chatRequests++;
     }
 
     setLastAnalysis(date: Date): void {
-        this._lastAnalysis = date;
+        this.#lastAnalysis = date;
     }
 
     setLastMessage(date: Date): void {
-        this._lastMessage = date;
+        this.#lastMessage = date;
     }
 }

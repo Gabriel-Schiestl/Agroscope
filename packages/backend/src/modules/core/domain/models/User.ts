@@ -10,7 +10,11 @@ export interface UserProps {
     planId?: string;
 }
 
-export interface CreateUserProps extends UserProps {}
+export interface CreateUserProps {
+    name: string;
+    email: string;
+    planId?: string;
+}
 export interface LoadUserProps extends UserProps {}
 
 export class User implements UserProps {
@@ -35,11 +39,14 @@ export class User implements UserProps {
         if (!props.email) {
             return Res.failure(new BusinessException('Email is required'));
         }
-        if (!props.limit) {
-            return Res.failure(new BusinessException('Limit is required'));
-        }
+        const limit = Limit.create();
 
-        return Res.success(new User(props));
+        return Res.success(
+            new User({
+                ...props,
+                limit,
+            }),
+        );
     }
 
     static load(props: LoadUserProps, id: string): User {

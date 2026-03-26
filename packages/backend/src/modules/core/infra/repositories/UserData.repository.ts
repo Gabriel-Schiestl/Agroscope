@@ -8,6 +8,7 @@ import { User } from '../../domain/models/User';
 import { UserMapper } from '../mappers/User.mapper';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { UserModel } from '../models/User.model';
+import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 
 @Injectable()
 export class UserDataRepository implements UserRepository {
@@ -24,7 +25,9 @@ export class UserDataRepository implements UserRepository {
 
     async getAll(): Promise<Result<UserRepositoryExceptions, User[]>> {
         try {
-            const models = await UserModel.find();
+            const models = await UserModel.find({
+                relations: { limit: true },
+            });
 
             return Res.success(
                 models.map((model) => UserMapper.modelToDomain(model)),
@@ -36,7 +39,15 @@ export class UserDataRepository implements UserRepository {
 
     async getById(id: string): Promise<Result<UserRepositoryExceptions, User>> {
         try {
-            const model = await UserModel.findOneBy({ id });
+            const model = await UserModel.findOne({
+                where: { id },
+                relations: { limit: true },
+            });
+            if (!model) {
+                return Res.failure(
+                    new RepositoryNoDataFound('User not found'),
+                );
+            }
 
             return Res.success(UserMapper.modelToDomain(model));
         } catch (e) {
@@ -44,15 +55,19 @@ export class UserDataRepository implements UserRepository {
         }
     }
 
-    async getUser(id: string): Promise<Result<UserRepositoryExceptions, User>> {
-        return this.getById(id);
-    }
-
     async getByEmail(
         email: string,
     ): Promise<Result<UserRepositoryExceptions, User>> {
         try {
-            const model = await UserModel.findOneBy({ email });
+            const model = await UserModel.findOne({
+                where: { email },
+                relations: { limit: true },
+            });
+            if (!model) {
+                return Res.failure(
+                    new RepositoryNoDataFound('User not found'),
+                );
+            }
 
             return Res.success(UserMapper.modelToDomain(model));
         } catch (e) {

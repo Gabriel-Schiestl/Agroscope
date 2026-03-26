@@ -39,30 +39,30 @@ export interface LoadHistoryProps {
 }
 
 export class History {
-    _id: string;
-    _createdAt: Date;
-    _sicknessId?: string;
-    _sicknessConfidence?: number;
-    _crop: string;
-    _cropConfidence: number;
-    _handling: string;
-    _image: string;
-    _explanation?: string;
-    _userId?: string;
-    _causes?: string;
+    #id: string;
+    #createdAt: Date;
+    #sicknessId?: string;
+    #sicknessConfidence?: number;
+    #crop: string;
+    #cropConfidence: number;
+    #handling: string;
+    #image: string;
+    #explanation?: string;
+    #userId?: string;
+    #causes?: string;
 
     private constructor(props: HistoryProps, id?: string) {
-        this._id = id || uuid();
-        this._createdAt = props.createdAt;
-        this._sicknessId = props.sicknessId;
-        this._sicknessConfidence = props.sicknessConfidence;
-        this._crop = props.crop;
-        this._cropConfidence = props.cropConfidence;
-        this._handling = props.handling;
-        this._image = props.image;
-        this._explanation = props.explanation;
-        this._userId = props.userId;
-        this._causes = props.causes;
+        this.#id = id || uuid();
+        this.#createdAt = props.createdAt;
+        this.#sicknessId = props.sicknessId;
+        this.#sicknessConfidence = props.sicknessConfidence;
+        this.#crop = props.crop;
+        this.#cropConfidence = props.cropConfidence;
+        this.#handling = props.handling;
+        this.#image = props.image;
+        this.#explanation = props.explanation;
+        this.#userId = props.userId;
+        this.#causes = props.causes;
     }
 
     static create(props: CreateHistoryProps): History {
@@ -74,46 +74,46 @@ export class History {
     }
 
     get id(): string {
-        return this._id;
+        return this.#id;
     }
 
     get createdAt(): Date {
-        return this._createdAt;
+        return this.#createdAt;
     }
 
     get sicknessId(): string {
-        return this._sicknessId;
+        return this.#sicknessId;
     }
 
     get sicknessConfidence(): number {
-        return this._sicknessConfidence;
+        return this.#sicknessConfidence;
     }
 
     get crop(): string {
-        return this._crop;
+        return this.#crop;
     }
 
     get cropConfidence(): number {
-        return this._cropConfidence;
+        return this.#cropConfidence;
     }
 
     get handling(): string {
-        return this._handling;
+        return this.#handling;
     }
 
     get image(): string {
-        return this._image;
+        return this.#image;
     }
 
     get explanation(): string {
-        return this._explanation;
+        return this.#explanation;
     }
 
     get userId(): string {
-        return this._userId;
+        return this.#userId;
     }
 
     get causes(): string {
-        return this._causes;
+        return this.#causes;
     }
 }

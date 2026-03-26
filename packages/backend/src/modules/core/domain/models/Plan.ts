@@ -1,4 +1,6 @@
 import { Agg } from 'src/shared/Agg';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
+import { Res, Result } from 'src/shared/Result';
 
 export interface PlanProps {
     type: string;
@@ -13,9 +15,24 @@ export class Plan extends Agg<PlanProps> {
         super(props, id);
     }
 
-    static create(props: PlanProps): Plan {
-        const instance = new Plan(props);
-        return instance;
+    static create(props: PlanProps): Result<BusinessException, Plan> {
+        if (!props.type) {
+            return Res.failure(new BusinessException('Type is required'));
+        }
+        if (props.imageLimit < 0) {
+            return Res.failure(new BusinessException('Image limit is invalid'));
+        }
+        if (props.chatLimit < 0) {
+            return Res.failure(new BusinessException('Chat limit is invalid'));
+        }
+        if (props.price < 0) {
+            return Res.failure(new BusinessException('Price is invalid'));
+        }
+        if (!props.features) {
+            return Res.failure(new BusinessException('Features are required'));
+        }
+
+        return Res.success(new Plan(props));
     }
 
     static load(props: PlanProps, id: string): Plan {

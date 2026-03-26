@@ -40,8 +40,9 @@ export class UserModel extends BaseEntity implements UserModelProps {
     plan_relation?: PlanModel;
 
     @OneToOne(() => LimitModel, (limit) => limit.user_relation, {
-        nullable: true,
+        nullable: false,
         onDelete: 'CASCADE',
+        cascade: ['insert', 'update'],
     })
     limit: LimitModel;
 

@@ -1,4 +1,6 @@
 import { Agg } from 'src/shared/Agg';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
+import { Res, Result } from 'src/shared/Result';
 
 export interface SicknessProps {
   name: string;
@@ -11,9 +13,15 @@ export class Sickness extends Agg<SicknessProps> {
     super(props, id);
   }
 
-  static create(props: SicknessProps): Sickness {
-    const instance = new Sickness(props);
-    return instance;
+  static create(props: SicknessProps): Result<BusinessException, Sickness> {
+    if (!props.name) {
+      return Res.failure(new BusinessException('Name is required'));
+    }
+    if (!props.symptoms || props.symptoms.length === 0) {
+      return Res.failure(new BusinessException('Symptoms are required'));
+    }
+
+    return Res.success(new Sickness(props));
   }
 
   static load(props: SicknessProps, id: string): Sickness {

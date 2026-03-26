@@ -3,7 +3,6 @@ import { ImageDataRepository } from './ImageData.repository';
 import { SicknessDataRepository } from './SicknessData.repository';
 import { UserDataRepository } from './UserData.repository';
 import { PlanDataRepository } from './PlanData.repository';
-import { LimitDataRepository } from './LimitData.repository';
 
 export const repositories = [
     {
@@ -25,9 +24,5 @@ export const repositories = [
     {
         provide: 'PlanRepository',
         useClass: PlanDataRepository,
-    },
-    {
-        provide: 'LimitRepository',
-        useClass: LimitDataRepository,
     },
 ];

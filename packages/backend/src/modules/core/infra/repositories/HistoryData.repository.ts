@@ -36,10 +36,6 @@ export class HistoryRepositoryImpl implements HistoryRepository {
         try {
             const models = await HistoryModel.find();
 
-            if (models.length === 0) {
-                return Res.failure(new RepositoryNoDataFound('No data found'));
-            }
-
             return Res.success(
                 models.map((model) => HistoryMapper.modelToDomain(model)),
             );
@@ -72,11 +68,6 @@ export class HistoryRepositoryImpl implements HistoryRepository {
     ): Promise<Result<HistoryExceptions, History[]>> {
         try {
             const models = await HistoryModel.find({ where: { userId } });
-            if (!models || models.length === 0) {
-                return Res.failure(
-                    new RepositoryNoDataFound('History not found'),
-                );
-            }
 
             return Res.success(
                 models.map((model) => HistoryMapper.modelToDomain(model)),

@@ -4,13 +4,19 @@ import { LimitMapper } from './Limit.mapper';
 
 export class UserMapper {
     static domainToModel(user: User): UserModel {
-        return new UserModel().setProps({
+        const model = new UserModel().setProps({
             id: user.id,
             email: user.email,
             name: user.name,
             planId: user.planId,
-            limit: LimitMapper.domainToModel(user.limit),
+            limit: undefined,
         });
+
+        const limitModel = LimitMapper.domainToModel(user.limit);
+        limitModel.user_relation = model;
+        model.limit = limitModel;
+
+        return model;
     }
 
     static modelToDomain(user: UserModel): User {

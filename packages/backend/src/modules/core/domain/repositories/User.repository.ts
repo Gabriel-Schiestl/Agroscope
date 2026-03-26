@@ -11,6 +11,5 @@ export interface UserRepository {
     save(user: User): Promise<Result<UserRepositoryExceptions, void>>;
     getAll(): Promise<Result<UserRepositoryExceptions, User[]>>;
     getById(id: string): Promise<Result<UserRepositoryExceptions, User>>;
-    getUser(id: string): Promise<Result<UserRepositoryExceptions, User>>;
     getByEmail(email: string): Promise<Result<UserRepositoryExceptions, User>>;
 }

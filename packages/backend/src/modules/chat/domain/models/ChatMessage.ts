@@ -47,9 +47,7 @@ export class ChatMessage implements ChatMessageProps {
             );
         }
         if (!props.userId) {
-            return Res.failure(
-                new BusinessException('O userId é obrigatório'),
-            );
+            return Res.failure(new BusinessException('O userId é obrigatório'));
         }
         if (!props.sessionId) {
             return Res.failure(

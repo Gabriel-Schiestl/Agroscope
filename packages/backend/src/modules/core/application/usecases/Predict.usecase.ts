@@ -8,16 +8,25 @@ import { SicknessRepository } from '../../domain/repositories/Sickness.repositor
 import { PlanRepository } from '../../domain/repositories/Plan.repository';
 import { UserRepository } from '../../domain/repositories/User.repository';
 import { PredictService } from '../../domain/services/Predict.service';
+import {
+    UserLocation,
+    WeatherService,
+} from '../../domain/services/Weather.service';
 
-// Technical Exeption Import
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { HistoryDto } from '../dto/History.dto';
 import { HistoryAppMapper } from '../mappers/History.mapper';
 import { ProducerService } from 'src/shared/domain/services/Producer.service';
 
+export interface PredictParams {
+    imagePath: string;
+    userId: string;
+    location?: UserLocation;
+}
+
 @Injectable()
 export class PredictUseCase extends AbstractUseCase<
-    { imagePath: string; userId: string },
+    PredictParams,
     Exception,
     HistoryDto
 > {
@@ -34,6 +43,8 @@ export class PredictUseCase extends AbstractUseCase<
         private readonly predictService: PredictService,
         @Inject('ProducerService')
         private readonly producerService: ProducerService,
+        @Inject('WeatherService')
+        private readonly weatherService: WeatherService,
     ) {
         super();
     }
@@ -41,10 +52,8 @@ export class PredictUseCase extends AbstractUseCase<
     async onExecute({
         imagePath,
         userId,
-    }: {
-        imagePath: string;
-        userId: string;
-    }): Promise<Result<Exception, HistoryDto>> {
+        location,
+    }: PredictParams): Promise<Result<Exception, HistoryDto>> {
         const userResult = await this.userRepository.getById(userId);
         if (userResult.isFailure()) {
             return Res.failure(userResult.error);
@@ -123,10 +132,31 @@ export class PredictUseCase extends AbstractUseCase<
             return Res.failure(sicknessResult.error);
         }
 
+        const sickness = sicknessResult.value;
+
+        if (location) {
+            const weatherResult =
+                await this.weatherService.getCurrentWeather(location);
+
+            if (weatherResult.isSuccess()) {
+                const compatible = sickness.isCompatibleWithWeather(
+                    weatherResult.value,
+                );
+
+                if (!compatible) {
+                    return Res.failure(
+                        new BusinessException(
+                            'Não foi possível confirmar o diagnóstico: as condições climáticas da sua região não correspondem ao padrão esperado para esta doença.',
+                        ),
+                    );
+                }
+            }
+        }
+
         const history = History.create({
             handling: handling.value.manejo,
             image: imageBase64.value,
-            sicknessId: sicknessResult.value.id,
+            sicknessId: sickness.id,
             userId: userId,
             crop: result.value.plant,
             cropConfidence: result.value.plantConfidence,

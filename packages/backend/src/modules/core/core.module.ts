@@ -11,7 +11,16 @@ import { SharedModule } from 'src/shared/shared.module';
 @Module({
     imports: [forwardRef(() => AuthModule), HttpModule, SharedModule],
     controllers: [...controllers],
-    providers: [...useCases, ...queries, ...repositories, ...services],
+    providers: [
+        ...useCases,
+        ...queries,
+        ...repositories,
+        ...services,
+        {
+            provide: 'OPEN_METEO_API_URL',
+            useValue: 'https://api.open-meteo.com/v1/forecast', // TODO: Move to env
+        },
+    ],
     exports: [...repositories, ...services],
 })
 export class CoreModule {}

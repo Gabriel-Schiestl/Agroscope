@@ -1,4 +1,5 @@
 import {
+    Body,
     Controller,
     Get,
     Post,
@@ -11,6 +12,11 @@ import { GetHistoryUseCase } from '../application/usecases/GetHistory.usecase';
 import { PredictUseCase } from '../application/usecases/Predict.usecase';
 import { UseFileInterceptor } from '../infra/services/File.interceptor';
 
+class PredictBody {
+    latitude?: string;
+    longitude?: string;
+}
+
 @Controller()
 export class CoreController {
     constructor(
@@ -22,22 +28,34 @@ export class CoreController {
     @UseInterceptors(UseFileInterceptor)
     async predict(
         @UploadedFile() file: Express.Multer.File,
+        @Body() body: PredictBody,
         @Req() req: Request,
     ) {
-        const result = await this.predictUseCase.execute({
+        const location = this.parseLocation(body);
+
+        return this.predictUseCase.execute({
             imagePath: file.path,
             userId: req['user'].sub,
+            location,
         });
-
-        return result;
     }
 
     @Get('history')
     async getHistory(@Req() req: Request) {
-        const result = await this.getHistoryUseCase.execute({
+        return this.getHistoryUseCase.execute({
             userId: req['user'].sub,
         });
+    }
 
-        return result;
+    private parseLocation(
+        body: PredictBody,
+    ): { latitude: number; longitude: number } | undefined {
+        const lat = parseFloat(body.latitude);
+        const lon = parseFloat(body.longitude);
+
+        if (isNaN(lat) || isNaN(lon)) return undefined;
+        if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return undefined;
+
+        return { latitude: lat, longitude: lon };
     }
 }

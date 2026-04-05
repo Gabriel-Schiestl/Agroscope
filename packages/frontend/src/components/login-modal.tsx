@@ -42,7 +42,7 @@ export default function LoginModal({
     setError("");
 
     try {
-      router.push("/dashboard");
+      router.push("/analytics");
       //await LoginAPI(email, password);
       onClose();
     } catch (error) {

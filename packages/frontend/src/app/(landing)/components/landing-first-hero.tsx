@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { useAuthModal } from '@/contexts/auth-modal-context';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useState } from 'react';
 import { Upload } from 'lucide-react';
 
@@ -59,11 +58,11 @@ export default function FirstHero() {
                 >
                   Criar Conta Grátis
                 </Button>
-                <Link href="/recursos-detalhes">
+                <a href="#como-funciona">
                   <Button variant="outline" className="px-6 py-2 rounded-md">
                     Saiba Mais
                   </Button>
-                </Link>
+                </a>
               </div>
             </div>
             {/* <div className="order-first md:order-last flex justify-center">
@@ -125,7 +124,10 @@ export default function FirstHero() {
                     Escolher outra imagem
                   </Button>
                   {uploadStatus === 'idle' && (
-                    <Button className="bg-primaryGreen hover:bg-lightGreen">
+                    <Button
+                      className="bg-primaryGreen hover:bg-lightGreen"
+                      onClick={openSignup}
+                    >
                       Analisar Imagem
                     </Button>
                   )}

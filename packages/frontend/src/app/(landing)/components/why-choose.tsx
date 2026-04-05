@@ -63,15 +63,14 @@ export default function WhyChoose() {
             </Card>
           </div>
 
-          {/* BOTÃO COMECE AGORA */}
-          {/* <div className="mt-10 text-center">
+          <div className="mt-10 text-center">
             <Button
               className="bg-primaryGreen hover:bg-lightGreen"
               onClick={openSignup}
             >
               Comece Agora Gratuitamente
             </Button>
-          </div> */}
+          </div>
         </div>
       </section>
     </>

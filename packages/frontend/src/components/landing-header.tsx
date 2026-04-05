@@ -25,7 +25,7 @@ export default function LandingHeader() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/analytics">
+          <Link href="/">
             <div>
               <h2 className="text-[#4dae50] font-bold text-xl">AgroScope</h2>
             </div>

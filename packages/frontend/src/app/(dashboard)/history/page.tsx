@@ -76,40 +76,36 @@ import {
   X,
 } from "lucide-react";
 import { History } from "../../../models/History";
-import { Sickness } from "../../../models/Sickness";
 
-// Status personalizado para o histórico (não definido no modelo)
+// Status é um conceito local de UI, não existe no backend
 type Status = "confirmed" | "unconfirmed" | "incorrect";
 
-// Dados de exemplo para o histórico de análises baseado no modelo History
-const MOCK_HISTORY_DATA: (History & {
+type HistoryWithMeta = History & {
   status: Status;
   notes?: string;
   location?: string;
   area?: string;
-})[] = [
+};
+
+// Mock data alinhado com HistoryDto do backend
+const MOCK_HISTORY_DATA: HistoryWithMeta[] = [
   {
     id: "1",
     createdAt: new Date("2024-04-15T14:30:00"),
     crop: "Soja",
     cropConfidence: 95.2,
-    sickness: {
-      name: "Ferrugem Asiática",
-      description: "Phakopsora pachyrhizi",
-      symptoms: [
-        "Lesões amareladas nas folhas",
-        "Pústulas na face inferior das folhas",
-        "Amarelecimento e queda prematura das folhas",
-      ],
-    },
+    sicknessId: "sid-ferrugem-asiatica",
     sicknessConfidence: 92.5,
     image: "/placeholder.svg?height=200&width=200",
-    status: "confirmed",
     handling:
       "Aplicação de fungicidas triazóis ou estrobilurinas. Monitoramento constante da lavoura, especialmente em períodos de alta umidade.",
+    explanation:
+      "Ferrugem Asiática (Phakopsora pachyrhizi) identificada na folhagem.",
+    causes:
+      "Lesões amareladas nas folhas, pústulas na face inferior das folhas e amarelecimento com queda prematura das folhas.",
+    status: "confirmed",
     location: "Fazenda São João - Talhão 3",
     area: "45 ha",
-    clientId: "client-001",
     userId: "user-001",
   },
   {
@@ -117,23 +113,18 @@ const MOCK_HISTORY_DATA: (History & {
     createdAt: new Date("2024-04-10T09:15:00"),
     crop: "Milho",
     cropConfidence: 98.3,
-    sickness: {
-      name: "Mancha de Cercospora",
-      description: "Cercospora zeae-maydis",
-      symptoms: [
-        "Lesões retangulares de coloração amarelada a marrom",
-        "Lesões paralelas às nervuras da folha",
-        "Em estágios avançados, coalescimento das lesões",
-      ],
-    },
+    sicknessId: "sid-mancha-cercospora",
     sicknessConfidence: 88.7,
     image: "/placeholder.svg?height=200&width=200",
-    status: "unconfirmed",
     handling:
       "Utilização de fungicidas à base de estrobilurinas e triazóis. Rotação de culturas com espécies não hospedeiras.",
+    explanation:
+      "Mancha de Cercospora (Cercospora zeae-maydis) identificada nas folhas.",
+    causes:
+      "Lesões retangulares de coloração amarelada a marrom paralelas às nervuras. Em estágios avançados ocorre coalescimento das lesões.",
+    status: "unconfirmed",
     location: "Fazenda São João - Talhão 5",
     area: "32 ha",
-    clientId: "client-001",
     userId: "user-001",
   },
   {
@@ -141,23 +132,18 @@ const MOCK_HISTORY_DATA: (History & {
     createdAt: new Date("2024-04-05T11:20:00"),
     crop: "Café",
     cropConfidence: 97.1,
-    sickness: {
-      name: "Ferrugem do Cafeeiro",
-      description: "Hemileia vastatrix",
-      symptoms: [
-        "Manchas cloróticas na face superior das folhas",
-        "Pústulas amarelo-alaranjadas na face inferior das folhas",
-        "Desfolha prematura em casos severos",
-      ],
-    },
+    sicknessId: "sid-ferrugem-cafeeiro",
     sicknessConfidence: 95.2,
     image: "/placeholder.svg?height=200&width=200",
-    status: "confirmed",
     handling:
       "Aplicação preventiva de fungicidas cúpricos. Manejo da densidade de plantio para melhorar a ventilação.",
+    explanation:
+      "Ferrugem do Cafeeiro (Hemileia vastatrix) identificada na folhagem.",
+    causes:
+      "Manchas cloróticas na face superior, pústulas amarelo-alaranjadas na face inferior e desfolha prematura em casos severos.",
+    status: "confirmed",
     location: "Sítio Esperança",
     area: "12 ha",
-    clientId: "client-002",
     userId: "user-001",
   },
   {
@@ -165,25 +151,18 @@ const MOCK_HISTORY_DATA: (History & {
     createdAt: new Date("2024-03-28T16:45:00"),
     crop: "Algodão",
     cropConfidence: 94.6,
-    sickness: {
-      name: "Ramulária",
-      description: "Ramularia areola",
-      symptoms: [
-        "Manchas brancas, angulares a circulares",
-        "Necrose no centro das manchas",
-        "Crescimento branco pulverulento na face inferior da folha",
-      ],
-    },
+    sicknessId: "sid-ramularia",
     sicknessConfidence: 91.3,
     image: "/placeholder.svg?height=200&width=200",
-    status: "incorrect",
-    notes:
-      "Diagnóstico incorreto. Identificado manualmente como Mancha de Alternária.",
     handling:
       "Aplicação de fungicidas específicos. Monitoramento de condições climáticas favoráveis à doença.",
+    explanation: "Ramulária (Ramularia areola) identificada nas folhas.",
+    causes:
+      "Manchas brancas angulares a circulares com necrose central e crescimento branco pulverulento na face inferior da folha.",
+    status: "incorrect",
+    notes: "Diagnóstico incorreto. Identificado manualmente como Mancha de Alternária.",
     location: "Fazenda Boa Vista - Setor Norte",
     area: "78 ha",
-    clientId: "client-003",
     userId: "user-002",
   },
   {
@@ -191,23 +170,18 @@ const MOCK_HISTORY_DATA: (History & {
     createdAt: new Date("2024-03-22T10:30:00"),
     crop: "Soja",
     cropConfidence: 96.8,
-    sickness: {
-      name: "Mofo Branco",
-      description: "Sclerotinia sclerotiorum",
-      symptoms: [
-        "Lesões aquosas nos tecidos vegetais",
-        "Crescimento branco e cotonoso sobre os tecidos afetados",
-        "Formação de escleródios (estruturas de resistência pretas)",
-      ],
-    },
+    sicknessId: "sid-mofo-branco",
     sicknessConfidence: 87.9,
     image: "/placeholder.svg?height=200&width=200",
-    status: "confirmed",
     handling:
       "Aplicação de fungicidas específicos. Redução da densidade de plantio em áreas com histórico da doença.",
+    explanation:
+      "Mofo Branco (Sclerotinia sclerotiorum) identificado nos tecidos vegetais.",
+    causes:
+      "Lesões aquosas nos tecidos, crescimento branco cotonoso sobre os tecidos afetados e formação de escleródios pretos.",
+    status: "confirmed",
     location: "Fazenda Paraíso - Talhão 2",
     area: "55 ha",
-    clientId: "client-004",
     userId: "user-001",
   },
   {
@@ -215,23 +189,18 @@ const MOCK_HISTORY_DATA: (History & {
     createdAt: new Date("2024-03-15T14:00:00"),
     crop: "Trigo",
     cropConfidence: 93.5,
-    sickness: {
-      name: "Giberela",
-      description: "Fusarium graminearum",
-      symptoms: [
-        "Descoloração das espiguetas",
-        "Espiguetas de coloração esbranquiçada a rosada",
-        "Presença de micélio rosado em condições de alta umidade",
-      ],
-    },
+    sicknessId: "sid-giberela",
     sicknessConfidence: 89.4,
     image: "/placeholder.svg?height=200&width=200",
-    status: "unconfirmed",
     handling:
       "Aplicação de fungicidas no florescimento. Uso de variedades resistentes.",
+    explanation:
+      "Giberela (Fusarium graminearum) identificada nas espiguetas.",
+    causes:
+      "Descoloração das espiguetas com coloração esbranquiçada a rosada e presença de micélio rosado em alta umidade.",
+    status: "unconfirmed",
     location: "Fazenda Santa Clara",
     area: "40 ha",
-    clientId: "client-001",
     userId: "user-002",
   },
   {
@@ -239,23 +208,18 @@ const MOCK_HISTORY_DATA: (History & {
     createdAt: new Date("2024-03-10T09:45:00"),
     crop: "Milho",
     cropConfidence: 98.0,
-    sickness: {
-      name: "Ferrugem Comum",
-      description: "Puccinia sorghi",
-      symptoms: [
-        "Pústulas de coloração marrom-avermelhada",
-        "Pústulas em ambas as faces da folha",
-        "Distribuição por toda a planta em casos severos",
-      ],
-    },
+    sicknessId: "sid-ferrugem-comum",
     sicknessConfidence: 90.1,
     image: "/placeholder.svg?height=200&width=200",
-    status: "confirmed",
     handling:
       "Aplicação de fungicidas à base de triazóis e estrobilurinas. Uso de híbridos resistentes.",
+    explanation:
+      "Ferrugem Comum (Puccinia sorghi) identificada em ambas as faces das folhas.",
+    causes:
+      "Pústulas de coloração marrom-avermelhada em ambas as faces da folha com distribuição generalizada em casos severos.",
+    status: "confirmed",
     location: "Fazenda São João - Talhão 1",
     area: "28 ha",
-    clientId: "client-001",
     userId: "user-001",
   },
   {
@@ -263,28 +227,22 @@ const MOCK_HISTORY_DATA: (History & {
     createdAt: new Date("2024-03-05T11:30:00"),
     crop: "Café",
     cropConfidence: 95.7,
-    sickness: {
-      name: "Cercosporiose",
-      description: "Cercospora coffeicola",
-      symptoms: [
-        "Manchas circulares de coloração marrom-clara a castanha",
-        "Centro cinza-claro com bordas avermelhadas",
-        "Queda prematura de folhas",
-      ],
-    },
+    sicknessId: "sid-cercosporiose",
     sicknessConfidence: 86.5,
     image: "/placeholder.svg?height=200&width=200",
-    status: "unconfirmed",
     handling:
       "Aplicação de fungicidas cúpricos. Manejo da adubação para evitar deficiência nutricional.",
+    explanation:
+      "Cercosporiose (Cercospora coffeicola) identificada nas folhas.",
+    causes:
+      "Manchas circulares marrom-claras com centro cinza-claro e bordas avermelhadas, com queda prematura de folhas.",
+    status: "unconfirmed",
     location: "Sítio Esperança",
     area: "8 ha",
-    clientId: "client-002",
     userId: "user-001",
   },
 ];
 
-// Opções para filtros
 const CROP_OPTIONS = ["Todos", "Soja", "Milho", "Café", "Algodão", "Trigo"];
 const STATUS_OPTIONS = [
   { value: "all", label: "Todos" },
@@ -300,68 +258,55 @@ const SORT_OPTIONS = [
 ];
 
 export default function HistoryPage() {
-  // Estados para filtros e visualização
   const [searchQuery, setSearchQuery] = useState("");
   const [cropFilter, setCropFilter] = useState("Todos");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [sortOption, setSortOption] = useState("date-desc");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [selectedHistory, setSelectedHistory] = useState<
-    (typeof MOCK_HISTORY_DATA)[0] | null
-  >(null);
+  const [selectedHistory, setSelectedHistory] = useState<HistoryWithMeta | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Filtrar e ordenar análises
   const filteredHistories = MOCK_HISTORY_DATA.filter((history) => {
-    // Filtro de busca
+    const searchText = searchQuery.toLowerCase();
     const matchesSearch =
       searchQuery === "" ||
-      history.sickness.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      history.crop.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (history.location &&
-        history.location.toLowerCase().includes(searchQuery.toLowerCase()));
+      (history.explanation || "").toLowerCase().includes(searchText) ||
+      history.crop.toLowerCase().includes(searchText) ||
+      (history.location || "").toLowerCase().includes(searchText);
 
-    // Filtro de cultura
     const matchesCrop = cropFilter === "Todos" || history.crop === cropFilter;
-
-    // Filtro de status
     const matchesStatus =
       statusFilter === "all" || history.status === statusFilter;
-
-    // Filtro de data
     const matchesDate =
       !dateFilter ||
-      format(history.createdAt, "yyyy-MM-dd") ===
+      format(new Date(history.createdAt), "yyyy-MM-dd") ===
         format(dateFilter, "yyyy-MM-dd");
 
     return matchesSearch && matchesCrop && matchesStatus && matchesDate;
   }).sort((a, b) => {
-    // Ordenação
     switch (sortOption) {
       case "date-desc":
-        return b.createdAt.getTime() - a.createdAt.getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "date-asc":
-        return a.createdAt.getTime() - b.createdAt.getTime();
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case "confidence-desc":
-        return b.sicknessConfidence - a.sicknessConfidence;
+        return (b.sicknessConfidence ?? 0) - (a.sicknessConfidence ?? 0);
       case "confidence-asc":
-        return a.sicknessConfidence - b.sicknessConfidence;
+        return (a.sicknessConfidence ?? 0) - (b.sicknessConfidence ?? 0);
       default:
         return 0;
     }
   });
 
-  // Paginação
   const totalPages = Math.ceil(filteredHistories.length / itemsPerPage);
   const paginatedHistories = filteredHistories.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Limpar todos os filtros
   const clearFilters = () => {
     setSearchQuery("");
     setCropFilter("Todos");
@@ -370,13 +315,11 @@ export default function HistoryPage() {
     setSortOption("date-desc");
   };
 
-  // Abrir detalhes de uma análise
-  const openHistoryDetails = (history: (typeof MOCK_HISTORY_DATA)[0]) => {
+  const openHistoryDetails = (history: HistoryWithMeta) => {
     setSelectedHistory(history);
     setIsDetailsOpen(true);
   };
 
-  // Renderizar badge de status
   const renderStatusBadge = (status: Status) => {
     switch (status) {
       case "confirmed":
@@ -419,7 +362,7 @@ export default function HistoryPage() {
                 size={16}
               />
               <Input
-                placeholder="Buscar por cultura, doença ou localização..."
+                placeholder="Buscar por cultura, diagnóstico ou localização..."
                 className="pl-10 pr-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -546,7 +489,6 @@ export default function HistoryPage() {
 
       {/* Resultados */}
       <div className="space-y-4">
-        {/* Contagem de resultados */}
         <div className="flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
             Mostrando {paginatedHistories.length} de {filteredHistories.length}{" "}
@@ -554,7 +496,6 @@ export default function HistoryPage() {
           </p>
         </div>
 
-        {/* Lista vazia */}
         {filteredHistories.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
@@ -580,30 +521,33 @@ export default function HistoryPage() {
                     className="p-4 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex flex-col md:flex-row gap-4">
-                      <div className="relative w-full md:w-32 h-32 rounded-md overflow-hidden flex-shrink-0">
+                      <div className="relative w-full md:w-32 h-32 rounded-md overflow-hidden flex-shrink-0 bg-muted">
                         <Image
                           src={history.image || "/placeholder.svg"}
-                          alt={history.sickness.name}
+                          alt={history.crop}
                           fill
                           className="object-cover"
                         />
                       </div>
                       <div className="flex-1">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                          <h3 className="font-medium text-lg">
-                            {history.sickness.name}
-                            {history.sickness.description && (
-                              <span className="text-sm font-normal text-muted-foreground ml-1">
-                                ({history.sickness.description})
-                              </span>
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-2 mb-2">
+                          <div>
+                            <h3 className="font-medium text-lg">
+                              {history.explanation || history.crop}
+                            </h3>
+                            {history.causes && (
+                              <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                                {history.causes}
+                              </p>
                             )}
-                          </h3>
-                          <div className="flex items-center gap-2">
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             {renderStatusBadge(history.status)}
-                            <Badge className="bg-primaryGreen">
-                              Confiança: {history.sicknessConfidence.toFixed(1)}
-                              %
-                            </Badge>
+                            {history.sicknessConfidence != null && (
+                              <Badge className="bg-primaryGreen">
+                                {history.sicknessConfidence.toFixed(1)}%
+                              </Badge>
+                            )}
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mb-2">
@@ -611,7 +555,7 @@ export default function HistoryPage() {
                             <CalendarIcon className="mr-1 h-3 w-3" />
                             <span>
                               {format(
-                                history.createdAt,
+                                new Date(history.createdAt),
                                 "dd 'de' MMMM 'de' yyyy, HH:mm",
                                 { locale: ptBR }
                               )}
@@ -646,29 +590,6 @@ export default function HistoryPage() {
                           )}
                           {history.area && (
                             <div className="flex items-center text-sm text-muted-foreground">
-                              <svg
-                                className="mr-1 h-3 w-3"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M3 6V5c0-1.1.9-2 2-2h2" />
-                                <path d="M11 3h2c1.1 0 2 .9 2 2v1" />
-                                <path d="M21 6V5c0-1.1-.9-2-2-2h-2" />
-                                <path d="M3 18v1c0 1.1.9 2 2 2h2" />
-                                <path d="M11 21h2c1.1 0 2-.9 2-2v-1" />
-                                <path d="M21 18v1c0 1.1-.9-2-2-2h-2" />
-                                <path d="M3 10v4" />
-                                <path d="M21 10v4" />
-                                <path d="M10 3v18" />
-                                <path d="M14 3v18" />
-                              </svg>
                               <span>Área: {history.area}</span>
                             </div>
                           )}
@@ -730,10 +651,10 @@ export default function HistoryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {paginatedHistories.map((history) => (
               <Card key={history.id} className="overflow-hidden">
-                <div className="relative w-full h-48">
+                <div className="relative w-full h-48 bg-muted">
                   <Image
                     src={history.image || "/placeholder.svg"}
-                    alt={history.sickness.name}
+                    alt={history.crop}
                     fill
                     className="object-cover"
                   />
@@ -742,22 +663,24 @@ export default function HistoryPage() {
                   </div>
                 </div>
                 <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-base">
-                    {history.sickness.name}
+                  <CardTitle className="text-base line-clamp-2">
+                    {history.explanation || history.crop}
                   </CardTitle>
                   <CardDescription>
                     <div className="flex items-center justify-between">
                       <span>Cultura: {history.crop}</span>
-                      <Badge className="bg-primaryGreen text-xs">
-                        {history.sicknessConfidence.toFixed(1)}%
-                      </Badge>
+                      {history.sicknessConfidence != null && (
+                        <Badge className="bg-primaryGreen text-xs">
+                          {history.sicknessConfidence.toFixed(1)}%
+                        </Badge>
+                      )}
                     </div>
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <p className="text-xs text-muted-foreground mb-2">
                     {format(
-                      history.createdAt,
+                      new Date(history.createdAt),
                       "dd 'de' MMMM 'de' yyyy, HH:mm",
                       { locale: ptBR }
                     )}
@@ -831,8 +754,6 @@ export default function HistoryPage() {
 
               {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
                 let pageNumber: number;
-
-                // Lógica para mostrar as páginas corretas quando há muitas páginas
                 if (totalPages <= 5) {
                   pageNumber = i + 1;
                 } else if (currentPage <= 3) {
@@ -895,7 +816,7 @@ export default function HistoryPage() {
                 <DialogDescription>
                   Análise realizada em{" "}
                   {format(
-                    selectedHistory.createdAt,
+                    new Date(selectedHistory.createdAt),
                     "dd 'de' MMMM 'de' yyyy, HH:mm",
                     { locale: ptBR }
                   )}
@@ -903,10 +824,10 @@ export default function HistoryPage() {
               </DialogHeader>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative w-full h-48 rounded-md overflow-hidden">
+                <div className="relative w-full h-48 rounded-md overflow-hidden bg-muted">
                   <Image
                     src={selectedHistory.image || "/placeholder.svg"}
-                    alt={selectedHistory.sickness.name}
+                    alt={selectedHistory.crop}
                     fill
                     className="object-cover"
                   />
@@ -917,20 +838,17 @@ export default function HistoryPage() {
                     <h3 className="text-sm font-medium text-muted-foreground">
                       Diagnóstico
                     </h3>
-                    <p className="font-medium text-lg">
-                      {selectedHistory.sickness.name}
-                      {selectedHistory.sickness.description && (
-                        <span className="text-sm font-normal text-muted-foreground ml-1">
-                          ({selectedHistory.sickness.description})
-                        </span>
-                      )}
+                    <p className="font-medium">
+                      {selectedHistory.explanation || "Não identificado"}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       {renderStatusBadge(selectedHistory.status)}
-                      <Badge className="bg-primaryGreen">
-                        Confiança:{" "}
-                        {selectedHistory.sicknessConfidence.toFixed(1)}%
-                      </Badge>
+                      {selectedHistory.sicknessConfidence != null && (
+                        <Badge className="bg-primaryGreen">
+                          Confiança:{" "}
+                          {selectedHistory.sicknessConfidence.toFixed(1)}%
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
@@ -967,16 +885,14 @@ export default function HistoryPage() {
               <Separator />
 
               <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium">Sintomas</h3>
-                  <ul className="list-disc pl-5 mt-2">
-                    {selectedHistory.sickness.symptoms.map((symptom, index) => (
-                      <li key={index} className="text-muted-foreground">
-                        {symptom}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {selectedHistory.causes && (
+                  <div>
+                    <h3 className="font-medium">Causas / Sintomas</h3>
+                    <p className="text-muted-foreground mt-1">
+                      {selectedHistory.causes}
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <h3 className="font-medium">Recomendações de Manejo</h3>

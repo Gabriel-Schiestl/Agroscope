@@ -1,10 +1,15 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
+import { useAuthModal } from '@/contexts/auth-modal-context';
 import { ArrowRight, CheckCircle2, Upload, Zap } from 'lucide-react';
 
 export default function HowItWorks() {
+  const { openSignup } = useAuthModal();
+
   return (
     <>
-    <div className="bg-[#09200b]">
+    <div className="bg-[#09200b]" id="como-funciona">
 
       <section className="py-20 px-4 md:px-6 inset-0 ">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 gap-12 items-center">
@@ -63,6 +68,7 @@ export default function HowItWorks() {
           <Button
             size="lg"
             className="bg-[#4dae50] hover:bg-[#334f36] text-primary-foreground"
+            onClick={openSignup}
           >
             Criar Conta Gratis
             <ArrowRight className="h-4 w-4 ml-2" />

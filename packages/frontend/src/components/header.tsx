@@ -42,7 +42,6 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
             <Bell size={20} className="text-foreground" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primaryGreen rounded-full"></span>
           </button>
 
           <DropdownMenu>
@@ -72,9 +71,11 @@ export default function Header() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
+              <DropdownMenuItem asChild>
+                <Link href="/settings#account">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/settings">

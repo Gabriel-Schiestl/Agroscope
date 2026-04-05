@@ -1,20 +1,20 @@
 import api from "../../shared/http/http.config";
-import { User } from "../../src/models/User";
 
 interface CreateUserParams {
   name: string;
   email: string;
   password: string;
+  planId?: string;
 }
 
 export default async function CreateUserAPI(
   userData: CreateUserParams
-): Promise<User | null> {
+): Promise<boolean> {
   try {
-    const response = await api.post("/user", userData);
-    return response.data as User;
+    await api.post("/user", userData);
+    return true;
   } catch (error) {
     console.error("Error creating user:", error);
-    return null;
+    return false;
   }
 }

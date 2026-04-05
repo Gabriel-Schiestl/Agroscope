@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { ChatModal } from '@/components/chat-modal';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/shared/http/http.config';
 import type { History } from '@/models/History';
@@ -87,6 +88,7 @@ export default function AnalyticsScreen() {
     const [result, setResult] = useState<History | null>(null);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'analysis' | 'history' | 'stats'>('analysis');
+    const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
     const windowWidth = Dimensions.get('window').width;
@@ -689,6 +691,19 @@ export default function AnalyticsScreen() {
                                             específicas para sua lavoura.
                                         </ThemedText>
                                     </View>
+
+                                    {/* Chat */}
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.chatBtn,
+                                            { backgroundColor: colors.tint },
+                                        ]}
+                                        onPress={() => setChatAnalysis(result)}
+                                    >
+                                        <ThemedText style={styles.chatBtnText}>
+                                            💬  Tirar dúvidas sobre esta análise
+                                        </ThemedText>
+                                    </TouchableOpacity>
                                 </View>
                             </ThemedView>
                         )}
@@ -886,6 +901,27 @@ export default function AnalyticsScreen() {
                                                             </ThemedText>
                                                         </View>
                                                     )}
+                                                <TouchableOpacity
+                                                    style={[
+                                                        styles.historyChatBtn,
+                                                        {
+                                                            backgroundColor:
+                                                                colors.tint + '18',
+                                                            borderColor:
+                                                                colors.tint + '50',
+                                                        },
+                                                    ]}
+                                                    onPress={() => setChatAnalysis(item)}
+                                                >
+                                                    <ThemedText
+                                                        style={[
+                                                            styles.historyChatBtnText,
+                                                            { color: colors.tint },
+                                                        ]}
+                                                    >
+                                                        💬 Chat
+                                                    </ThemedText>
+                                                </TouchableOpacity>
                                             </View>
                                         </View>
                                     ))}
@@ -1026,6 +1062,12 @@ export default function AnalyticsScreen() {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
+
+            <ChatModal
+                visible={chatAnalysis !== null}
+                analysis={chatAnalysis}
+                onClose={() => setChatAnalysis(null)}
+            />
         </View>
     );
 }
@@ -1178,4 +1220,20 @@ const styles = StyleSheet.create({
     diseasePct: { fontSize: 12 },
     progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
     progressFill: { height: '100%', borderRadius: 3 },
+    chatBtn: {
+        marginTop: 6,
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    chatBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    historyChatBtn: {
+        marginTop: 4,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 6,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    historyChatBtnText: { fontSize: 11, fontWeight: '600' },
 });

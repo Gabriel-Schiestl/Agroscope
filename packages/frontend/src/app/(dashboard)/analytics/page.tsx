@@ -32,10 +32,12 @@ import {
   Leaf,
   History,
   BarChart2,
+  MessageCircle,
 } from "lucide-react";
 import api from "../../../../shared/http/http.config";
 import { toast } from "react-toastify";
 import type { History as HistoryModel } from "../../../models/History";
+import { ChatPanel } from "../../../components/chat-panel";
 
 // Mock history data matching HistoryDto shape
 const ANALYSIS_HISTORY: HistoryModel[] = [
@@ -91,6 +93,7 @@ export default function AnalyticsPage() {
   const [result, setResult] = useState<HistoryModel | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [chatAnalysis, setChatAnalysis] = useState<HistoryModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -322,6 +325,14 @@ export default function AnalyticsPage() {
                         obter recomendações específicas para sua lavoura.
                       </AlertDescription>
                     </Alert>
+
+                    <Button
+                      className="w-full mt-2 bg-primaryGreen hover:bg-lightGreen"
+                      onClick={() => setChatAnalysis(result)}
+                    >
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Tirar dúvidas sobre esta análise
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -429,6 +440,15 @@ export default function AnalyticsPage() {
                           >
                             Ver detalhes
                           </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-primaryGreen border-primaryGreen/30 h-7 px-2 text-xs"
+                            onClick={() => setChatAnalysis(analysis)}
+                          >
+                            <MessageCircle className="mr-1 h-3 w-3" />
+                            Chat
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -511,6 +531,12 @@ export default function AnalyticsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ChatPanel
+        open={chatAnalysis !== null}
+        analysis={chatAnalysis}
+        onClose={() => setChatAnalysis(null)}
+      />
     </div>
   );
 }

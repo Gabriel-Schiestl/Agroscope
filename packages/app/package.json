@@ -15,6 +15,7 @@
     "@react-navigation/elements": "^2.9.10",
     "@react-navigation/native": "^7.1.33",
     "axios": "^1.13.6",
+    "socket.io-client": "^4.8.3",
     "expo": "~55.0.8",
     "expo-constants": "~55.0.9",
     "expo-device": "~55.0.10",

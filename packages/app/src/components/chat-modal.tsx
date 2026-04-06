@@ -13,9 +13,21 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { io, Socket } from 'socket.io-client';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, Spacing } from '@/constants/theme';
+import api from '@/shared/http/http.config';
+import { useAuth } from '@/contexts/auth-context';
 import type { History } from '@/models/History';
+
+interface ChatMessageDto {
+    id: string;
+    content: string;
+    sender: 'human' | 'ai';
+    userId: string;
+    sessionId: string;
+    createdAt: string;
+}
 
 interface ChatMessage {
     id: string;
@@ -30,51 +42,13 @@ interface ChatModalProps {
     onClose: () => void;
 }
 
-const MOCK_RESPONSES: Record<string, string> = {
-    default:
-        'Entendo sua dúvida! Com base na análise realizada, posso ajudá-lo com informações sobre o diagnóstico, causas da doença e recomendações de manejo. O que gostaria de saber?',
-    manejo:
-        'Para o manejo desta doença, é fundamental aplicar os fungicidas recomendados no período correto. Lembre-se de respeitar os intervalos de segurança e consultar um agrônomo da sua região para adaptar as recomendações ao seu contexto específico.',
-    causa:
-        'As principais causas desta doença estão relacionadas às condições climáticas favoráveis ao patógeno, como alta umidade relativa e temperaturas adequadas. O monitoramento constante da lavoura é essencial para identificar os primeiros sintomas.',
-    fungicid:
-        'A escolha do fungicida deve levar em conta o ingrediente ativo, o espectro de ação e o histórico de resistência na sua região. Recomendo consultar a receita agronômica e seguir as instruções do rótulo do produto.',
-    sintoma:
-        'Os sintomas visíveis na imagem são característicos da doença identificada. Observe principalmente as lesões nas folhas e monitore a progressão. Caso os sintomas se intensifiquem, reforce o programa de proteção da lavoura.',
-    prevenc:
-        'A prevenção é sempre mais eficiente do que o controle curativo. Utilize cultivares resistentes quando disponíveis, faça rotação de culturas, elimine restos culturais e adote o manejo integrado de pragas e doenças.',
-    clima:
-        'As condições climáticas têm papel fundamental no desenvolvimento desta doença. Fique atento às previsões meteorológicas e ajuste seu programa de proteção nos períodos de maior risco (alta umidade e temperatura favorável).',
-    confianca:
-        'A porcentagem de confiança indica a certeza do modelo de IA na identificação. Valores acima de 85% são considerados altos. Independentemente da confiança, sempre confirme o diagnóstico com um profissional agrônomo.',
-};
-
-function getMockResponse(question: string, analysis: History | null): string {
-    const lower = question.toLowerCase();
-
-    if (lower.includes('manejo') || lower.includes('controle') || lower.includes('tratamento')) {
-        return `${MOCK_RESPONSES.manejo}\n\nPara ${analysis?.crop ?? 'sua cultura'}: ${analysis?.handling ?? ''}`;
-    }
-    if (lower.includes('causa') || lower.includes('origem') || lower.includes('por que')) {
-        return `${MOCK_RESPONSES.causa}\n\nNeste caso: ${analysis?.causes ?? ''}`;
-    }
-    if (lower.includes('fungicid') || lower.includes('produto') || lower.includes('aplicac')) {
-        return MOCK_RESPONSES.fungicid;
-    }
-    if (lower.includes('sintoma') || lower.includes('folha') || lower.includes('lesão') || lower.includes('lesao')) {
-        return MOCK_RESPONSES.sintoma;
-    }
-    if (lower.includes('prevenc') || lower.includes('prevenir') || lower.includes('evitar')) {
-        return MOCK_RESPONSES.prevenc;
-    }
-    if (lower.includes('clima') || lower.includes('chuva') || lower.includes('umidade') || lower.includes('temperatura')) {
-        return MOCK_RESPONSES.clima;
-    }
-    if (lower.includes('confiança') || lower.includes('confianca') || lower.includes('porcentagem') || lower.includes('%')) {
-        return MOCK_RESPONSES.confianca;
-    }
-
-    return MOCK_RESPONSES.default;
+function dtoToMessage(dto: ChatMessageDto): ChatMessage {
+    return {
+        id: dto.id,
+        role: dto.sender === 'human' ? 'user' : 'assistant',
+        content: dto.content,
+        timestamp: new Date(dto.createdAt),
+    };
 }
 
 function buildInitialMessage(analysis: History | null): ChatMessage {
@@ -96,31 +70,73 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     const colors = Colors[isDark ? 'dark' : 'light'];
+    const { token } = useAuth();
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
 
     const scrollViewRef = useRef<ScrollView>(null);
     const slideAnim = useRef(new Animated.Value(300)).current;
+    const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
         if (visible && analysis) {
-            setMessages([buildInitialMessage(analysis)]);
             setInputText('');
+            setIsTyping(false);
+
             Animated.spring(slideAnim, {
                 toValue: 0,
                 useNativeDriver: true,
                 tension: 65,
                 friction: 11,
             }).start();
+
+            const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+
+            const socket = io(`${apiUrl}/chat`, {
+                transports: ['websocket', 'polling'],
+                auth: token ? { token } : undefined,
+            });
+
+            socketRef.current = socket;
+
+            socket.on('connect', () => setIsConnected(true));
+            socket.on('disconnect', () => setIsConnected(false));
+
+            // Load chat history, fall back to greeting if none
+            api
+                .get<ChatMessageDto[]>('/chat/history', {
+                    params: { sessionId: analysis.id },
+                })
+                .then((res) => {
+                    if (res.data.length > 0) {
+                        setMessages(res.data.map(dtoToMessage));
+                    } else {
+                        setMessages([buildInitialMessage(analysis)]);
+                    }
+                })
+                .catch(() => {
+                    setMessages([buildInitialMessage(analysis)]);
+                });
         } else {
             Animated.timing(slideAnim, {
                 toValue: 300,
                 duration: 200,
                 useNativeDriver: true,
-            }).start();
+            }).start(() => {
+                socketRef.current?.disconnect();
+                socketRef.current = null;
+                setIsConnected(false);
+            });
         }
+
+        return () => {
+            socketRef.current?.disconnect();
+            socketRef.current = null;
+            setIsConnected(false);
+        };
     }, [visible, analysis]);
 
     const scrollToBottom = () => {
@@ -129,32 +145,25 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
 
     const sendMessage = () => {
         const text = inputText.trim();
-        if (!text || isTyping) return;
+        if (!text || isTyping || !socketRef.current || !analysis) return;
 
-        const userMsg: ChatMessage = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: text,
-            timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, userMsg]);
         setInputText('');
         setIsTyping(true);
         scrollToBottom();
 
-        // Simula delay de resposta da IA
-        setTimeout(() => {
-            const assistantMsg: ChatMessage = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: getMockResponse(text, analysis),
-                timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, assistantMsg]);
-            setIsTyping(false);
-            scrollToBottom();
-        }, 1200 + Math.random() * 800);
+        socketRef.current.emit(
+            'send_message',
+            { content: text, sessionId: analysis.id },
+            (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto }) => {
+                setMessages((prev) => [
+                    ...prev,
+                    dtoToMessage(response.userMessage),
+                    dtoToMessage(response.aiMessage),
+                ]);
+                setIsTyping(false);
+                scrollToBottom();
+            },
+        );
     };
 
     const formatTime = (date: Date) =>
@@ -196,11 +205,19 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
                                         </ThemedText>
                                     </View>
                                 </View>
-                                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                                    <ThemedText style={[styles.closeBtnText, { color: colors.textSecondary }]}>
-                                        ✕
-                                    </ThemedText>
-                                </TouchableOpacity>
+                                <View style={styles.headerRight}>
+                                    <View
+                                        style={[
+                                            styles.statusDot,
+                                            { backgroundColor: isConnected ? '#22c55e' : '#94a3b8' },
+                                        ]}
+                                    />
+                                    <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                                        <ThemedText style={[styles.closeBtnText, { color: colors.textSecondary }]}>
+                                            ✕
+                                        </ThemedText>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
 
@@ -350,19 +367,20 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
                                     returnKeyType="send"
                                     onSubmitEditing={sendMessage}
                                     blurOnSubmit={false}
+                                    editable={!isTyping && isConnected}
                                 />
                                 <TouchableOpacity
                                     style={[
                                         styles.sendBtn,
                                         {
                                             backgroundColor:
-                                                inputText.trim() && !isTyping
+                                                inputText.trim() && !isTyping && isConnected
                                                     ? colors.tint
                                                     : colors.backgroundSelected,
                                         },
                                     ]}
                                     onPress={sendMessage}
-                                    disabled={!inputText.trim() || isTyping}
+                                    disabled={!inputText.trim() || isTyping || !isConnected}
                                 >
                                     <ThemedText style={styles.sendIcon}>↑</ThemedText>
                                 </TouchableOpacity>
@@ -430,6 +448,11 @@ function makeStyles(colors: (typeof Colors)['light'], isDark: boolean) {
             gap: Spacing.two,
             flex: 1,
         },
+        headerRight: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: Spacing.two,
+        },
         avatarDot: {
             width: 36,
             height: 36,
@@ -444,6 +467,11 @@ function makeStyles(colors: (typeof Colors)['light'], isDark: boolean) {
         headerSub: {
             fontSize: 12,
             marginTop: 1,
+        },
+        statusDot: {
+            width: 8,
+            height: 8,
+            borderRadius: 4,
         },
         closeBtn: {
             padding: Spacing.two,

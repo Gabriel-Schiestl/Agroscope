@@ -74,8 +74,10 @@ import {
   Leaf,
   ArrowUpDown,
   X,
+  MessageCircle,
 } from "lucide-react";
 import { History } from "../../../models/History";
+import { ChatPanel } from "../../../components/chat-panel";
 
 // Status é um conceito local de UI, não existe no backend
 type Status = "confirmed" | "unconfirmed" | "incorrect";
@@ -266,6 +268,7 @@ export default function HistoryPage() {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [selectedHistory, setSelectedHistory] = useState<HistoryWithMeta | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [chatAnalysis, setChatAnalysis] = useState<HistoryWithMeta | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -594,7 +597,16 @@ export default function HistoryPage() {
                             </div>
                           )}
                         </div>
-                        <div className="flex justify-end mt-2">
+                        <div className="flex justify-end gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-primaryGreen border-primaryGreen/30"
+                            onClick={() => setChatAnalysis(history)}
+                          >
+                            <MessageCircle className="mr-1 h-4 w-4" />
+                            Chat
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -691,16 +703,27 @@ export default function HistoryPage() {
                     </p>
                   )}
                 </CardContent>
-                <CardFooter className="p-4 pt-0 flex justify-between">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-primaryGreen"
-                    onClick={() => openHistoryDetails(history)}
-                  >
-                    <Eye className="mr-1 h-4 w-4" />
-                    Ver detalhes
-                  </Button>
+                <CardFooter className="p-4 pt-0 flex justify-between gap-2">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-primaryGreen border-primaryGreen/30"
+                      onClick={() => setChatAnalysis(history)}
+                    >
+                      <MessageCircle className="mr-1 h-4 w-4" />
+                      Chat
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-primaryGreen"
+                      onClick={() => openHistoryDetails(history)}
+                    >
+                      <Eye className="mr-1 h-4 w-4" />
+                      Ver detalhes
+                    </Button>
+                  </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -937,6 +960,17 @@ export default function HistoryPage() {
               </div>
 
               <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  className="text-primaryGreen border-primaryGreen/30"
+                  onClick={() => {
+                    setIsDetailsOpen(false);
+                    setChatAnalysis(selectedHistory);
+                  }}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Abrir Chat
+                </Button>
                 <Button variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Exportar
@@ -954,6 +988,12 @@ export default function HistoryPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ChatPanel
+        open={chatAnalysis !== null}
+        analysis={chatAnalysis}
+        onClose={() => setChatAnalysis(null)}
+      />
     </div>
   );
 }

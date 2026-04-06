@@ -8,6 +8,7 @@ interface AuthState {
 
 interface AuthContextType {
     auth: AuthState | null;
+    token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<boolean>;
@@ -17,6 +18,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
     auth: null,
+    token: null,
     isAuthenticated: false,
     isLoading: false,
     login: async () => false,
@@ -26,14 +28,17 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [auth, setAuth] = useState<AuthState | null>(null);
+    const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const login = async (email: string, password: string): Promise<boolean> => {
         setIsLoading(true);
         try {
-            // Mock — descomentar quando backend estiver ativo:
-            // await api.post('/auth/login', { email, password });
-            setAuth({ name: 'Usuário', email });
+            const response = await api.post<{ token: string; name?: string }>('/auth/login', { email, password });
+            const { token: authToken, name } = response.data;
+            setToken(authToken);
+            api.defaults.headers.common['authorization'] = authToken;
+            setAuth({ name: name ?? 'Usuário', email });
             return true;
         } catch {
             return false;
@@ -49,10 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ): Promise<boolean> => {
         setIsLoading(true);
         try {
-            // Mock — descomentar quando backend estiver ativo:
-            // await api.post('/user', { name, email, password });
-            setAuth({ name, email });
-            return true;
+            await api.post('/user', { name, email, password });
+            // After signup, log in to get the token
+            const loginOk = await login(email, password);
+            return loginOk;
         } catch {
             return false;
         } finally {
@@ -62,12 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = () => {
         setAuth(null);
+        setToken(null);
+        delete api.defaults.headers.common['authorization'];
     };
 
     return (
         <AuthContext.Provider
             value={{
                 auth,
+                token,
                 isAuthenticated: !!auth,
                 isLoading,
                 login,

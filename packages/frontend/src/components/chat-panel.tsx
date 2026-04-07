@@ -16,8 +16,8 @@ import { Leaf, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import api from "../../../../shared/http/http.config";
 import type { History } from "@/models/History";
+import api from "../../shared/http/http.config";
 
 interface ChatMessageDto {
   id: string;

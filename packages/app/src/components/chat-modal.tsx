@@ -11,6 +11,7 @@ import {
     useColorScheme,
     Animated,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { io, Socket } from 'socket.io-client';
@@ -71,6 +72,7 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
     const isDark = colorScheme === 'dark';
     const colors = Colors[isDark ? 'dark' : 'light'];
     const { token } = useAuth();
+    const [limitError, setLimitError] = useState<string | null>(null);
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
@@ -149,12 +151,18 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
 
         setInputText('');
         setIsTyping(true);
+        setLimitError(null);
         scrollToBottom();
 
         socketRef.current.emit(
             'send_message',
             { content: text, sessionId: analysis.id },
-            (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto }) => {
+            (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto } | { error: string }) => {
+                if ('error' in response) {
+                    setLimitError(response.error);
+                    setIsTyping(false);
+                    return;
+                }
                 setMessages((prev) => [
                     ...prev,
                     dtoToMessage(response.userMessage),
@@ -345,45 +353,54 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
                                     },
                                 ]}
                             >
-                                <TextInput
-                                    style={[
-                                        styles.input,
-                                        {
-                                            backgroundColor: isDark
-                                                ? colors.backgroundElement
-                                                : '#f5f5f8',
-                                            color: colors.text,
-                                            borderColor: isDark
-                                                ? colors.backgroundSelected
-                                                : '#e0e0e3',
-                                        },
-                                    ]}
-                                    value={inputText}
-                                    onChangeText={setInputText}
-                                    placeholder="Escreva sua dúvida..."
-                                    placeholderTextColor={colors.textSecondary}
-                                    multiline
-                                    maxLength={500}
-                                    returnKeyType="send"
-                                    onSubmitEditing={sendMessage}
-                                    blurOnSubmit={false}
-                                    editable={!isTyping && isConnected}
-                                />
-                                <TouchableOpacity
-                                    style={[
-                                        styles.sendBtn,
-                                        {
-                                            backgroundColor:
-                                                inputText.trim() && !isTyping && isConnected
-                                                    ? colors.tint
-                                                    : colors.backgroundSelected,
-                                        },
-                                    ]}
-                                    onPress={sendMessage}
-                                    disabled={!inputText.trim() || isTyping || !isConnected}
-                                >
-                                    <ThemedText style={styles.sendIcon}>↑</ThemedText>
-                                </TouchableOpacity>
+                                {limitError && (
+                                    <ThemedText
+                                        style={[styles.limitMsg, { color: '#ef4444' }]}
+                                    >
+                                        {limitError}
+                                    </ThemedText>
+                                )}
+                                <View style={styles.inputInner}>
+                                    <TextInput
+                                        style={[
+                                            styles.input,
+                                            {
+                                                backgroundColor: isDark
+                                                    ? colors.backgroundElement
+                                                    : '#f5f5f8',
+                                                color: colors.text,
+                                                borderColor: isDark
+                                                    ? colors.backgroundSelected
+                                                    : '#e0e0e3',
+                                            },
+                                        ]}
+                                        value={inputText}
+                                        onChangeText={setInputText}
+                                        placeholder="Escreva sua dúvida..."
+                                        placeholderTextColor={colors.textSecondary}
+                                        multiline
+                                        maxLength={500}
+                                        returnKeyType="send"
+                                        onSubmitEditing={sendMessage}
+                                        blurOnSubmit={false}
+                                        editable={!isTyping && isConnected}
+                                    />
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.sendBtn,
+                                            {
+                                                backgroundColor:
+                                                    inputText.trim() && !isTyping && isConnected
+                                                        ? colors.tint
+                                                        : colors.backgroundSelected,
+                                            },
+                                        ]}
+                                        onPress={sendMessage}
+                                        disabled={!inputText.trim() || isTyping || !isConnected}
+                                    >
+                                        <ThemedText style={styles.sendIcon}>↑</ThemedText>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </KeyboardAvoidingView>
                     </SafeAreaView>
@@ -543,8 +560,7 @@ function makeStyles(colors: (typeof Colors)['light'], isDark: boolean) {
         },
         // Input
         inputRow: {
-            flexDirection: 'row',
-            alignItems: 'flex-end',
+            flexDirection: 'column',
             paddingHorizontal: Spacing.three,
             paddingVertical: Spacing.two,
             borderTopWidth: 1,
@@ -574,6 +590,16 @@ function makeStyles(colors: (typeof Colors)['light'], isDark: boolean) {
             fontSize: 18,
             fontWeight: '700',
             lineHeight: 20,
+        },
+        inputInner: {
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            gap: Spacing.two,
+        },
+        limitMsg: {
+            fontSize: 12,
+            textAlign: 'center',
+            paddingBottom: 6,
         },
     });
 }

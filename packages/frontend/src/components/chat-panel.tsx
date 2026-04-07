@@ -125,6 +125,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [limitError, setLimitError] = useState<string | null>(null);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -192,6 +193,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
 
     setInputText("");
     setIsTyping(true);
+    setLimitError(null);
 
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -200,7 +202,12 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
     socketRef.current.emit(
       "send_message",
       { content: text, sessionId: analysis.id },
-      (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto }) => {
+      (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto } | { error: string }) => {
+        if ("error" in response) {
+          setLimitError(response.error);
+          setIsTyping(false);
+          return;
+        }
         setMessages((prev) => [
           ...prev,
           dtoToMessage(response.userMessage),
@@ -294,25 +301,30 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
         <Separator />
 
         {/* Input */}
-        <div className="px-4 py-3 flex gap-2 items-end">
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            value={inputText}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Escreva sua dúvida... (Enter para enviar)"
-            disabled={isTyping || !isConnected}
-            className="flex-1 resize-none rounded-xl border bg-muted/50 px-3.5 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primaryGreen/40 disabled:opacity-50 min-h-[42px] max-h-[120px] overflow-y-auto leading-relaxed"
-          />
-          <Button
-            size="icon"
-            onClick={sendMessage}
-            disabled={!inputText.trim() || isTyping || !isConnected}
-            className="bg-primaryGreen hover:bg-lightGreen h-[42px] w-[42px] flex-shrink-0 rounded-xl"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+        <div className="px-4 py-3 flex flex-col gap-1.5">
+          {limitError && (
+            <p className="text-xs text-red-500 text-center py-1">{limitError}</p>
+          )}
+          <div className="flex gap-2 items-end">
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={inputText}
+              onChange={handleTextareaChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Escreva sua dúvida... (Enter para enviar)"
+              disabled={isTyping || !isConnected}
+              className="flex-1 resize-none rounded-xl border bg-muted/50 px-3.5 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primaryGreen/40 disabled:opacity-50 min-h-[42px] max-h-[120px] overflow-y-auto leading-relaxed"
+            />
+            <Button
+              size="icon"
+              onClick={sendMessage}
+              disabled={!inputText.trim() || isTyping || !isConnected}
+              className="bg-primaryGreen hover:bg-lightGreen h-[42px] w-[42px] flex-shrink-0 rounded-xl"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

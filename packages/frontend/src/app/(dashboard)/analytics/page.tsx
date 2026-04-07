@@ -38,6 +38,7 @@ import api from "../../../../shared/http/http.config";
 import { toast } from "react-toastify";
 import type { History as HistoryModel } from "../../../models/History";
 import { ChatPanel } from "../../../components/chat-panel";
+import { useLimit } from "../../../hooks/use-limit";
 
 // Mock history data matching HistoryDto shape
 const ANALYSIS_HISTORY: HistoryModel[] = [
@@ -96,6 +97,7 @@ export default function AnalyticsPage() {
   const [chatAnalysis, setChatAnalysis] = useState<HistoryModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const { limit, refetch: refetchLimit } = useLimit();
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -123,11 +125,13 @@ export default function AnalyticsPage() {
 
       if (response.status === 201) {
         setResult(response.data);
+        refetchLimit();
       } else {
         toast.error("Falha na análise. Tente novamente.");
       }
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erro inesperado.");
+      refetchLimit();
     } finally {
       setLoading(false);
     }
@@ -201,10 +205,15 @@ export default function AnalyticsPage() {
                   </div>
                 )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col gap-2 items-stretch">
+                {limit && (
+                  <p className={`text-xs text-right ${limit.imageRequests >= limit.imageLimit ? "text-red-500" : "text-muted-foreground"}`}>
+                    Análises: {limit.imageRequests}/{limit.imageLimit}
+                  </p>
+                )}
                 <Button
                   onClick={handleAnalyzeClick}
-                  disabled={!file || loading}
+                  disabled={!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
                   className="w-full bg-primaryGreen hover:bg-lightGreen"
                 >
                   {loading ? (

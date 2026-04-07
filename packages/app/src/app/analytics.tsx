@@ -19,6 +19,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ChatModal } from '@/components/chat-modal';
 import { useAuth } from '@/contexts/auth-context';
+import { useLimit } from '@/hooks/use-limit';
 import api from '@/shared/http/http.config';
 import type { History } from '@/models/History';
 
@@ -83,6 +84,7 @@ export default function AnalyticsScreen() {
     const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
     const router = useRouter();
     const { auth, logout } = useAuth();
+    const { limit, refetch: refetchLimit } = useLimit();
 
     const [file, setFile] = useState<ImagePicker.ImagePickerAsset | undefined>();
     const [result, setResult] = useState<History | null>(null);
@@ -137,6 +139,7 @@ export default function AnalyticsScreen() {
 
             if (response.status === 201) {
                 setResult(response.data);
+                refetchLimit();
             } else {
                 Alert.alert('Erro', 'Falha na análise. Tente novamente.');
             }
@@ -145,6 +148,7 @@ export default function AnalyticsScreen() {
                 'Erro',
                 error?.response?.data?.message || 'Erro inesperado na análise.',
             );
+            refetchLimit();
         } finally {
             setLoading(false);
         }
@@ -379,15 +383,32 @@ export default function AnalyticsScreen() {
                                 </TouchableOpacity>
                             </View>
 
+                            {/* Usage counter */}
+                            {limit && (
+                                <ThemedText
+                                    style={[
+                                        styles.usageCounter,
+                                        {
+                                            color:
+                                                limit.imageRequests >= limit.imageLimit
+                                                    ? '#ef4444'
+                                                    : colors.textSecondary,
+                                        },
+                                    ]}
+                                >
+                                    {`Análises: ${limit.imageRequests}/${limit.imageLimit}`}
+                                </ThemedText>
+                            )}
+
                             {/* Analyze button */}
                             <TouchableOpacity
                                 style={[
                                     styles.analyzeBtn,
                                     { backgroundColor: colors.tint },
-                                    (!file || loading) && { opacity: 0.5 },
+                                    (!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)) && { opacity: 0.5 },
                                 ]}
                                 onPress={handleAnalyze}
-                                disabled={!file || loading}
+                                disabled={!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
@@ -1147,6 +1168,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     captureBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+    usageCounter: { fontSize: 11, textAlign: 'right', marginBottom: 6 },
     analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
     analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     emptyState: { paddingVertical: 32, alignItems: 'center' },

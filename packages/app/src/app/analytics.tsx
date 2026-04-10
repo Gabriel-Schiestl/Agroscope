@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     StyleSheet,
     View,
@@ -23,53 +23,6 @@ import { useLimit } from '@/hooks/use-limit';
 import api from '@/shared/http/http.config';
 import type { History } from '@/models/History';
 
-const ANALYSIS_HISTORY: History[] = [
-    {
-        id: '1',
-        createdAt: new Date('2024-04-15'),
-        crop: 'Soja',
-        cropConfidence: 95.0,
-        sicknessId: 'sid-ferrugem-asiatica',
-        sicknessConfidence: 92.5,
-        handling:
-            'Aplicar fungicida triazol nas primeiras horas da manhã. Respeitar o intervalo de segurança de 14 dias.',
-        explanation:
-            'Ferrugem Asiática identificada na folhagem. Lesões de coloração marrom-avermelhada características.',
-        causes:
-            'Alta umidade relativa (acima de 85%) e temperatura entre 18°C e 26°C.',
-        image: '',
-    },
-    {
-        id: '2',
-        createdAt: new Date('2024-04-10'),
-        crop: 'Milho',
-        cropConfidence: 88.0,
-        sicknessId: 'sid-mancha-cercospora',
-        sicknessConfidence: 88.7,
-        handling:
-            'Utilizar híbridos resistentes e aplicação preventiva de fungicida na fase vegetativa.',
-        explanation:
-            'Mancha de Cercospora identificada nas folhas. Lesões retangulares cinza-palha típicas.',
-        causes:
-            'Alta umidade e temperaturas entre 22°C e 30°C. Plantio adensado favorece a disseminação.',
-        image: '',
-    },
-    {
-        id: '3',
-        createdAt: new Date('2024-04-05'),
-        crop: 'Café',
-        cropConfidence: 97.0,
-        sicknessId: 'sid-ferrugem-cafeeiro',
-        sicknessConfidence: 95.2,
-        handling:
-            'Aplicar fungicidas sistêmicos à base de triazol. Realizar podas para melhorar a aeração.',
-        explanation:
-            'Ferrugem do Cafeeiro identificada. Pústulas alaranjadas na face inferior das folhas.',
-        causes:
-            'Temperatura entre 20°C e 25°C e períodos prolongados de molhamento foliar.',
-        image: '',
-    },
-];
 
 const DISEASES_STATS = [
     { name: 'Ferrugem Asiática', pct: 38 },
@@ -93,6 +46,48 @@ export default function AnalyticsScreen() {
     const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+    const [historyItems, setHistoryItems] = useState<History[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [cropFilter, setCropFilter] = useState<string | undefined>();
+    const [dateRange, setDateRange] = useState<'all' | '7d' | '30d' | '3m'>('all');
+    const [order, setOrder] = useState<'DESC' | 'ASC'>('DESC');
+
+    const dateRangeToStartDate = (range: typeof dateRange): string | undefined => {
+        if (range === 'all') return undefined;
+        const now = new Date();
+        if (range === '7d') now.setDate(now.getDate() - 7);
+        else if (range === '30d') now.setDate(now.getDate() - 30);
+        else if (range === '3m') now.setMonth(now.getMonth() - 3);
+        return now.toISOString();
+    };
+
+    const fetchHistory = useCallback(async () => {
+        setHistoryLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (cropFilter) params.append('crop', cropFilter);
+            const startDate = dateRangeToStartDate(dateRange);
+            if (startDate) params.append('startDate', startDate);
+            params.append('order', order);
+
+            const response = await api.get<History[]>(
+                `${apiUrl}/history?${params.toString()}`,
+            );
+            setHistoryItems(response.data);
+        } catch {
+            Alert.alert('Erro', 'Não foi possível carregar o histórico.');
+        } finally {
+            setHistoryLoading(false);
+        }
+    }, [apiUrl, cropFilter, dateRange, order]);
+
+    useEffect(() => {
+        if (activeTab === 'history') {
+            fetchHistory();
+        }
+    }, [activeTab, fetchHistory]);
+
     const windowWidth = Dimensions.get('window').width;
 
     const pickImage = async () => {
@@ -829,155 +824,130 @@ export default function AnalyticsScreen() {
                     <View style={styles.content}>
                         <ThemedView
                             type="backgroundElement"
-                            style={[
-                                styles.card,
-                                { borderColor: colors.backgroundElement },
-                            ]}
+                            style={[styles.card, { borderColor: colors.backgroundElement }]}
                         >
                             <ThemedText style={styles.cardTitle}>
                                 Histórico de Análises
                             </ThemedText>
-                            <ThemedText
-                                style={[
-                                    styles.cardDescription,
-                                    { color: colors.textSecondary },
-                                ]}
-                            >
-                                Análises realizadas anteriormente
-                            </ThemedText>
 
-                            {ANALYSIS_HISTORY.length === 0 ? (
+                            {/* Filtro por cultura */}
+                            <ThemedText style={[styles.filterLabel, { color: colors.textSecondary }]}>
+                                Cultura
+                            </ThemedText>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+                                {([undefined, 'corn', 'soybean', 'wheat'] as const).map((c) => {
+                                    const label = c === undefined ? 'Todas' : c === 'corn' ? 'Milho' : c === 'soybean' ? 'Soja' : 'Trigo';
+                                    const active = cropFilter === c;
+                                    return (
+                                        <TouchableOpacity
+                                            key={label}
+                                            style={[
+                                                styles.filterChip,
+                                                active
+                                                    ? { backgroundColor: colors.tint }
+                                                    : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
+                                            ]}
+                                            onPress={() => setCropFilter(c)}
+                                        >
+                                            <ThemedText style={[styles.filterChipText, { color: active ? '#fff' : colors.textSecondary }]}>
+                                                {label}
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
+
+                            {/* Filtro por período */}
+                            <ThemedText style={[styles.filterLabel, { color: colors.textSecondary }]}>
+                                Período
+                            </ThemedText>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+                                {(['all', '7d', '30d', '3m'] as const).map((r) => {
+                                    const label = r === 'all' ? 'Tudo' : r === '7d' ? '7 dias' : r === '30d' ? '30 dias' : '3 meses';
+                                    const active = dateRange === r;
+                                    return (
+                                        <TouchableOpacity
+                                            key={r}
+                                            style={[
+                                                styles.filterChip,
+                                                active
+                                                    ? { backgroundColor: colors.tint }
+                                                    : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
+                                            ]}
+                                            onPress={() => setDateRange(r)}
+                                        >
+                                            <ThemedText style={[styles.filterChipText, { color: active ? '#fff' : colors.textSecondary }]}>
+                                                {label}
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
+
+                            {/* Ordenação */}
+                            <TouchableOpacity
+                                style={[styles.orderToggle, { borderColor: colors.backgroundElement }]}
+                                onPress={() => setOrder((o) => (o === 'DESC' ? 'ASC' : 'DESC'))}
+                            >
+                                <ThemedText style={[styles.orderToggleText, { color: colors.textSecondary }]}>
+                                    {order === 'DESC' ? 'Mais recentes primeiro' : 'Mais antigas primeiro'}
+                                </ThemedText>
+                            </TouchableOpacity>
+
+                            {/* Lista */}
+                            {historyLoading ? (
+                                <ActivityIndicator style={{ marginTop: 24 }} color={colors.tint} />
+                            ) : historyItems.length === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={{ fontSize: 40, marginBottom: 12 }}>
-                                        🌿
-                                    </ThemedText>
-                                    <ThemedText
-                                        style={[
-                                            styles.emptyText,
-                                            { color: colors.textSecondary },
-                                        ]}
-                                    >
-                                        Nenhuma análise realizada ainda. Faça
-                                        sua primeira análise!
+                                    <ThemedText style={{ fontSize: 40, marginBottom: 12 }}>🌿</ThemedText>
+                                    <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
+                                        Nenhuma análise encontrada.
                                     </ThemedText>
                                 </View>
                             ) : (
                                 <View style={styles.historyList}>
-                                    {ANALYSIS_HISTORY.map((item, idx) => (
+                                    {historyItems.map((item, idx) => (
                                         <View
                                             key={item.id}
                                             style={[
                                                 styles.historyItem,
-                                                idx <
-                                                    ANALYSIS_HISTORY.length -
-                                                        1 && {
+                                                idx < historyItems.length - 1 && {
                                                     borderBottomWidth: 1,
-                                                    borderBottomColor:
-                                                        colors.backgroundSelected,
+                                                    borderBottomColor: colors.backgroundSelected,
                                                 },
                                             ]}
                                         >
                                             <View style={styles.historyMain}>
-                                                <ThemedText
-                                                    style={styles.historyTitle}
-                                                    numberOfLines={2}
-                                                >
-                                                    {item.explanation ||
-                                                        item.crop}
+                                                <ThemedText style={styles.historyTitle} numberOfLines={2}>
+                                                    {item.explanation || item.crop}
                                                 </ThemedText>
-                                                <ThemedText
-                                                    style={[
-                                                        styles.historyCrop,
-                                                        {
-                                                            color: colors.textSecondary,
-                                                        },
-                                                    ]}
-                                                >
+                                                <ThemedText style={[styles.historyCrop, { color: colors.textSecondary }]}>
                                                     Cultura: {item.crop}
                                                 </ThemedText>
-                                                <ThemedText
-                                                    style={[
-                                                        styles.historyDate,
-                                                        {
-                                                            color: colors.textSecondary,
-                                                        },
-                                                    ]}
-                                                >
-                                                    {new Date(
-                                                        item.createdAt,
-                                                    ).toLocaleDateString(
-                                                        'pt-BR',
-                                                    )}
+                                                <ThemedText style={[styles.historyDate, { color: colors.textSecondary }]}>
+                                                    {new Date(item.createdAt).toLocaleDateString('pt-BR')}
                                                 </ThemedText>
                                             </View>
                                             <View style={styles.historyBadges}>
                                                 {item.cropConfidence > 0 && (
-                                                    <View
-                                                        style={[
-                                                            styles.badge,
-                                                            {
-                                                                backgroundColor:
-                                                                    colors.tint,
-                                                            },
-                                                        ]}
-                                                    >
-                                                        <ThemedText
-                                                            style={
-                                                                styles.badgeText
-                                                            }
-                                                        >
-                                                            {item.cropConfidence.toFixed(
-                                                                1,
-                                                            )}
-                                                            %
+                                                    <View style={[styles.badge, { backgroundColor: colors.tint }]}>
+                                                        <ThemedText style={styles.badgeText}>
+                                                            {(item.cropConfidence * 100).toFixed(1)}%
                                                         </ThemedText>
                                                     </View>
                                                 )}
-                                                {item.sicknessConfidence &&
-                                                    item.sicknessConfidence >
-                                                        0 && (
-                                                        <View
-                                                            style={[
-                                                                styles.badgeOutline,
-                                                                {
-                                                                    borderColor:
-                                                                        colors.tint,
-                                                                },
-                                                            ]}
-                                                        >
-                                                            <ThemedText
-                                                                style={[
-                                                                    styles.badgeOutlineText,
-                                                                    {
-                                                                        color: colors.tint,
-                                                                    },
-                                                                ]}
-                                                            >
-                                                                {item.sicknessConfidence.toFixed(
-                                                                    1,
-                                                                )}
-                                                                %
-                                                            </ThemedText>
-                                                        </View>
-                                                    )}
+                                                {item.sicknessConfidence != null && item.sicknessConfidence > 0 && (
+                                                    <View style={[styles.badgeOutline, { borderColor: colors.tint }]}>
+                                                        <ThemedText style={[styles.badgeOutlineText, { color: colors.tint }]}>
+                                                            {(item.sicknessConfidence * 100).toFixed(1)}%
+                                                        </ThemedText>
+                                                    </View>
+                                                )}
                                                 <TouchableOpacity
-                                                    style={[
-                                                        styles.historyChatBtn,
-                                                        {
-                                                            backgroundColor:
-                                                                colors.tint + '18',
-                                                            borderColor:
-                                                                colors.tint + '50',
-                                                        },
-                                                    ]}
+                                                    style={[styles.historyChatBtn, { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' }]}
                                                     onPress={() => setChatAnalysis(item)}
                                                 >
-                                                    <ThemedText
-                                                        style={[
-                                                            styles.historyChatBtnText,
-                                                            { color: colors.tint },
-                                                        ]}
-                                                    >
+                                                    <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
                                                         💬 Chat
                                                     </ThemedText>
                                                 </TouchableOpacity>
@@ -1296,4 +1266,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     historyChatBtnText: { fontSize: 11, fontWeight: '600' },
+    filterLabel: { fontSize: 12, fontWeight: '600', marginTop: 14, marginBottom: 6 },
+    filterRow: { flexDirection: 'row', marginBottom: 4 },
+    filterChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        borderWidth: 1,
+        marginRight: 8,
+    },
+    filterChipText: { fontSize: 12, fontWeight: '500' },
+    orderToggle: {
+        marginTop: 12,
+        marginBottom: 4,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        alignSelf: 'flex-start',
+    },
+    orderToggleText: { fontSize: 12, fontWeight: '500' },
 });

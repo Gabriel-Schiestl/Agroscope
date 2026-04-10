@@ -64,7 +64,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
 
         if (result.isFailure()) {
-            throw new WsException(result.error.message);
+            return { error: result.error.message };
         }
 
         return result.value;

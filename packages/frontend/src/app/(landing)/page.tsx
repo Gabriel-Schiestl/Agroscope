@@ -1,9 +1,9 @@
 'use client';
 
-import Footer from './::components/footer';
-import HowItWorks from './::components/how-it-works';
-import FirstHero from './::components/landing-first-hero';
-import WhyChoose from './::components/why-choose';
+import Footer from './components/footer';
+import HowItWorks from './components/how-it-works';
+import FirstHero from './components/landing-first-hero';
+import WhyChoose from './components/why-choose';
 
 export default function LandingPage() {
   return (

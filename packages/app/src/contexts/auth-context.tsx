@@ -34,13 +34,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (email: string, password: string): Promise<boolean> => {
         setIsLoading(true);
         try {
-            const response = await api.post<{ token: string; name?: string }>('/auth/login', { email, password });
+            console.log(
+                'Attempting login with email:',
+                email,
+                api.defaults.baseURL,
+            );
+            const response = await api.post<{ token: string; name?: string }>(
+                '/auth/login',
+                { email, password },
+            );
             const { token: authToken, name } = response.data;
             setToken(authToken);
             api.defaults.headers.common['authorization'] = authToken;
             setAuth({ name: name ?? 'Usuário', email });
             return true;
-        } catch {
+        } catch (e) {
+            console.log('Login failed:', JSON.stringify(e));
             return false;
         } finally {
             setIsLoading(false);

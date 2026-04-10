@@ -11,6 +11,7 @@ export interface HistoryProps {
     explanation?: string;
     userId?: string;
     causes?: string;
+    precautions?: string;
 }
 
 export interface CreateHistoryProps {
@@ -23,6 +24,7 @@ export interface CreateHistoryProps {
     explanation?: string;
     userId?: string;
     causes?: string;
+    precautions?: string;
 }
 
 export interface LoadHistoryProps {
@@ -36,6 +38,7 @@ export interface LoadHistoryProps {
     explanation?: string;
     userId?: string;
     causes?: string;
+    precautions?: string;
 }
 
 export class History {
@@ -50,6 +53,7 @@ export class History {
     #explanation?: string;
     #userId?: string;
     #causes?: string;
+    #precautions?: string;
 
     private constructor(props: HistoryProps, id?: string) {
         this.#id = id || uuid();
@@ -63,6 +67,7 @@ export class History {
         this.#explanation = props.explanation;
         this.#userId = props.userId;
         this.#causes = props.causes;
+        this.#precautions = props.precautions;
     }
 
     static create(props: CreateHistoryProps): History {
@@ -115,5 +120,9 @@ export class History {
 
     get causes(): string {
         return this.#causes;
+    }
+
+    get precautions(): string {
+        return this.#precautions;
     }
 }

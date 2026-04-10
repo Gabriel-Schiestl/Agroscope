@@ -34,4 +34,8 @@ export class HistoryDto {
 
     @IsString()
     causes?: string;
+
+    @IsOptional()
+    @IsString()
+    precautions?: string;
 }

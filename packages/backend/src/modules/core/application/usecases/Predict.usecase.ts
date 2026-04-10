@@ -88,6 +88,20 @@ export class PredictUseCase extends AbstractUseCase<
             return Res.failure(result.error);
         }
 
+        const MIN_CONFIDENCE = 0.8;
+        const { plantConfidence, predictionConfidence } = result.value;
+
+        if (
+            plantConfidence < MIN_CONFIDENCE ||
+            predictionConfidence < MIN_CONFIDENCE
+        ) {
+            return Res.failure(
+                new BusinessException(
+                    'Não foi possível identificar a planta ou doença com confiança suficiente. Por favor, envie uma imagem mais nítida, bem iluminada e focada na folha.',
+                ),
+            );
+        }
+
         const imageBase64 = await this.predictService.getImageBase64(imagePath);
         if (imageBase64.isFailure()) return Res.failure(imageBase64.error);
 
@@ -163,6 +177,7 @@ export class PredictUseCase extends AbstractUseCase<
             explanation: handling.value.explicacao,
             sicknessConfidence: result.value.predictionConfidence,
             causes: handling.value.causas,
+            precautions: handling.value.precautions,
         });
 
         const saveHistoryResult = await this.historyRepository.save(history);

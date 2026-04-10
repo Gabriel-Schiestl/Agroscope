@@ -16,6 +16,7 @@ export class HistoryMapper {
             explanation: domain.explanation,
             userId: domain.userId,
             causes: domain.causes,
+            precautions: domain.precautions,
         });
     }
 
@@ -32,6 +33,7 @@ export class HistoryMapper {
                 explanation: model.explanation,
                 userId: model.userId,
                 causes: model.causes,
+                precautions: model.precautions,
             },
             model.id,
         );

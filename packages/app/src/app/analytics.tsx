@@ -118,15 +118,37 @@ export default function AnalyticsScreen() {
         }
     };
 
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+    const getMimeType = (uri: string): string => {
+        const ext = uri.split('.').pop()?.toLowerCase();
+        const mimeTypes: Record<string, string> = {
+            jpg: 'image/jpeg',
+            jpeg: 'image/jpeg',
+            png: 'image/png',
+            webp: 'image/webp',
+        };
+        return mimeTypes[ext ?? ''] ?? 'image/jpeg';
+    };
+
     const handleAnalyze = async () => {
         if (!file) return;
+
+        if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
+            Alert.alert(
+                'Imagem muito grande',
+                'O tamanho máximo permitido é 5MB. Por favor, selecione uma imagem menor.',
+            );
+            return;
+        }
+
         setLoading(true);
         try {
             const formData = new FormData();
             formData.append('image', {
                 uri: file.uri,
                 name: file.fileName || 'image.jpg',
-                type: 'image/jpeg',
+                type: getMimeType(file.uri),
             } as any);
 
             const response = await api.post<History>(
@@ -141,9 +163,25 @@ export default function AnalyticsScreen() {
                 Alert.alert('Erro', 'Falha na análise. Tente novamente.');
             }
         } catch (error: any) {
+            const message: string =
+                error?.response?.data?.message ?? 'Erro inesperado na análise.';
+
+            const isLowConfidence = message.includes('confiança insuficiente') || message.includes('confiança suficiente');
             Alert.alert(
-                'Erro',
-                error?.response?.data?.message || 'Erro inesperado na análise.',
+                isLowConfidence ? 'Imagem insuficiente' : 'Erro',
+                message,
+                isLowConfidence
+                    ? [
+                          { text: 'Cancelar', style: 'cancel' },
+                          {
+                              text: 'Enviar nova imagem',
+                              onPress: () => {
+                                  setFile(undefined);
+                                  setResult(null);
+                              },
+                          },
+                      ]
+                    : undefined,
             );
         } finally {
             setLoading(false);

@@ -14,6 +14,7 @@ export class HistoryAppMapper {
             createdAt: history.createdAt,
             causes: history.causes,
             explanation: history.explanation,
+            precautions: history.precautions,
         };
     }
 }

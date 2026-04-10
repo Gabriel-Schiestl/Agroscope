@@ -10,4 +10,5 @@ export interface History {
     explanation?: string;
     causes?: string;
     userId?: string;
+    precautions?: string;
 }

@@ -20,6 +20,7 @@ export interface HistoryModelProps {
     explanation?: string;
     userId?: string;
     causes?: string;
+    precautions?: string;
 }
 
 @Entity('history')
@@ -66,6 +67,9 @@ export class HistoryModel extends BaseEntity {
 
     @Column({ name: 'causes' })
     causes: string;
+
+    @Column({ nullable: true, name: 'precautions' })
+    precautions?: string;
 
     setProps(props: HistoryModelProps): HistoryModel {
         Object.assign(this, props);

@@ -1096,6 +1096,7 @@ export default function AnalyticsScreen() {
                 visible={chatAnalysis !== null}
                 analysis={chatAnalysis}
                 onClose={() => setChatAnalysis(null)}
+                limit={limit}
             />
         </View>
     );

@@ -7,9 +7,10 @@ import { ChatMessage } from '../../domain/models/ChatMessage';
 import { ChatMessageRepository } from '../../domain/repositories/ChatMessage.repository';
 import { ChatMessageAppMapper } from '../mappers/ChatMessage.mapper';
 import { ChatMessageDto } from '../dto/ChatMessage.dto';
-import { AiAgentService } from '../../domain/services/AiAgent.service';
+import { AnalysisContext, AiAgentService } from '../../domain/services/AiAgent.service';
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
 import { PlanRepository } from 'src/modules/core/domain/repositories/Plan.repository';
+import { HistoryRepository } from 'src/modules/core/domain/repositories/History.repository';
 
 export interface SendMessageProps {
     content: string;
@@ -39,6 +40,8 @@ export class SendMessageUseCase extends AbstractUseCase<
         private readonly userRepository: UserRepository,
         @Inject('PlanRepository')
         private readonly planRepository: PlanRepository,
+        @Inject('HistoryRepository')
+        private readonly historyRepository: HistoryRepository,
     ) {
         super();
     }
@@ -110,10 +113,26 @@ export class SendMessageUseCase extends AbstractUseCase<
                 createdAt: m.createdAt,
             }));
 
+        let analysisContext: AnalysisContext | undefined;
+        const analysisResult = await this.historyRepository.getById(sessionId);
+        if (analysisResult.isSuccess()) {
+            const analysis = analysisResult.value;
+            analysisContext = {
+                crop: analysis.crop,
+                cropConfidence: analysis.cropConfidence,
+                sicknessConfidence: analysis.sicknessConfidence,
+                explanation: analysis.explanation,
+                causes: analysis.causes,
+                handling: analysis.handling,
+                precautions: analysis.precautions,
+            };
+        }
+
         const webhookResult = await this.aiAgentService.sendMessage({
             message: content,
             userId,
             sessionId,
+            analysisContext,
             history,
         });
         if (webhookResult.isFailure()) {

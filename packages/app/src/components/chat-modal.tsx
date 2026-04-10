@@ -37,10 +37,16 @@ interface ChatMessage {
     timestamp: Date;
 }
 
+interface PlanLimit {
+    chatRequests: number;
+    chatLimit: number;
+}
+
 interface ChatModalProps {
     visible: boolean;
     analysis: History | null;
     onClose: () => void;
+    limit?: PlanLimit | null;
 }
 
 function dtoToMessage(dto: ChatMessageDto): ChatMessage {
@@ -56,7 +62,7 @@ function buildInitialMessage(analysis: History | null): ChatMessage {
     const disease = analysis?.explanation ?? analysis?.crop ?? 'a cultura analisada';
     const crop = analysis?.crop ?? '';
     const confidence = analysis?.sicknessConfidence
-        ? ` (${analysis.sicknessConfidence.toFixed(1)}% de confiança)`
+        ? ` (${(analysis.sicknessConfidence * 100).toFixed(1)}% de confiança)`
         : '';
 
     return {
@@ -67,7 +73,7 @@ function buildInitialMessage(analysis: History | null): ChatMessage {
     };
 }
 
-export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
+export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps) {
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     const colors = Colors[isDark ? 'dark' : 'light'];
@@ -82,6 +88,13 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
     const scrollViewRef = useRef<ScrollView>(null);
     const slideAnim = useRef(new Animated.Value(300)).current;
     const socketRef = useRef<Socket | null>(null);
+
+    const hasNoChatAccess = limit != null && limit.chatLimit === 0;
+    const hasReachedLimit = limit != null && limit.chatLimit > 0 && limit.chatRequests >= limit.chatLimit;
+    const isChatBlocked = hasNoChatAccess || hasReachedLimit;
+    const remainingMessages = limit != null && limit.chatLimit > 0
+        ? Math.max(0, limit.chatLimit - limit.chatRequests)
+        : null;
 
     useEffect(() => {
         if (visible && analysis) {
@@ -353,54 +366,70 @@ export function ChatModal({ visible, analysis, onClose }: ChatModalProps) {
                                     },
                                 ]}
                             >
-                                {limitError && (
-                                    <ThemedText
-                                        style={[styles.limitMsg, { color: '#ef4444' }]}
-                                    >
-                                        {limitError}
-                                    </ThemedText>
+                                {isChatBlocked ? (
+                                    <View style={[styles.blockedBanner, { backgroundColor: isDark ? colors.backgroundElement : '#fef2f2', borderColor: '#fca5a5' }]}>
+                                        <ThemedText style={[styles.blockedIcon]}>🔒</ThemedText>
+                                        <ThemedText style={[styles.blockedText, { color: '#ef4444' }]}>
+                                            {hasNoChatAccess
+                                                ? 'Seu plano não inclui acesso ao chat. Faça upgrade para usar o assistente.'
+                                                : `Limite de ${limit!.chatLimit} mensagens atingido. Faça upgrade para continuar.`}
+                                        </ThemedText>
+                                    </View>
+                                ) : (
+                                    <>
+                                        {limitError && (
+                                            <ThemedText style={[styles.limitMsg, { color: '#ef4444' }]}>
+                                                {limitError}
+                                            </ThemedText>
+                                        )}
+                                        {remainingMessages !== null && remainingMessages <= 10 && (
+                                            <ThemedText style={[styles.limitMsg, { color: colors.textSecondary }]}>
+                                                {remainingMessages} {remainingMessages === 1 ? 'mensagem restante' : 'mensagens restantes'}
+                                            </ThemedText>
+                                        )}
+                                        <View style={styles.inputInner}>
+                                            <TextInput
+                                                style={[
+                                                    styles.input,
+                                                    {
+                                                        backgroundColor: isDark
+                                                            ? colors.backgroundElement
+                                                            : '#f5f5f8',
+                                                        color: colors.text,
+                                                        borderColor: isDark
+                                                            ? colors.backgroundSelected
+                                                            : '#e0e0e3',
+                                                    },
+                                                ]}
+                                                value={inputText}
+                                                onChangeText={setInputText}
+                                                placeholder="Escreva sua dúvida..."
+                                                placeholderTextColor={colors.textSecondary}
+                                                multiline
+                                                maxLength={500}
+                                                returnKeyType="send"
+                                                onSubmitEditing={sendMessage}
+                                                blurOnSubmit={false}
+                                                editable={!isTyping && isConnected}
+                                            />
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.sendBtn,
+                                                    {
+                                                        backgroundColor:
+                                                            inputText.trim() && !isTyping && isConnected
+                                                                ? colors.tint
+                                                                : colors.backgroundSelected,
+                                                    },
+                                                ]}
+                                                onPress={sendMessage}
+                                                disabled={!inputText.trim() || isTyping || !isConnected}
+                                            >
+                                                <ThemedText style={styles.sendIcon}>↑</ThemedText>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </>
                                 )}
-                                <View style={styles.inputInner}>
-                                    <TextInput
-                                        style={[
-                                            styles.input,
-                                            {
-                                                backgroundColor: isDark
-                                                    ? colors.backgroundElement
-                                                    : '#f5f5f8',
-                                                color: colors.text,
-                                                borderColor: isDark
-                                                    ? colors.backgroundSelected
-                                                    : '#e0e0e3',
-                                            },
-                                        ]}
-                                        value={inputText}
-                                        onChangeText={setInputText}
-                                        placeholder="Escreva sua dúvida..."
-                                        placeholderTextColor={colors.textSecondary}
-                                        multiline
-                                        maxLength={500}
-                                        returnKeyType="send"
-                                        onSubmitEditing={sendMessage}
-                                        blurOnSubmit={false}
-                                        editable={!isTyping && isConnected}
-                                    />
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.sendBtn,
-                                            {
-                                                backgroundColor:
-                                                    inputText.trim() && !isTyping && isConnected
-                                                        ? colors.tint
-                                                        : colors.backgroundSelected,
-                                            },
-                                        ]}
-                                        onPress={sendMessage}
-                                        disabled={!inputText.trim() || isTyping || !isConnected}
-                                    >
-                                        <ThemedText style={styles.sendIcon}>↑</ThemedText>
-                                    </TouchableOpacity>
-                                </View>
                             </View>
                         </KeyboardAvoidingView>
                     </SafeAreaView>
@@ -600,6 +629,23 @@ function makeStyles(colors: (typeof Colors)['light'], isDark: boolean) {
             fontSize: 12,
             textAlign: 'center',
             paddingBottom: 6,
+        },
+        blockedBanner: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            padding: 12,
+            borderRadius: 10,
+            borderWidth: 1,
+            marginBottom: 4,
+        },
+        blockedIcon: {
+            fontSize: 18,
+        },
+        blockedText: {
+            flex: 1,
+            fontSize: 13,
+            lineHeight: 18,
         },
     });
 }

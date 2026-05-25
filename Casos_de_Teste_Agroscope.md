@@ -31,11 +31,11 @@
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que um usuário cadastrado consegue autenticar com e-mail e senha corretos |
-| **Pré-condições** | Usuário cadastrado no sistema; API backend em execução |
+| **Objetivo** | Verificar se o usuário consegue acessar o sistema com e-mail e senha corretos |
+| **Pré-condições** | Usuário previamente cadastrado no sistema |
 | **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Enviar `POST /auth/login` com corpo `{ "email": "usuario@email.com", "password": "senha@123" }` |
-| **Resultado esperado** | HTTP 200 com token JWT criptografado no corpo da resposta |
+| **Procedimentos** | 1. Acessar a tela de login <br> 2. Preencher o campo de e-mail <br> 3. Preencher o campo de senha <br> 4. Clicar no botão "Entrar" |
+| **Resultado esperado** | O usuário é redirecionado para a tela principal do sistema com sua sessão ativa |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -46,131 +46,131 @@
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema recusa login com senha errada |
-| **Pré-condições** | Usuário cadastrado no sistema |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senha_errada` |
-| **Procedimentos** | 1. Enviar `POST /auth/login` com senha incorreta |
-| **Resultado esperado** | HTTP 400/401 com mensagem de erro; contador de tentativas incrementado |
+| **Objetivo** | Verificar se o sistema exibe mensagem de erro ao tentar acessar com senha incorreta |
+| **Pré-condições** | Usuário previamente cadastrado no sistema |
+| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senhaErrada` |
+| **Procedimentos** | 1. Acessar a tela de login <br> 2. Preencher o e-mail corretamente <br> 3. Preencher a senha de forma incorreta <br> 4. Clicar em "Entrar" |
+| **Resultado esperado** | O acesso é negado e uma mensagem de erro é exibida na tela informando que as credenciais são inválidas |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-03 — Bloqueio de conta após 5 tentativas inválidas
+### CT-03 — Bloqueio de conta após tentativas inválidas
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a conta é bloqueada após 5 tentativas de login com senha errada |
-| **Pré-condições** | Usuário cadastrado; 4 tentativas incorretas já registradas |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senha_errada` (5ª tentativa) |
-| **Procedimentos** | 1. Enviar `POST /auth/login` com senha incorreta pela 5ª vez <br> 2. Tentar login novamente com senha correta |
-| **Resultado esperado** | Após a 5ª tentativa: HTTP 403 indicando conta bloqueada; login com senha correta também negado enquanto bloqueado |
+| **Objetivo** | Verificar se a conta é bloqueada após múltiplas tentativas de login com senha errada |
+| **Pré-condições** | Usuário cadastrado; 4 tentativas incorretas já realizadas anteriormente |
+| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senhaErrada` (5ª tentativa) |
+| **Procedimentos** | 1. Acessar a tela de login <br> 2. Realizar mais uma tentativa de login com senha incorreta <br> 3. Tentar novamente com a senha correta |
+| **Resultado esperado** | O sistema exibe mensagem informando que a conta foi bloqueada; o login com a senha correta também é recusado enquanto o bloqueio estiver ativo |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-04 — Solicitar token de recuperação de senha
+### CT-04 — Solicitar recuperação de senha
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema gera e envia um token de 6 dígitos ao e-mail do usuário |
-| **Pré-condições** | Usuário cadastrado com e-mail válido; serviço de e-mail configurado |
+| **Objetivo** | Verificar se o usuário consegue solicitar a recuperação de senha e receber o código por e-mail |
+| **Pré-condições** | Usuário cadastrado com e-mail válido |
 | **Dados de entrada** | E-mail: `usuario@email.com` |
-| **Procedimentos** | 1. Enviar `POST /auth/recovery-token` com `{ "email": "usuario@email.com" }` |
-| **Resultado esperado** | HTTP 200; e-mail recebido com código de 6 dígitos; código expira em 5 minutos |
+| **Procedimentos** | 1. Acessar a tela de login <br> 2. Clicar em "Esqueci minha senha" <br> 3. Informar o e-mail cadastrado <br> 4. Confirmar a solicitação |
+| **Resultado esperado** | O sistema confirma o envio e o usuário recebe um e-mail com um código numérico de recuperação |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-05 — Validar token de recuperação correto
+### CT-05 — Inserir código de recuperação válido
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema aceita um token de recuperação válido e não expirado |
-| **Pré-condições** | Token de recuperação gerado e não expirado |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Token: `123456` (código válido recebido) |
-| **Procedimentos** | 1. Enviar `POST /auth/validate-recovery-token` com `{ "email": "usuario@email.com", "token": "123456" }` |
-| **Resultado esperado** | HTTP 200 indicando token válido; permite prosseguir para alteração de senha |
+| **Objetivo** | Verificar se o usuário consegue avançar para a tela de nova senha ao inserir o código correto |
+| **Pré-condições** | Código de recuperação recebido por e-mail e ainda dentro do prazo de validade |
+| **Dados de entrada** | Código: `123456` (recebido por e-mail) |
+| **Procedimentos** | 1. Acessar a tela de inserção do código de recuperação <br> 2. Digitar o código recebido por e-mail <br> 3. Confirmar |
+| **Resultado esperado** | O sistema aceita o código e exibe a tela de criação de nova senha |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-06 — Validar token de recuperação incorreto
+### CT-06 — Inserir código de recuperação inválido
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema recusa token de recuperação inválido e incrementa tentativas incorretas |
-| **Pré-condições** | Token de recuperação gerado; menos de 4 tentativas incorretas |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Token: `000000` (código errado) |
-| **Procedimentos** | 1. Enviar `POST /auth/validate-recovery-token` com token incorreto |
-| **Resultado esperado** | HTTP 400 com mensagem de erro; contador de tentativas incorretas incrementado |
+| **Objetivo** | Verificar se o sistema recusa um código de recuperação incorreto e exibe mensagem de erro |
+| **Pré-condições** | Código de recuperação enviado para o e-mail do usuário |
+| **Dados de entrada** | Código: `000000` (código incorreto) |
+| **Procedimentos** | 1. Acessar a tela de inserção do código de recuperação <br> 2. Digitar um código incorreto <br> 3. Confirmar |
+| **Resultado esperado** | O sistema recusa o código e exibe mensagem de erro informando que o código é inválido |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-07 — Validar token de recuperação expirado
+### CT-07 — Inserir código de recuperação expirado
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema rejeita token expirado (após 5 minutos) |
-| **Pré-condições** | Token de recuperação gerado há mais de 5 minutos |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Token: código expirado |
-| **Procedimentos** | 1. Aguardar mais de 5 min após geração do token <br> 2. Enviar `POST /auth/validate-recovery-token` com o código |
-| **Resultado esperado** | HTTP 400 com mensagem informando que o token expirou |
+| **Objetivo** | Verificar se o sistema recusa um código de recuperação após o prazo de validade ter expirado |
+| **Pré-condições** | Código de recuperação gerado há mais de 5 minutos |
+| **Dados de entrada** | Código expirado recebido por e-mail |
+| **Procedimentos** | 1. Aguardar mais de 5 minutos após receber o código <br> 2. Acessar a tela de inserção do código <br> 3. Digitar o código expirado <br> 4. Confirmar |
+| **Resultado esperado** | O sistema recusa o código e exibe mensagem informando que o prazo de validade expirou |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-08 — Alterar senha com token válido
+### CT-08 — Alterar senha após recuperação
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o usuário consegue alterar a senha após validar o token de recuperação |
-| **Pré-condições** | Token de recuperação validado com sucesso |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Nova senha: `novaSenha@456` |
-| **Procedimentos** | 1. Enviar `POST /auth/change-password` com `{ "email": "usuario@email.com", "newPassword": "novaSenha@456" }` <br> 2. Tentar login com a nova senha |
-| **Resultado esperado** | HTTP 200; login com nova senha realizado com sucesso |
+| **Objetivo** | Verificar se o usuário consegue definir uma nova senha e acessar o sistema com ela |
+| **Pré-condições** | Código de recuperação inserido e validado com sucesso |
+| **Dados de entrada** | Nova senha: `novaSenha@456` |
+| **Procedimentos** | 1. Na tela de nova senha, digitar a nova senha <br> 2. Confirmar a nova senha <br> 3. Salvar a alteração <br> 4. Realizar login com a nova senha |
+| **Resultado esperado** | A senha é alterada com sucesso e o login com a nova senha é efetuado normalmente |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-09 — Obter token CSRF
+### CT-09 — Exibição da tela de login para usuário não autenticado
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o endpoint público de CSRF retorna um token válido |
-| **Pré-condições** | API backend em execução |
+| **Objetivo** | Verificar se a tela de login é exibida corretamente ao acessar o sistema sem estar autenticado |
+| **Pré-condições** | Sistema em execução; usuário não autenticado |
 | **Dados de entrada** | Nenhum |
-| **Procedimentos** | 1. Enviar `GET /auth/csrf/token` sem autenticação |
-| **Resultado esperado** | HTTP 200 com token CSRF no corpo da resposta |
+| **Procedimentos** | 1. Abrir o navegador e acessar a URL da aplicação sem estar autenticado <br> 2. Observar o carregamento da tela |
+| **Resultado esperado** | A tela de login é exibida com campos de e-mail, senha e botão de acesso visíveis e funcionais |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-10 — Validar sessão autenticada
+### CT-10 — Manutenção da sessão autenticada
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o endpoint `/auth/validate` retorna dados corretos para sessão ativa |
-| **Pré-condições** | Usuário autenticado com token JWT válido |
-| **Dados de entrada** | Token JWT no cookie/header de autorização |
-| **Procedimentos** | 1. Enviar `GET /auth/validate` com token de autenticação válido |
-| **Resultado esperado** | HTTP 200 com `{ isEngineer, isAdmin, name, email }` |
+| **Objetivo** | Verificar se o usuário autenticado permanece com acesso ativo e suas informações são exibidas corretamente |
+| **Pré-condições** | Usuário autenticado no sistema |
+| **Dados de entrada** | Nenhum |
+| **Procedimentos** | 1. Realizar login com credenciais válidas <br> 2. Navegar por diferentes áreas do sistema <br> 3. Verificar se as informações do usuário são exibidas |
+| **Resultado esperado** | O usuário permanece autenticado e o sistema exibe seu nome e e-mail corretamente nas áreas pertinentes |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -181,75 +181,75 @@
 
 ---
 
-### CT-11 — Criar usuário com dados válidos
+### CT-11 — Cadastro de novo usuário com dados válidos
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que um novo usuário é criado com sucesso com dados válidos |
-| **Pré-condições** | E-mail não cadastrado no sistema |
+| **Objetivo** | Verificar se um novo usuário consegue se cadastrar no sistema com dados válidos e acessá-lo em seguida |
+| **Pré-condições** | E-mail não utilizado em cadastro anterior |
 | **Dados de entrada** | Nome: `João Silva` / E-mail: `joao@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Enviar `POST /user` com `{ "name": "João Silva", "email": "joao@email.com", "password": "senha@123" }` |
-| **Resultado esperado** | HTTP 201; usuário criado; evento `user.created` emitido; autenticação criada automaticamente |
+| **Procedimentos** | 1. Acessar a tela de cadastro <br> 2. Preencher nome, e-mail e senha <br> 3. Confirmar o cadastro <br> 4. Realizar login com os dados cadastrados |
+| **Resultado esperado** | O cadastro é concluído com sucesso e o usuário consegue acessar o sistema |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-12 — Criar usuário com e-mail já cadastrado
+### CT-12 — Cadastro com e-mail já existente
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema impede cadastro com e-mail duplicado |
+| **Objetivo** | Verificar se o sistema impede o cadastro com um e-mail já utilizado por outra conta |
 | **Pré-condições** | Usuário com e-mail `joao@email.com` já cadastrado |
 | **Dados de entrada** | Nome: `Outro Nome` / E-mail: `joao@email.com` / Senha: `outraSenha@123` |
-| **Procedimentos** | 1. Enviar `POST /user` com e-mail já existente |
-| **Resultado esperado** | HTTP 400/409 com mensagem de conflito de e-mail |
+| **Procedimentos** | 1. Acessar a tela de cadastro <br> 2. Preencher os campos usando o e-mail já cadastrado <br> 3. Confirmar o cadastro |
+| **Resultado esperado** | O cadastro é recusado e o sistema exibe mensagem informando que o e-mail já está em uso |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-13 — Criar usuário com campos obrigatórios ausentes
+### CT-13 — Cadastro sem preencher campos obrigatórios
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema rejeita criação de usuário sem campos obrigatórios |
-| **Pré-condições** | API backend em execução |
-| **Dados de entrada** | Corpo: `{ "email": "joao@email.com" }` (sem nome e senha) |
-| **Procedimentos** | 1. Enviar `POST /user` sem os campos `name` e `password` |
-| **Resultado esperado** | HTTP 400 com mensagem descrevendo quais campos são obrigatórios |
+| **Objetivo** | Verificar se o sistema impede o cadastro quando campos obrigatórios são deixados em branco |
+| **Pré-condições** | Sistema em execução |
+| **Dados de entrada** | Apenas e-mail preenchido: `joao@email.com` (nome e senha em branco) |
+| **Procedimentos** | 1. Acessar a tela de cadastro <br> 2. Preencher somente o campo de e-mail <br> 3. Deixar nome e senha em branco <br> 4. Tentar confirmar o cadastro |
+| **Resultado esperado** | O sistema bloqueia o envio e destaca os campos obrigatórios não preenchidos com mensagens de validação |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-14 — Criar usuário com e-mail em formato inválido
+### CT-14 — Cadastro com e-mail em formato inválido
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema rejeita e-mails em formato inválido |
-| **Pré-condições** | API backend em execução |
-| **Dados de entrada** | Nome: `João` / E-mail: `emailinvalido` / Senha: `senha@123` |
-| **Procedimentos** | 1. Enviar `POST /user` com e-mail sem formato válido |
-| **Resultado esperado** | HTTP 400 com mensagem de validação de formato de e-mail |
+| **Objetivo** | Verificar se o sistema rejeita um e-mail com formato inválido durante o cadastro |
+| **Pré-condições** | Sistema em execução |
+| **Dados de entrada** | Nome: `João` / E-mail: `emailinvalido` (sem @) / Senha: `senha@123` |
+| **Procedimentos** | 1. Acessar a tela de cadastro <br> 2. Preencher o campo de e-mail com um valor em formato inválido <br> 3. Preencher os demais campos corretamente <br> 4. Tentar confirmar o cadastro |
+| **Resultado esperado** | O sistema exibe mensagem de validação indicando que o e-mail informado não está em formato válido e impede o cadastro |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-15 — Consultar limites de uso do usuário
+### CT-15 — Visualização dos limites de uso do plano
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o endpoint de limites retorna as informações de uso atuais do usuário |
-| **Pré-condições** | Usuário autenticado com plano associado |
-| **Dados de entrada** | Token de autenticação válido |
-| **Procedimentos** | 1. Enviar `GET /limit` com token autenticado |
-| **Resultado esperado** | HTTP 200 com `{ imageRequests, imageLimit, chatRequests, chatLimit }` |
+| **Objetivo** | Verificar se o usuário consegue visualizar a quantidade de análises e mensagens de chat disponíveis no seu plano |
+| **Pré-condições** | Usuário autenticado com plano ativo |
+| **Dados de entrada** | Nenhum |
+| **Procedimentos** | 1. Realizar login no sistema <br> 2. Acessar a área de uso ou plano <br> 3. Observar as informações de limites exibidas |
+| **Resultado esperado** | O sistema exibe a quantidade de análises de imagem e mensagens de chat utilizadas e o limite total disponível no plano do usuário |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -260,15 +260,15 @@
 
 ---
 
-### CT-16 — Analisar imagem válida de planta doente
+### CT-16 — Analisar imagem de planta doente (fluxo completo)
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o fluxo completo de análise para uma imagem de planta com doença identificável |
-| **Pré-condições** | Usuário autenticado com plano ativo e limite disponível; serviço IA em execução |
-| **Dados de entrada** | Arquivo: `milho_doente.jpg` (imagem de milho com ferrugem) / Localização: opcional |
-| **Procedimentos** | 1. Enviar `POST /predict` com imagem em `multipart/form-data` <br> 2. Verificar resposta com dados de doença |
-| **Resultado esperado** | HTTP 200 com `{ crop, cropConfidence, sickness, sicknessConfidence, handling, causes, explanation, precautions }`; limite de imagens incrementado |
+| **Objetivo** | Verificar se o usuário consegue analisar uma imagem de planta doente e receber o diagnóstico completo |
+| **Pré-condições** | Usuário autenticado com plano ativo e análises disponíveis |
+| **Dados de entrada** | Imagem de milho com ferrugem |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar uma imagem de milho com sintomas visíveis de doença <br> 3. Clicar em "Analisar Imagem" <br> 4. Aguardar o processamento |
+| **Resultado esperado** | O sistema exibe: cultura identificada (Milho) com percentual de confiança, nome da doença identificada, explicação, causas e recomendações de manejo; botão "Tirar dúvidas sobre esta análise" disponível |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -279,101 +279,101 @@
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema identifica corretamente uma planta saudável |
-| **Pré-condições** | Usuário autenticado com plano ativo e limite disponível |
-| **Dados de entrada** | Arquivo: `soja_saudavel.jpg` (imagem de soja sem doença) |
-| **Procedimentos** | 1. Enviar `POST /predict` com imagem de planta saudável |
-| **Resultado esperado** | HTTP 200 com indicação de planta saudável e handling mínimo; histórico salvo |
+| **Objetivo** | Verificar se o sistema identifica e exibe corretamente o resultado para uma planta sem doença |
+| **Pré-condições** | Usuário autenticado com plano ativo e análises disponíveis |
+| **Dados de entrada** | Imagem de soja saudável |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar uma imagem de soja sem sintomas visíveis <br> 3. Clicar em "Analisar Imagem" <br> 4. Aguardar o processamento |
+| **Resultado esperado** | O sistema exibe a cultura identificada e indica que a planta está saudável; a análise é salva no histórico do usuário |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-18 — Enviar requisição de análise sem arquivo
+### CT-18 — Tentar analisar sem selecionar imagem
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema rejeita a análise quando nenhuma imagem é enviada |
-| **Pré-condições** | Usuário autenticado |
-| **Dados de entrada** | Corpo vazio ou multipart sem campo `image` |
-| **Procedimentos** | 1. Enviar `POST /predict` sem arquivo de imagem |
-| **Resultado esperado** | HTTP 400 com mensagem indicando que a imagem é obrigatória |
+| **Objetivo** | Verificar se o sistema impede o início da análise quando nenhuma imagem foi selecionada |
+| **Pré-condições** | Usuário autenticado na aba "Nova Análise" |
+| **Dados de entrada** | Nenhum (sem imagem selecionada) |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Não selecionar nenhuma imagem <br> 3. Observar o estado do botão "Analisar Imagem" |
+| **Resultado esperado** | O botão "Analisar Imagem" permanece desabilitado enquanto nenhuma imagem estiver selecionada |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-19 — Enviar arquivo com tipo inválido para análise
+### CT-19 — Selecionar arquivo que não é imagem para análise
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema rejeita arquivos que não são imagens |
-| **Pré-condições** | Usuário autenticado |
-| **Dados de entrada** | Arquivo: `documento.pdf` (arquivo PDF) |
-| **Procedimentos** | 1. Enviar `POST /predict` com um arquivo `.pdf` no campo de imagem |
-| **Resultado esperado** | HTTP 400 com mensagem de tipo de arquivo não suportado |
+| **Objetivo** | Verificar se o sistema rejeita o envio de arquivos que não sejam imagens |
+| **Pré-condições** | Usuário autenticado na aba "Nova Análise" |
+| **Dados de entrada** | Arquivo PDF ou documento de texto |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Tentar selecionar um arquivo PDF ou documento no seletor de arquivo <br> 3. Tentar prosseguir com a análise |
+| **Resultado esperado** | O sistema não aceita o arquivo e exibe mensagem informando que apenas imagens são suportadas |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-20 — Análise com confiança abaixo do limiar (< 0.8)
+### CT-20 — Analisar imagem com qualidade insuficiente para diagnóstico
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o comportamento quando a IA retorna confiança abaixo de 0.8 |
-| **Pré-condições** | Usuário autenticado com plano ativo; imagem ambígua preparada |
-| **Dados de entrada** | Arquivo: imagem com baixa definição ou espécie não reconhecida |
-| **Procedimentos** | 1. Enviar `POST /predict` com imagem de baixa qualidade ou ambígua |
-| **Resultado esperado** | HTTP 400 ou resposta com indicação de confiança insuficiente; histórico não salvo |
+| **Objetivo** | Verificar o comportamento do sistema quando a imagem enviada não permite um diagnóstico com confiança suficiente |
+| **Pré-condições** | Usuário autenticado com plano ativo e análises disponíveis |
+| **Dados de entrada** | Imagem de baixa resolução, muito escura ou com planta fora de foco |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar uma imagem de baixa qualidade <br> 3. Clicar em "Analisar Imagem" <br> 4. Aguardar o processamento |
+| **Resultado esperado** | O sistema exibe mensagem informando que não foi possível realizar o diagnóstico com confiança suficiente e orienta o usuário a tentar novamente com uma imagem de melhor qualidade |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-21 — Análise com limite de imagens esgotado
+### CT-21 — Tentar analisar com limite de análises esgotado
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema bloqueia análise quando o usuário atingiu o limite do plano |
-| **Pré-condições** | Usuário autenticado; `imageRequests` igual ao `imageLimit` do plano |
-| **Dados de entrada** | Arquivo: `milho_doente.jpg` (qualquer imagem válida) |
-| **Procedimentos** | 1. Enviar `POST /predict` com limite já esgotado |
-| **Resultado esperado** | HTTP 429/403 com mensagem indicando limite de análises atingido |
+| **Objetivo** | Verificar se o sistema bloqueia novas análises quando o usuário atingiu o limite do seu plano |
+| **Pré-condições** | Usuário autenticado com todas as análises do plano já utilizadas |
+| **Dados de entrada** | Qualquer imagem válida |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Observar o contador de análises <br> 3. Selecionar uma imagem <br> 4. Tentar clicar em "Analisar Imagem" |
+| **Resultado esperado** | O contador exibe o limite atingido em destaque; o botão "Analisar Imagem" está desabilitado e a interface indica que o limite do plano foi atingido |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-22 — Análise sem plano associado ao usuário
+### CT-22 — Tentar analisar sem plano ativo
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema impede análise para usuário sem plano |
-| **Pré-condições** | Usuário autenticado sem plano associado |
-| **Dados de entrada** | Arquivo: imagem válida |
-| **Procedimentos** | 1. Enviar `POST /predict` com usuário que não possui planId |
-| **Resultado esperado** | HTTP 403/400 com mensagem indicando que o usuário não possui plano ativo |
+| **Objetivo** | Verificar se o sistema impede análises para usuários sem plano associado |
+| **Pré-condições** | Usuário autenticado sem plano ativo |
+| **Dados de entrada** | Qualquer imagem válida |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar uma imagem <br> 3. Tentar iniciar a análise |
+| **Resultado esperado** | O sistema exibe mensagem informando que é necessário um plano ativo para realizar análises |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-23 — Análise com dados de localização
+### CT-23 — Analisar imagem com localização geográfica informada
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a análise considera dados climáticos quando localização é fornecida |
-| **Pré-condições** | Usuário autenticado com plano ativo e limite disponível |
-| **Dados de entrada** | Arquivo: `trigo_doente.jpg` / Localização: `{ "lat": -27.59, "lng": -48.55 }` |
-| **Procedimentos** | 1. Enviar `POST /predict` com campo `location` preenchido |
-| **Resultado esperado** | HTTP 200; resposta inclui compatibilidade climática da doença; análise mais contextualizada |
+| **Objetivo** | Verificar se o resultado da análise incorpora informações contextuais quando a localização do usuário está disponível |
+| **Pré-condições** | Usuário autenticado com plano ativo; permissão de localização concedida ao aplicativo |
+| **Dados de entrada** | Imagem de trigo doente; localização GPS do dispositivo habilitada |
+| **Procedimentos** | 1. Permitir acesso à localização quando solicitado <br> 2. Acessar a aba "Nova Análise" <br> 3. Selecionar imagem de trigo com sintomas <br> 4. Clicar em "Analisar Imagem" |
+| **Resultado esperado** | O resultado exibido inclui informações contextualizadas à região do usuário, tornando as recomendações de manejo mais precisas |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -384,15 +384,15 @@
 
 ---
 
-### CT-24 — Listar histórico de análises do usuário
+### CT-24 — Visualizar histórico completo de análises
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o usuário consegue recuperar seu histórico completo de análises |
-| **Pré-condições** | Usuário autenticado; ao menos 1 análise registrada |
-| **Dados de entrada** | Token de autenticação |
-| **Procedimentos** | 1. Enviar `GET /history` autenticado sem filtros |
-| **Resultado esperado** | HTTP 200 com lista de objetos History do usuário, ordenada por data |
+| **Objetivo** | Verificar se o usuário consegue visualizar todas as suas análises anteriores na aba de histórico |
+| **Pré-condições** | Usuário autenticado com ao menos uma análise registrada |
+| **Dados de entrada** | Nenhum |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Observar a lista de análises exibidas |
+| **Resultado esperado** | A lista exibe todas as análises do usuário com nome da doença ou cultura, data e indicadores de confiança, ordenadas da mais recente para a mais antiga |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -403,86 +403,86 @@
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o filtro de histórico por tipo de cultura (crop) |
-| **Pré-condições** | Usuário autenticado; histórico com análises de culturas distintas |
-| **Dados de entrada** | Query param: `crop=Corn` |
-| **Procedimentos** | 1. Enviar `GET /history?crop=Corn` |
-| **Resultado esperado** | HTTP 200 com lista contendo apenas análises de milho |
+| **Objetivo** | Verificar se o filtro por cultura restringe corretamente os itens exibidos no histórico |
+| **Pré-condições** | Usuário autenticado com análises de ao menos duas culturas diferentes registradas |
+| **Dados de entrada** | Filtro de cultura: Milho |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Selecionar "Milho" no filtro de cultura <br> 3. Observar a lista atualizada |
+| **Resultado esperado** | A lista exibe apenas análises de milho; análises de outras culturas não são exibidas |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-26 — Filtrar histórico por intervalo de datas
+### CT-26 — Filtrar histórico por período de datas
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o filtro de histórico por data de início e fim |
-| **Pré-condições** | Usuário autenticado; histórico com análises em datas variadas |
-| **Dados de entrada** | Query params: `startDate=2025-01-01&endDate=2025-03-31` |
-| **Procedimentos** | 1. Enviar `GET /history?startDate=2025-01-01&endDate=2025-03-31` |
-| **Resultado esperado** | HTTP 200 com análises apenas dentro do intervalo especificado |
+| **Objetivo** | Verificar se o filtro por data restringe os itens do histórico ao intervalo selecionado |
+| **Pré-condições** | Usuário autenticado com análises registradas em datas variadas |
+| **Dados de entrada** | Período: 01/01/2025 a 31/03/2025 |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Selecionar um intervalo de datas no filtro de período <br> 3. Observar a lista atualizada |
+| **Resultado esperado** | A lista exibe apenas análises realizadas dentro do intervalo selecionado |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-27 — Filtrar histórico por cultura e data combinados
+### CT-27 — Filtrar histórico combinando cultura e período
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar filtro combinado de cultura e intervalo de datas |
-| **Pré-condições** | Usuário autenticado; histórico com análises diversas |
-| **Dados de entrada** | Query params: `crop=Soybean&startDate=2025-01-01&endDate=2025-12-31` |
-| **Procedimentos** | 1. Enviar `GET /history?crop=Soybean&startDate=2025-01-01&endDate=2025-12-31` |
-| **Resultado esperado** | HTTP 200 com análises de soja dentro do período indicado |
+| **Objetivo** | Verificar se os filtros de cultura e período funcionam corretamente quando aplicados juntos |
+| **Pré-condições** | Usuário autenticado com análises variadas de culturas e datas distintas |
+| **Dados de entrada** | Cultura: Soja / Período: últimos 30 dias |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Selecionar "Soja" no filtro de cultura <br> 3. Selecionar o período desejado <br> 4. Observar a lista atualizada |
+| **Resultado esperado** | A lista exibe apenas análises de soja realizadas no período selecionado |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-28 — Obter análise por ID válido
+### CT-28 — Visualizar detalhes de uma análise do histórico
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o usuário consegue consultar os detalhes de uma análise específica |
-| **Pré-condições** | Usuário autenticado; análise pertencente ao usuário |
-| **Dados de entrada** | ID: `abc-123` (ID de uma análise do usuário) |
-| **Procedimentos** | 1. Enviar `GET /history/abc-123` autenticado |
-| **Resultado esperado** | HTTP 200 com HistoryDto completo (doença, causas, manejo, precauções, imagem) |
+| **Objetivo** | Verificar se o usuário consegue abrir e visualizar todos os detalhes de uma análise anterior |
+| **Pré-condições** | Usuário autenticado com ao menos uma análise registrada no histórico |
+| **Dados de entrada** | Item do histórico com diagnóstico de doença |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Clicar em "Ver Detalhes" em uma análise <br> 3. Observar o painel de detalhes |
+| **Resultado esperado** | O painel de detalhes exibe a imagem da planta, nome da doença, percentual de confiança, causas, recomendações de manejo e status do diagnóstico |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-29 — Acessar análise pertencente a outro usuário
+### CT-29 — Isolamento de histórico entre usuários diferentes
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema impede acesso a análises de outros usuários |
-| **Pré-condições** | Usuário A autenticado; análise pertencente ao Usuário B |
-| **Dados de entrada** | ID: `xyz-456` (análise de outro usuário) |
-| **Procedimentos** | 1. Enviar `GET /history/xyz-456` autenticado como Usuário A |
-| **Resultado esperado** | HTTP 403/404 com mensagem de recurso não encontrado ou acesso negado |
+| **Objetivo** | Verificar se um usuário consegue visualizar apenas suas próprias análises, sem acesso às de outros usuários |
+| **Pré-condições** | Dois usuários distintos com análises registradas (Usuário A e Usuário B) |
+| **Dados de entrada** | Login do Usuário A |
+| **Procedimentos** | 1. Realizar login como Usuário A <br> 2. Acessar a aba "Histórico" <br> 3. Verificar se apenas as análises do Usuário A são listadas |
+| **Resultado esperado** | O histórico exibe somente as análises do Usuário A; nenhuma análise do Usuário B é visível |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-30 — Obter análise com ID inexistente
+### CT-30 — Confirmar ou contestar diagnóstico no histórico
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o comportamento ao buscar análise com ID que não existe |
-| **Pré-condições** | Usuário autenticado |
-| **Dados de entrada** | ID: `id-inexistente-999` |
-| **Procedimentos** | 1. Enviar `GET /history/id-inexistente-999` |
-| **Resultado esperado** | HTTP 404 com mensagem de registro não encontrado |
+| **Objetivo** | Verificar se o usuário consegue marcar um diagnóstico como confirmado ou incorreto a partir do histórico |
+| **Pré-condições** | Usuário autenticado com ao menos uma análise com status "Não confirmado" no histórico |
+| **Dados de entrada** | Análise com status pendente de confirmação |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Abrir os detalhes de uma análise com status "Não confirmado" <br> 3. Clicar em "Confirmar Diagnóstico" ou marcar como incorreto <br> 4. Observar a atualização do status |
+| **Resultado esperado** | O status da análise é atualizado para "Confirmado" (badge verde) ou "Incorreto" (badge vermelho) e refletido imediatamente na lista do histórico |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -493,75 +493,75 @@
 
 ---
 
-### CT-31 — Enviar mensagem no chat com limite disponível
+### CT-31 — Enviar mensagem no chat de uma análise
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o fluxo completo de envio de mensagem e obtenção de resposta da IA |
-| **Pré-condições** | Usuário autenticado com plano ativo e limite de chat disponível; agente N8n acessível |
-| **Dados de entrada** | Conteúdo: `"Quais os cuidados para milho com ferrugem?"` / sessionId: `sess-001` |
-| **Procedimentos** | 1. Enviar `POST /chat` com `{ "content": "...", "sessionId": "sess-001" }` <br> 2. Verificar resposta da IA |
-| **Resultado esperado** | HTTP 200 com resposta da IA; mensagem humana e resposta IA salvas; limite de chat incrementado |
+| **Objetivo** | Verificar se o usuário consegue enviar uma pergunta sobre uma análise e receber uma resposta contextualizada da IA |
+| **Pré-condições** | Usuário autenticado com plano ativo e mensagens de chat disponíveis; análise realizada |
+| **Dados de entrada** | Pergunta: "Quais os cuidados para milho com ferrugem?" |
+| **Procedimentos** | 1. Após visualizar o resultado de uma análise, clicar em "Tirar dúvidas sobre esta análise" <br> 2. Digitar a pergunta no campo de texto <br> 3. Pressionar Enter ou clicar no botão de envio <br> 4. Aguardar a resposta |
+| **Resultado esperado** | A mensagem é enviada e a IA responde com informações contextualizadas à doença identificada na análise; o indicador de digitação é exibido enquanto a resposta é gerada |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-32 — Enviar mensagem com limite de chat esgotado
+### CT-32 — Tentar enviar mensagem no chat com limite esgotado
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema bloqueia mensagens quando o limite de chat é atingido |
-| **Pré-condições** | Usuário autenticado; `chatRequests` igual ao `chatLimit` do plano |
-| **Dados de entrada** | Conteúdo: `"Mensagem qualquer"` / sessionId: `sess-001` |
-| **Procedimentos** | 1. Enviar `POST /chat` com limite já esgotado |
-| **Resultado esperado** | HTTP 429/403 com mensagem indicando limite de chat atingido |
+| **Objetivo** | Verificar se o sistema bloqueia o envio de mensagens quando o limite de chat do plano é atingido |
+| **Pré-condições** | Usuário autenticado com todas as mensagens de chat do plano já utilizadas |
+| **Dados de entrada** | Qualquer pergunta no campo de chat |
+| **Procedimentos** | 1. Abrir o painel de chat a partir de uma análise <br> 2. Digitar uma mensagem <br> 3. Tentar enviar |
+| **Resultado esperado** | O sistema exibe mensagem informando que o limite de mensagens do plano foi atingido; o envio é bloqueado |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-33 — Consultar histórico de conversa por sessionId
+### CT-33 — Rever histórico de conversa de uma sessão anterior
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o histórico de uma sessão de chat é retornado corretamente |
-| **Pré-condições** | Usuário autenticado; sessão com mensagens registradas |
-| **Dados de entrada** | sessionId: `sess-001` |
-| **Procedimentos** | 1. Enviar `GET /chat/history?sessionId=sess-001` |
-| **Resultado esperado** | HTTP 200 com lista de ChatMessage ordenada por data (sender: human/ai) |
+| **Objetivo** | Verificar se as mensagens trocadas em uma sessão de chat anterior são preservadas e exibidas ao reabrir o chat da mesma análise |
+| **Pré-condições** | Usuário autenticado com ao menos uma sessão de chat com mensagens registradas |
+| **Dados de entrada** | Análise com histórico de conversa |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Clicar no botão de chat de uma análise que já teve conversa anterior <br> 3. Observar as mensagens exibidas |
+| **Resultado esperado** | As mensagens anteriores da conversa são carregadas e exibidas na ordem cronológica, permitindo continuidade da conversa |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-34 — Listar sessões de chat do usuário
+### CT-34 — Abrir chat a partir do histórico com contexto correto
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o sistema retorna a lista de sessões de chat do usuário autenticado |
-| **Pré-condições** | Usuário autenticado; ao menos 1 sessão registrada |
-| **Dados de entrada** | Token de autenticação |
-| **Procedimentos** | 1. Enviar `GET /chat/sessions` autenticado |
-| **Resultado esperado** | HTTP 200 com lista de sessões (sessionId, data da última mensagem) |
+| **Objetivo** | Verificar se ao abrir o chat a partir de uma análise do histórico, a IA apresenta o contexto correto daquela análise |
+| **Pré-condições** | Usuário autenticado com ao menos uma análise no histórico |
+| **Dados de entrada** | Análise de soja com ferrugem asiática no histórico |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Clicar no botão "Chat" de uma análise específica <br> 3. Observar a mensagem inicial da IA |
+| **Resultado esperado** | O painel de chat abre com a saudação da IA mencionando a cultura e a doença identificadas naquela análise específica |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-35 — Enviar mensagem sem sessionId
+### CT-35 — Indicador de conexão em tempo real no chat
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o comportamento ao enviar mensagem sem informar sessionId |
-| **Pré-condições** | Usuário autenticado com plano ativo |
-| **Dados de entrada** | Corpo: `{ "content": "Mensagem sem sessão" }` (sem sessionId) |
-| **Procedimentos** | 1. Enviar `POST /chat` sem o campo `sessionId` |
-| **Resultado esperado** | HTTP 400 com mensagem indicando campo obrigatório, ou nova sessão criada automaticamente (conforme comportamento implementado) |
+| **Objetivo** | Verificar se o painel de chat exibe o status de conexão em tempo real e o indicador de digitação enquanto a IA processa a resposta |
+| **Pré-condições** | Usuário autenticado com acesso ao chat |
+| **Dados de entrada** | Qualquer pergunta enviada no chat |
+| **Procedimentos** | 1. Abrir o painel de chat de uma análise <br> 2. Observar o indicador de status de conexão no cabeçalho <br> 3. Enviar uma mensagem e observar o comportamento enquanto a IA responde |
+| **Resultado esperado** | O cabeçalho exibe "● Conectado" em verde; ao enviar mensagem, aparece o indicador de digitação (três pontos pulsantes) até a resposta chegar |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -572,124 +572,124 @@
 
 ---
 
-### CT-36 — Listar todos os planos disponíveis
+### CT-36 — Visualizar informações do plano e limites de uso
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o endpoint retorna todos os planos cadastrados com seus limites e preços |
-| **Pré-condições** | API backend em execução; ao menos 1 plano cadastrado no banco |
-| **Dados de entrada** | Nenhum (rota pública ou autenticada) |
-| **Procedimentos** | 1. Enviar `GET /plan` |
-| **Resultado esperado** | HTTP 200 com lista de planos contendo `{ type, imageLimit, chatLimit, features, price }` |
+| **Objetivo** | Verificar se o usuário consegue visualizar as informações do seu plano atual e os limites de uso disponíveis |
+| **Pré-condições** | Usuário autenticado com plano ativo |
+| **Dados de entrada** | Nenhum |
+| **Procedimentos** | 1. Realizar login no sistema <br> 2. Acessar a aba "Nova Análise" <br> 3. Observar o contador de uso exibido na tela |
+| **Resultado esperado** | O sistema exibe o número de análises de imagem e mensagens de chat já utilizadas em relação ao limite total do plano |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-## Módulo: Serviço de IA (Flask)
+## Módulo: Diagnóstico por IA
 
 ---
 
-### CT-37 — Predição de doença em imagem de milho
+### CT-37 — Diagnóstico correto de doença em imagem de milho
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o serviço IA classifica corretamente uma imagem de milho com doença |
-| **Pré-condições** | Serviço Flask em execução na porta 5000; modelo de milho carregado |
-| **Dados de entrada** | Arquivo: `milho_ferrugem.jpg` |
-| **Procedimentos** | 1. Enviar `POST /predict` ao serviço Flask com a imagem no campo `image` |
-| **Resultado esperado** | HTTP 200 com `{ "plant": "Corn", "plantConfidence": ≥0.8, "prediction": "Northern Leaf Blight", "predictionConfidence": ≥0.8 }` |
+| **Objetivo** | Verificar se o sistema identifica corretamente a cultura e a doença em uma imagem de milho |
+| **Pré-condições** | Usuário autenticado com plano ativo; imagem nítida de milho com sintomas visíveis |
+| **Dados de entrada** | Imagem de folha de milho com ferrugem comum visível |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar imagem de milho com sintomas de ferrugem <br> 3. Clicar em "Analisar Imagem" <br> 4. Verificar o resultado exibido |
+| **Resultado esperado** | O sistema identifica a cultura como Milho e a doença correspondente (ex: Ferrugem Comum, Ferrugem Polissora ou Cercosporiose) com alto nível de confiança |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-38 — Predição de doença em imagem de soja
+### CT-38 — Diagnóstico correto de doença em imagem de soja
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o serviço IA classifica corretamente uma imagem de soja com doença |
-| **Pré-condições** | Serviço Flask em execução; modelo de soja carregado (10 doenças) |
-| **Dados de entrada** | Arquivo: `soja_ferrugem.jpg` |
-| **Procedimentos** | 1. Enviar `POST /predict` ao serviço Flask com imagem de soja doente |
-| **Resultado esperado** | HTTP 200 com `{ "plant": "Soybean", "plantConfidence": ≥0.8, "prediction": nome da doença, "predictionConfidence": ≥0.8 }` |
+| **Objetivo** | Verificar se o sistema identifica corretamente a cultura e a doença em uma imagem de soja |
+| **Pré-condições** | Usuário autenticado com plano ativo; imagem nítida de soja com sintomas visíveis |
+| **Dados de entrada** | Imagem de folha de soja com sintomas de ferrugem asiática |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar imagem de soja com sintomas de doença <br> 3. Clicar em "Analisar Imagem" <br> 4. Verificar o resultado exibido |
+| **Resultado esperado** | O sistema identifica a cultura como Soja e a doença correspondente (ex: Ferrugem Asiática, Mancha Marrom, Cercosporiose) com alto nível de confiança |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-39 — Predição de doença em imagem de trigo
+### CT-39 — Diagnóstico correto de doença em imagem de trigo
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o serviço IA classifica corretamente uma imagem de trigo com doença |
-| **Pré-condições** | Serviço Flask em execução; modelo de trigo carregado (7 doenças) |
-| **Dados de entrada** | Arquivo: `trigo_septoria.jpg` |
-| **Procedimentos** | 1. Enviar `POST /predict` ao serviço Flask com imagem de trigo doente |
-| **Resultado esperado** | HTTP 200 com `{ "plant": "Wheat", "plantConfidence": ≥0.8, "prediction": nome da doença, "predictionConfidence": ≥0.8 }` |
+| **Objetivo** | Verificar se o sistema identifica corretamente a cultura e a doença em uma imagem de trigo |
+| **Pré-condições** | Usuário autenticado com plano ativo; imagem nítida de trigo com sintomas visíveis |
+| **Dados de entrada** | Imagem de folha de trigo com sintomas de septória |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar imagem de trigo com sintomas de doença <br> 3. Clicar em "Analisar Imagem" <br> 4. Verificar o resultado exibido |
+| **Resultado esperado** | O sistema identifica a cultura como Trigo e a doença correspondente (ex: Septória, Ferrugem Marrom, Ferrugem Amarela) com alto nível de confiança |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-40 — Requisição ao serviço IA sem imagem
+### CT-40 — Comportamento ao enviar imagem que não é de planta
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o serviço Flask retorna erro quando nenhuma imagem é enviada |
-| **Pré-condições** | Serviço Flask em execução |
-| **Dados de entrada** | Corpo vazio (sem campo `image`) |
-| **Procedimentos** | 1. Enviar `POST /predict` ao Flask sem arquivo |
-| **Resultado esperado** | HTTP 400 com mensagem de erro indicando ausência de imagem |
+| **Objetivo** | Verificar o comportamento do sistema quando a imagem enviada não contém uma das culturas suportadas |
+| **Pré-condições** | Usuário autenticado com plano ativo e análises disponíveis |
+| **Dados de entrada** | Foto de um objeto qualquer (ex: paisagem, animal, objeto) |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar uma imagem que não contenha planta <br> 3. Clicar em "Analisar Imagem" <br> 4. Aguardar o processamento |
+| **Resultado esperado** | O sistema exibe mensagem informando que não foi possível identificar uma cultura suportada na imagem e orienta o usuário a tentar com uma foto adequada |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-41 — Enviar imagem corrompida ao serviço IA
+### CT-41 — Comportamento ao enviar imagem corrompida
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o serviço Flask trata adequadamente arquivos de imagem corrompidos |
-| **Pré-condições** | Serviço Flask em execução |
-| **Dados de entrada** | Arquivo: `corrompido.jpg` (arquivo JPEG com bytes inválidos) |
-| **Procedimentos** | 1. Enviar `POST /predict` com arquivo de imagem corrompido |
-| **Resultado esperado** | HTTP 400/500 com mensagem de erro; serviço não crasha |
+| **Objetivo** | Verificar se o sistema trata adequadamente o envio de um arquivo de imagem corrompido sem travar ou apresentar erro inesperado |
+| **Pré-condições** | Usuário autenticado com plano ativo |
+| **Dados de entrada** | Arquivo de imagem com dados inválidos (corrompido) |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar um arquivo de imagem corrompido <br> 3. Clicar em "Analisar Imagem" <br> 4. Aguardar resposta do sistema |
+| **Resultado esperado** | O sistema exibe uma mensagem de erro amigável informando que o arquivo não pôde ser processado; o restante da interface permanece funcional |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-42 — Predição em imagem de planta saudável
+### CT-42 — Diagnóstico de planta saudável exibe resultado adequado
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o serviço IA retorna resultado "saudável" para planta sem doença |
-| **Pré-condições** | Serviço Flask em execução; modelos carregados |
-| **Dados de entrada** | Arquivo: `milho_saudavel.jpg` |
-| **Procedimentos** | 1. Enviar `POST /predict` com imagem de planta saudável |
-| **Resultado esperado** | HTTP 200 com `{ "plant": "Corn", "prediction": "healthy", "predictionConfidence": ≥0.8 }` |
+| **Objetivo** | Verificar se o resultado exibido ao usuário é claro e adequado quando a planta analisada está saudável |
+| **Pré-condições** | Usuário autenticado com plano ativo e análises disponíveis |
+| **Dados de entrada** | Imagem nítida de folha de milho saudável, sem manchas ou lesões |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar imagem de planta saudável <br> 3. Clicar em "Analisar Imagem" <br> 4. Observar o resultado |
+| **Resultado esperado** | O sistema exibe a cultura identificada e indica que a planta está saudável; a tela não apresenta seções de doença ou manejo de tratamento |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-43 — Verificar campos obrigatórios na resposta do serviço IA
+### CT-43 — Resultado da análise sempre exibe todas as informações esperadas
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a resposta do Flask sempre contém todos os campos esperados pelo backend |
-| **Pré-condições** | Serviço Flask em execução |
-| **Dados de entrada** | Arquivo: qualquer imagem válida |
-| **Procedimentos** | 1. Enviar `POST /predict` com imagem válida <br> 2. Inspecionar todos os campos da resposta JSON |
-| **Resultado esperado** | Resposta contém obrigatoriamente: `plant`, `plantConfidence`, `prediction`, `predictionConfidence` com tipos corretos |
+| **Objetivo** | Verificar se o resultado de qualquer análise bem-sucedida sempre apresenta todas as seções de informação ao usuário |
+| **Pré-condições** | Usuário autenticado com plano ativo; imagem válida de planta suportada |
+| **Dados de entrada** | Imagem válida de qualquer cultura suportada (Milho, Soja ou Trigo) |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Selecionar imagem válida <br> 3. Clicar em "Analisar Imagem" <br> 4. Verificar todas as seções do resultado |
+| **Resultado esperado** | O resultado exibe obrigatoriamente: cultura identificada, percentual de confiança da cultura, diagnóstico da doença (ou indicação de saúde), percentual de confiança do diagnóstico, causas e recomendações de manejo |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -700,150 +700,150 @@
 
 ---
 
-### CT-44 — Exibição da página de login
+### CT-44 — Exibição da página inicial para visitantes
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a página de login é renderizada corretamente com todos os elementos |
-| **Pré-condições** | Servidor Next.js em execução; usuário não autenticado |
-| **Dados de entrada** | URL: `/login` |
-| **Procedimentos** | 1. Acessar a rota `/login` no navegador sem estar autenticado |
-| **Resultado esperado** | Página exibida com campos de e-mail, senha e botão de login visíveis |
-| **Resultado obtido** | — |
-| **Status** | Pendente |
-| **Evidências** | — |
-
----
-
-### CT-45 — Login com sucesso via interface web
-
-| Campo | Detalhe |
-|-------|---------|
-| **Objetivo** | Validar o fluxo de autenticação completo pelo formulário web |
-| **Pré-condições** | Usuário cadastrado; servidor Next.js e backend em execução |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Acessar `/login` <br> 2. Preencher e-mail e senha <br> 3. Clicar em "Entrar" |
-| **Resultado esperado** | Redirecionamento para a página de analytics (`/analytics`); sessão autenticada no contexto |
-| **Resultado obtido** | — |
-| **Status** | Pendente |
-| **Evidências** | — |
-
----
-
-### CT-46 — Cadastro de novo usuário via interface web
-
-| Campo | Detalhe |
-|-------|---------|
-| **Objetivo** | Validar que o formulário de cadastro cria um novo usuário com sucesso |
-| **Pré-condições** | Servidor Next.js e backend em execução; e-mail não cadastrado |
-| **Dados de entrada** | Nome: `Novo Usuário` / E-mail: `novo@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Acessar `/signup` <br> 2. Preencher os campos do formulário <br> 3. Clicar em "Cadastrar" |
-| **Resultado esperado** | Usuário criado; redirecionamento para login ou dashboard; mensagem de sucesso exibida |
-| **Resultado obtido** | — |
-| **Status** | Pendente |
-| **Evidências** | — |
-
----
-
-### CT-47 — Rota protegida sem autenticação redireciona para login
-
-| Campo | Detalhe |
-|-------|---------|
-| **Objetivo** | Validar que rotas protegidas redirecionam usuário não autenticado para login |
-| **Pré-condições** | Usuário não autenticado; servidor em execução |
-| **Dados de entrada** | URL: `/analytics` (rota protegida) |
-| **Procedimentos** | 1. Acessar `/analytics` sem estar autenticado <br> 2. Observar o redirecionamento |
-| **Resultado esperado** | Redirecionamento automático para `/login` |
-| **Resultado obtido** | — |
-| **Status** | Pendente |
-| **Evidências** | — |
-
----
-
-### CT-48 — Upload de imagem e execução de análise no frontend web
-
-| Campo | Detalhe |
-|-------|---------|
-| **Objetivo** | Validar o fluxo de upload de imagem e exibição do resultado na aba "Nova Análise" |
-| **Pré-condições** | Usuário autenticado com plano ativo e limite disponível; IA e backend operacionais |
-| **Dados de entrada** | Arquivo: `soja_doente.jpg` (imagem válida via input de arquivo) |
-| **Procedimentos** | 1. Acessar `/analytics` <br> 2. Selecionar imagem via input <br> 3. Confirmar preview da imagem <br> 4. Clicar em "Analisar" <br> 5. Aguardar resultado |
-| **Resultado esperado** | Resultado exibido com: cultura identificada, doença, nível de confiança, causas, manejo e precauções |
-| **Resultado obtido** | — |
-| **Status** | Pendente |
-| **Evidências** | — |
-
----
-
-### CT-49 — Visualização e filtro do histórico no frontend web
-
-| Campo | Detalhe |
-|-------|---------|
-| **Objetivo** | Validar que a aba de histórico exibe as análises e que os filtros funcionam |
-| **Pré-condições** | Usuário autenticado com análises registradas |
-| **Dados de entrada** | Filtro: Cultura = `Corn` / Período: últimos 30 dias |
-| **Procedimentos** | 1. Acessar a aba "Histórico" em `/analytics` <br> 2. Aplicar filtro de cultura e data <br> 3. Verificar lista de resultados |
-| **Resultado esperado** | Lista exibida com apenas análises de milho dentro do período; cards com informações resumidas |
-| **Resultado obtido** | — |
-| **Status** | Pendente |
-| **Evidências** | — |
-
----
-
-### CT-50 — Abertura do painel de chat a partir do histórico
-
-| Campo | Detalhe |
-|-------|---------|
-| **Objetivo** | Validar que o chat panel abre com o contexto correto da análise selecionada |
-| **Pré-condições** | Usuário autenticado; ao menos 1 item no histórico |
-| **Dados de entrada** | Item de histórico com doença identificada |
-| **Procedimentos** | 1. Acessar aba "Histórico" <br> 2. Clicar no ícone/botão de chat em um item do histórico <br> 3. Enviar uma mensagem |
-| **Resultado esperado** | Painel de chat aberto; resposta da IA contextualizada à análise selecionada |
-| **Resultado obtido** | — |
-| **Status** | Pendente |
-| **Evidências** | — |
-
----
-
-### CT-51 — Exibição do limite de uso na interface web
-
-| Campo | Detalhe |
-|-------|---------|
-| **Objetivo** | Validar que o indicador de limite de uso é atualizado e exibido corretamente |
-| **Pré-condições** | Usuário autenticado com plano ativo |
+| **Objetivo** | Verificar se a página inicial é exibida corretamente para um visitante não autenticado, apresentando as funcionalidades da plataforma |
+| **Pré-condições** | Usuário não autenticado |
 | **Dados de entrada** | Nenhum |
-| **Procedimentos** | 1. Acessar `/analytics` <br> 2. Observar componente de limite de análises e chat <br> 3. Realizar uma análise <br> 4. Verificar se o contador atualiza |
-| **Resultado esperado** | Contador de uso exibido corretamente; após análise, valor incrementado visualmente |
+| **Procedimentos** | 1. Abrir o navegador e acessar a URL da aplicação web <br> 2. Observar o conteúdo da página |
+| **Resultado esperado** | A página exibe o nome da plataforma, descrição do serviço, seção "Como funciona" com os três passos, e botões para criar conta ou fazer login |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-52 — Exibição de erro ao tentar análise com limite esgotado no frontend
+### CT-45 — Login com sucesso e redirecionamento para o dashboard
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a interface exibe mensagem adequada quando o limite é atingido |
-| **Pré-condições** | Usuário autenticado com limite de imagens esgotado |
-| **Dados de entrada** | Tentativa de análise com limite esgotado |
-| **Procedimentos** | 1. Acessar `/analytics` com limite esgotado <br> 2. Fazer upload de imagem <br> 3. Clicar em "Analisar" |
-| **Resultado esperado** | Mensagem de erro exibida na interface informando que o limite foi atingido; análise não processada |
+| **Objetivo** | Verificar se o login na interface web redireciona o usuário para o dashboard principal após autenticação |
+| **Pré-condições** | Usuário cadastrado |
+| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senha@123` |
+| **Procedimentos** | 1. Acessar a página de login <br> 2. Preencher e-mail e senha <br> 3. Clicar em "Entrar" |
+| **Resultado esperado** | O usuário é redirecionado para a página de analytics com as abas "Nova Análise", "Histórico" e "Estatísticas" visíveis |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-53 — Logout e limpeza de sessão no frontend web
+### CT-46 — Cadastro via interface web com validação de senha
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o logout limpa a sessão e redireciona para a página pública |
+| **Objetivo** | Verificar se o formulário de cadastro valida a confirmação de senha e cria a conta com sucesso |
+| **Pré-condições** | E-mail não cadastrado no sistema |
+| **Dados de entrada** | Nome: `Novo Usuário` / E-mail: `novo@email.com` / Senha: `senha@123` / Confirmar senha: `senha@123` |
+| **Procedimentos** | 1. Acessar a página de cadastro pelo botão na página inicial ou link da tela de login <br> 2. Preencher nome, e-mail, senha e confirmação de senha <br> 3. Clicar em "Criar Conta" |
+| **Resultado esperado** | A conta é criada com sucesso e o usuário é redirecionado para login ou para o dashboard |
+| **Resultado obtido** | — |
+| **Status** | Pendente |
+| **Evidências** | — |
+
+---
+
+### CT-47 — Acesso direto a página protegida sem autenticação
+
+| Campo | Detalhe |
+|-------|---------|
+| **Objetivo** | Verificar se tentar acessar o dashboard sem estar autenticado redireciona para a tela de login |
+| **Pré-condições** | Usuário não autenticado |
+| **Dados de entrada** | Nenhum |
+| **Procedimentos** | 1. Sem estar logado, tentar acessar diretamente a página de analytics na barra de endereço do navegador <br> 2. Observar o redirecionamento |
+| **Resultado esperado** | O sistema redireciona automaticamente para a página de login sem exibir o conteúdo da página protegida |
+| **Resultado obtido** | — |
+| **Status** | Pendente |
+| **Evidências** | — |
+
+---
+
+### CT-48 — Fluxo completo de análise de imagem no frontend web
+
+| Campo | Detalhe |
+|-------|---------|
+| **Objetivo** | Verificar o fluxo completo de seleção de imagem, análise e exibição de resultado na interface web |
+| **Pré-condições** | Usuário autenticado com plano ativo e análises disponíveis |
+| **Dados de entrada** | Imagem de soja com sintomas de doença selecionada pelo seletor de arquivo |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Clicar no botão de seleção de arquivo e escolher uma imagem <br> 3. Confirmar o preview da imagem exibido <br> 4. Clicar em "Analisar Imagem" <br> 5. Aguardar o carregamento do resultado |
+| **Resultado esperado** | O spinner de carregamento é exibido durante o processamento; em seguida, o painel direito exibe a cultura, diagnóstico, causas, recomendações e o botão para abrir o chat |
+| **Resultado obtido** | — |
+| **Status** | Pendente |
+| **Evidências** | — |
+
+---
+
+### CT-49 — Filtros e visualização do histórico na interface web
+
+| Campo | Detalhe |
+|-------|---------|
+| **Objetivo** | Verificar se os filtros e modos de visualização do histórico funcionam corretamente na interface web |
+| **Pré-condições** | Usuário autenticado com análises de culturas distintas registradas |
+| **Dados de entrada** | Filtro: Cultura = Milho / Período: últimos 30 dias |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Selecionar "Milho" no filtro de cultura <br> 3. Selecionar o período desejado <br> 4. Alternar entre visualização em lista e grade <br> 5. Verificar os resultados |
+| **Resultado esperado** | A lista exibe apenas análises de milho no período selecionado; ao alternar para grade, os mesmos itens são apresentados em formato de cards |
+| **Resultado obtido** | — |
+| **Status** | Pendente |
+| **Evidências** | — |
+
+---
+
+### CT-50 — Abrir painel de chat a partir do histórico web
+
+| Campo | Detalhe |
+|-------|---------|
+| **Objetivo** | Verificar se o painel de chat abre corretamente com o contexto da análise ao clicar no botão de chat no histórico |
+| **Pré-condições** | Usuário autenticado com ao menos um item no histórico |
+| **Dados de entrada** | Item do histórico com diagnóstico de doença |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Localizar um item de análise <br> 3. Clicar no botão "Chat" do item <br> 4. Enviar uma pergunta sobre a doença identificada |
+| **Resultado esperado** | O painel de chat desliza da direita e exibe no cabeçalho a cultura e data da análise; a IA responde de forma contextualizada à doença daquela análise |
+| **Resultado obtido** | — |
+| **Status** | Pendente |
+| **Evidências** | — |
+
+---
+
+### CT-51 — Contador de uso é atualizado após realizar análise
+
+| Campo | Detalhe |
+|-------|---------|
+| **Objetivo** | Verificar se o contador de análises utilizadas é incrementado visualmente logo após a conclusão de uma análise |
+| **Pré-condições** | Usuário autenticado com plano ativo e ao menos uma análise disponível |
+| **Dados de entrada** | Imagem válida para análise |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" e observar o valor atual do contador de análises <br> 2. Realizar uma análise completa <br> 3. Observar o contador após o resultado ser exibido |
+| **Resultado esperado** | O contador incrementa em 1 após a análise (ex: de "3/10" para "4/10"), refletindo o uso atualizado do plano |
+| **Resultado obtido** | — |
+| **Status** | Pendente |
+| **Evidências** | — |
+
+---
+
+### CT-52 — Interface bloqueia análise quando limite é atingido
+
+| Campo | Detalhe |
+|-------|---------|
+| **Objetivo** | Verificar se a interface web desabilita o botão de análise e exibe aviso quando o limite do plano é atingido |
+| **Pré-condições** | Usuário autenticado com limite de análises totalmente esgotado |
+| **Dados de entrada** | Qualquer imagem selecionada |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" com o limite de análises já atingido <br> 2. Selecionar uma imagem <br> 3. Verificar o estado do botão "Analisar Imagem" |
+| **Resultado esperado** | O botão "Analisar Imagem" aparece desabilitado; o contador exibe o limite atingido em destaque (vermelho); nenhuma análise é iniciada |
+| **Resultado obtido** | — |
+| **Status** | Pendente |
+| **Evidências** | — |
+
+---
+
+### CT-53 — Logout encerra sessão e restringe acesso
+
+| Campo | Detalhe |
+|-------|---------|
+| **Objetivo** | Verificar se o logout encerra a sessão corretamente e impede o acesso ao dashboard sem nova autenticação |
 | **Pré-condições** | Usuário autenticado na interface web |
-| **Dados de entrada** | Ação de logout no menu/header |
-| **Procedimentos** | 1. Clicar na opção de logout <br> 2. Tentar acessar `/analytics` novamente |
-| **Resultado esperado** | Sessão encerrada; redirecionamento para `/login`; acesso a rotas protegidas negado |
+| **Dados de entrada** | Nenhum |
+| **Procedimentos** | 1. Clicar no botão de logout no cabeçalho da aplicação <br> 2. Verificar o redirecionamento <br> 3. Tentar acessar diretamente a página de analytics pela barra de endereço |
+| **Resultado esperado** | O usuário é redirecionado para a página de login após o logout; a tentativa de acesso direto ao dashboard também redireciona para o login |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -854,165 +854,165 @@
 
 ---
 
-### CT-54 — Tela de login no app mobile
+### CT-54 — Login e navegação para o dashboard no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a tela de login é exibida corretamente e permite autenticação |
-| **Pré-condições** | Aplicativo Expo instalado/em execução; usuário cadastrado |
+| **Objetivo** | Verificar se o usuário consegue fazer login pelo aplicativo mobile e ser direcionado para a tela principal |
+| **Pré-condições** | Aplicativo instalado e em execução; usuário cadastrado |
 | **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Abrir o aplicativo <br> 2. Navegar para a tela de login <br> 3. Preencher os campos <br> 4. Pressionar o botão de login |
-| **Resultado esperado** | Autenticação realizada; navegação para a tela de Analytics |
+| **Procedimentos** | 1. Abrir o aplicativo <br> 2. Tocar em "Entrar" na tela inicial <br> 3. Preencher e-mail e senha <br> 4. Tocar no botão "Entrar" |
+| **Resultado esperado** | O usuário é autenticado e direcionado para a tela de análise com as abas "Nova Análise", "Histórico" e "Estatísticas" visíveis |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-55 — Tela de cadastro no app mobile
+### CT-55 — Cadastro de nova conta no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a tela de cadastro cria um novo usuário via app mobile |
-| **Pré-condições** | Aplicativo em execução; e-mail não cadastrado |
-| **Dados de entrada** | Nome: `Novo Usuário` / E-mail: `novo@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Abrir app e ir para tela de cadastro <br> 2. Preencher nome, e-mail e senha <br> 3. Pressionar "Cadastrar" |
-| **Resultado esperado** | Usuário criado; redirecionamento para login ou tela principal |
+| **Objetivo** | Verificar se um novo usuário consegue criar uma conta pelo aplicativo mobile |
+| **Pré-condições** | Aplicativo em execução; e-mail não cadastrado no sistema |
+| **Dados de entrada** | Nome: `Novo Usuário` / E-mail: `novo@email.com` / Senha: `senha@123` / Confirmar senha: `senha@123` |
+| **Procedimentos** | 1. Abrir o aplicativo <br> 2. Tocar em "Criar Conta Grátis" na tela inicial <br> 3. Preencher nome, e-mail, senha e confirmação de senha <br> 4. Tocar em "Criar Conta" |
+| **Resultado esperado** | A conta é criada com sucesso e o usuário é direcionado para a tela de login ou para o dashboard |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-56 — Capturar foto pela câmera para análise
+### CT-56 — Capturar foto pela câmera do dispositivo para análise
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o usuário consegue usar a câmera do dispositivo para capturar uma imagem |
-| **Pré-condições** | Usuário autenticado no app; permissão de câmera concedida |
-| **Dados de entrada** | Imagem capturada em tempo real pela câmera |
-| **Procedimentos** | 1. Acessar aba "Nova Análise" no app <br> 2. Selecionar opção de câmera <br> 3. Capturar foto de uma planta |
-| **Resultado esperado** | Preview da imagem exibido na tela; botão "Analisar" habilitado |
+| **Objetivo** | Verificar se o usuário consegue usar a câmera do dispositivo para tirar uma foto e usá-la na análise |
+| **Pré-condições** | Usuário autenticado no app; permissão de câmera concedida ao aplicativo |
+| **Dados de entrada** | Foto capturada em tempo real pela câmera |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Tocar no botão "Câmera" <br> 3. Tirar uma foto da planta <br> 4. Confirmar a foto |
+| **Resultado esperado** | A imagem capturada é exibida como preview na tela de análise e o botão "Analisar Imagem" é habilitado |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-57 — Selecionar foto da galeria para análise
+### CT-57 — Selecionar foto da galeria do dispositivo para análise
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o usuário consegue selecionar uma imagem da galeria do dispositivo |
-| **Pré-condições** | Usuário autenticado; permissão de galeria concedida; imagem disponível |
-| **Dados de entrada** | Imagem: `milho_doente.jpg` da galeria |
-| **Procedimentos** | 1. Acessar aba "Nova Análise" <br> 2. Selecionar opção de galeria <br> 3. Escolher imagem |
-| **Resultado esperado** | Preview da imagem selecionada exibido; botão "Analisar" habilitado |
+| **Objetivo** | Verificar se o usuário consegue selecionar uma imagem existente na galeria do dispositivo para análise |
+| **Pré-condições** | Usuário autenticado no app; permissão de galeria concedida; imagem de planta disponível no dispositivo |
+| **Dados de entrada** | Imagem de milho doente salva na galeria do dispositivo |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" <br> 2. Tocar no botão "Galeria" <br> 3. Navegar e selecionar uma imagem de planta <br> 4. Confirmar a seleção |
+| **Resultado esperado** | A imagem selecionada é exibida como preview na tela e o botão "Analisar Imagem" é habilitado |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-58 — Executar análise de imagem no app mobile
+### CT-58 — Fluxo completo de análise de imagem no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar o fluxo completo de análise no app, da imagem ao resultado exibido |
-| **Pré-condições** | Usuário autenticado com plano ativo; imagem selecionada; IA e backend operacionais |
-| **Dados de entrada** | Imagem de planta doente selecionada (câmera ou galeria) |
-| **Procedimentos** | 1. Selecionar imagem <br> 2. Pressionar "Analisar" <br> 3. Aguardar processamento <br> 4. Verificar resultado |
-| **Resultado esperado** | Resultado exibido com: cultura, doença, confiança, causas, manejo e precauções; indicador de carregamento visível durante processamento |
+| **Objetivo** | Verificar o fluxo completo desde a seleção da imagem até a exibição do resultado no aplicativo mobile |
+| **Pré-condições** | Usuário autenticado com plano ativo e análises disponíveis; imagem de planta doente selecionada |
+| **Dados de entrada** | Imagem de soja com sintomas de doença (câmera ou galeria) |
+| **Procedimentos** | 1. Selecionar imagem da planta via câmera ou galeria <br> 2. Tocar em "Analisar Imagem" <br> 3. Aguardar o processamento observando o indicador de carregamento <br> 4. Verificar o resultado exibido |
+| **Resultado esperado** | O indicador de carregamento é exibido durante o processamento; em seguida, o resultado mostra cultura identificada, diagnóstico da doença, causas, recomendações de manejo e o botão para abrir o chat |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-59 — Visualizar aba de histórico no app mobile
+### CT-59 — Visualizar histórico de análises no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a aba de histórico lista as análises do usuário no app |
-| **Pré-condições** | Usuário autenticado com análises registradas |
+| **Objetivo** | Verificar se a aba de histórico do app exibe as análises anteriores do usuário corretamente |
+| **Pré-condições** | Usuário autenticado com ao menos uma análise registrada |
 | **Dados de entrada** | Nenhum |
-| **Procedimentos** | 1. Acessar aba "Histórico" no app <br> 2. Verificar lista de análises exibidas |
-| **Resultado esperado** | Lista com cards de análises anteriores; dados de cultura, doença e data visíveis |
+| **Procedimentos** | 1. Tocar na aba "Histórico" <br> 2. Verificar a lista de análises exibidas |
+| **Resultado esperado** | A lista exibe as análises anteriores com nome da doença ou cultura, data e percentuais de confiança de cultura e diagnóstico |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-60 — Filtrar histórico por cultura no app mobile
+### CT-60 — Filtrar histórico por cultura e período no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar os filtros de histórico por cultura na interface mobile |
-| **Pré-condições** | Usuário autenticado; histórico com análises de culturas distintas |
-| **Dados de entrada** | Filtro selecionado: `Soybean` |
-| **Procedimentos** | 1. Acessar aba "Histórico" <br> 2. Aplicar filtro de cultura "Soja/Soybean" <br> 3. Verificar lista atualizada |
-| **Resultado esperado** | Apenas análises de soja exibidas após aplicar o filtro |
+| **Objetivo** | Verificar se os filtros por cultura e período funcionam corretamente no histórico do app mobile |
+| **Pré-condições** | Usuário autenticado com análises de ao menos duas culturas diferentes |
+| **Dados de entrada** | Filtro de cultura: Soja / Filtro de período: últimos 30 dias |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Tocar no chip de filtro "Soja" <br> 3. Tocar no chip de período "30 dias" <br> 4. Verificar a lista atualizada |
+| **Resultado esperado** | A lista exibe apenas análises de soja realizadas nos últimos 30 dias; análises de outras culturas ou fora do período não aparecem |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-61 — Abrir chat modal a partir do histórico mobile
+### CT-61 — Abrir chat modal a partir do histórico no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o chat modal abre corretamente ao pressionar botão de chat no histórico |
-| **Pré-condições** | Usuário autenticado com limite de chat disponível; ao menos 1 item no histórico |
-| **Dados de entrada** | Item do histórico com doença identificada |
-| **Procedimentos** | 1. Acessar aba "Histórico" <br> 2. Pressionar botão de chat em um item <br> 3. Digitar e enviar uma mensagem |
-| **Resultado esperado** | Modal de chat aberto; resposta da IA recebida e exibida; mensagens listadas corretamente |
+| **Objetivo** | Verificar se o modal de chat abre corretamente com o contexto da análise ao tocar no botão de chat no histórico mobile |
+| **Pré-condições** | Usuário autenticado com plano ativo e ao menos um item no histórico |
+| **Dados de entrada** | Item do histórico com diagnóstico de doença |
+| **Procedimentos** | 1. Acessar a aba "Histórico" <br> 2. Tocar no botão "Chat" de uma análise <br> 3. Digitar e enviar uma pergunta sobre a doença |
+| **Resultado esperado** | O modal de chat é aberto com o contexto da análise selecionada; a IA responde à pergunta de forma contextualizada à doença identificada; as mensagens são exibidas em ordem cronológica |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-62 — Visualizar aba de estatísticas no app mobile
+### CT-62 — Visualizar estatísticas de análises no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que a aba de estatísticas exibe dados agregados de análises do usuário |
-| **Pré-condições** | Usuário autenticado com ao menos 3 análises registradas |
+| **Objetivo** | Verificar se a aba de estatísticas exibe corretamente os dados agregados das análises do usuário |
+| **Pré-condições** | Usuário autenticado com ao menos 3 análises registradas de culturas distintas |
 | **Dados de entrada** | Nenhum |
-| **Procedimentos** | 1. Acessar aba "Estatísticas" no app <br> 2. Verificar distribuição de doenças e culturas exibidas |
-| **Resultado esperado** | Gráficos/contadores exibindo distribuição de culturas analisadas e doenças mais frequentes |
+| **Procedimentos** | 1. Tocar na aba "Estatísticas" <br> 2. Verificar os cartões e gráficos exibidos |
+| **Resultado esperado** | A tela exibe: total de análises realizadas, número de culturas analisadas, confiança média e uma lista das doenças mais frequentes com seus respectivos percentuais |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-63 — Logout no app mobile
+### CT-63 — Logout no app mobile encerra sessão
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o logout encerra a sessão e redireciona para login no app |
-| **Pré-condições** | Usuário autenticado no app |
-| **Dados de entrada** | Ação de logout |
-| **Procedimentos** | 1. Acessar menu de perfil ou configurações <br> 2. Pressionar "Sair" <br> 3. Tentar acessar aba de Analytics |
-| **Resultado esperado** | Sessão encerrada; redirecionamento para tela de login; acesso a áreas autenticadas bloqueado |
+| **Objetivo** | Verificar se o logout pelo app mobile encerra a sessão e redireciona para a tela inicial |
+| **Pré-condições** | Usuário autenticado no aplicativo |
+| **Dados de entrada** | Nenhum |
+| **Procedimentos** | 1. Tocar no botão "Sair" exibido no cabeçalho da tela principal <br> 2. Confirmar a ação se solicitado <br> 3. Observar o redirecionamento |
+| **Resultado esperado** | A sessão é encerrada e o usuário é redirecionado para a tela inicial do app; tentativas de acessar o dashboard exigem novo login |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
 
 ---
 
-### CT-64 — Exibição do limite de uso no app mobile
+### CT-64 — Contador de uso visível e atualizado no app mobile
 
 | Campo | Detalhe |
 |-------|---------|
-| **Objetivo** | Validar que o indicador de limite de análises e chat é exibido e atualizado no app |
+| **Objetivo** | Verificar se o indicador de uso do plano é exibido e atualizado corretamente após cada análise no app mobile |
 | **Pré-condições** | Usuário autenticado com plano ativo |
 | **Dados de entrada** | Nenhum |
-| **Procedimentos** | 1. Acessar aba "Nova Análise" <br> 2. Observar indicador de limite <br> 3. Realizar uma análise <br> 4. Verificar se o indicador atualiza |
-| **Resultado esperado** | Contador de análises restantes visível; decrementa após cada análise realizada |
+| **Procedimentos** | 1. Acessar a aba "Nova Análise" e observar o contador de uso exibido <br> 2. Realizar uma análise completa <br> 3. Observar o contador após o resultado ser exibido |
+| **Resultado esperado** | O contador exibe o número de análises utilizadas em relação ao limite do plano e é incrementado em 1 após cada análise concluída |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
 | **Evidências** | — |
@@ -1033,7 +1033,7 @@
 | Histórico | 7 |
 | Chat | 5 |
 | Planos | 1 |
-| Serviço de IA (Flask) | 7 |
+| Diagnóstico por IA | 7 |
 | Frontend Web (Next.js) | 10 |
 | App Mobile (Expo) | 11 |
 | **Total** | **64** |

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
+import { createMockSocket } from "@/mocks/presentation-mocks";
 import {
   Sheet,
   SheetContent,
@@ -138,13 +139,15 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
     setInputText("");
     setIsTyping(false);
 
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const isMock = process.env.NEXT_PUBLIC_MOCK === "true";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-    const socket = io(`${apiUrl}/chat`, {
-      withCredentials: true,
-      transports: ["websocket", "polling"],
-    });
+    const socket: Socket = isMock
+      ? createMockSocket(analysis)
+      : io(`${apiUrl}/chat`, {
+          withCredentials: true,
+          transports: ["websocket", "polling"],
+        });
 
     socketRef.current = socket;
 

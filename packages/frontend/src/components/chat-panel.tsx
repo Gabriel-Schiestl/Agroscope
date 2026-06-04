@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
-import { createMockSocket } from "@/mocks/presentation-mocks";
+import { useState, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { createMockSocket } from '@/mocks/presentation-mocks';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from "./ui/sheet";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
-import { Leaf, Send } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import type { History } from "@/models/History";
-import api from "../../shared/http/http.config";
+} from './ui/sheet';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
+import { Leaf, Send } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import type { History } from '@/models/History';
+import api from '../../shared/http/http.config';
 
 interface ChatMessageDto {
   id: string;
   content: string;
-  sender: "human" | "ai";
+  sender: 'human' | 'ai';
   userId: string;
   sessionId: string;
   createdAt: string;
@@ -31,7 +31,7 @@ interface ChatMessageDto {
 
 interface ChatMessage {
   id: string;
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
@@ -45,7 +45,7 @@ interface ChatPanelProps {
 function dtoToMessage(dto: ChatMessageDto): ChatMessage {
   return {
     id: dto.id,
-    role: dto.sender === "human" ? "user" : "assistant",
+    role: dto.sender === 'human' ? 'user' : 'assistant',
     content: dto.content,
     timestamp: new Date(dto.createdAt),
   };
@@ -53,28 +53,28 @@ function dtoToMessage(dto: ChatMessageDto): ChatMessage {
 
 function buildInitialMessage(analysis: History | null): ChatMessage {
   const disease =
-    analysis?.explanation ?? analysis?.crop ?? "a cultura analisada";
-  const crop = analysis?.crop ?? "";
+    analysis?.explanation ?? analysis?.crop ?? 'a cultura analisada';
+  const crop = analysis?.crop ?? '';
   const confidence = analysis?.sicknessConfidence
     ? ` (${analysis.sicknessConfidence.toFixed(1)}% de confiança)`
-    : "";
+    : '';
 
   return {
-    id: "init",
-    role: "assistant",
+    id: 'init',
+    role: 'assistant',
     content: `Olá! Sou seu assistente agrícola. Identifiquei **${disease}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`,
     timestamp: new Date(),
   };
 }
 
 function MessageBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === "user";
+  const isUser = message.role === 'user';
 
   return (
     <div
       className={cn(
-        "flex gap-2 items-end",
-        isUser ? "flex-row-reverse" : "flex-row"
+        'flex gap-2 items-end',
+        isUser ? 'flex-row-reverse' : 'flex-row'
       )}
     >
       {!isUser && (
@@ -84,20 +84,20 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       )}
       <div
         className={cn(
-          "max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
+          'max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
           isUser
-            ? "bg-primaryGreen text-white rounded-br-sm"
-            : "bg-muted border rounded-bl-sm"
+            ? 'bg-primaryGreen text-white rounded-br-sm'
+            : 'bg-muted border rounded-bl-sm'
         )}
       >
         <p className="whitespace-pre-wrap">{message.content}</p>
         <p
           className={cn(
-            "text-[10px] mt-1 text-right",
-            isUser ? "text-white/60" : "text-muted-foreground"
+            'text-[10px] mt-1 text-right',
+            isUser ? 'text-white/60' : 'text-muted-foreground'
           )}
         >
-          {format(message.timestamp, "HH:mm")}
+          {format(message.timestamp, 'HH:mm')}
         </p>
       </div>
     </div>
@@ -123,7 +123,7 @@ function TypingIndicator() {
 
 export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [limitError, setLimitError] = useState<string | null>(null);
@@ -136,32 +136,32 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   useEffect(() => {
     if (!open || !analysis) return;
 
-    setInputText("");
+    setInputText('');
     setIsTyping(false);
 
-    const isMock = process.env.NEXT_PUBLIC_MOCK === "true";
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const isMock = process.env.NEXT_PUBLIC_MOCK === 'true';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
     const socket: Socket = isMock
       ? createMockSocket(analysis)
       : io(`${apiUrl}/chat`, {
           withCredentials: true,
-          transports: ["websocket", "polling"],
+          transports: ['websocket', 'polling'],
         });
 
     socketRef.current = socket;
 
-    socket.on("connect", () => {
+    socket.on('connect', () => {
       setIsConnected(true);
     });
 
-    socket.on("disconnect", () => {
+    socket.on('disconnect', () => {
       setIsConnected(false);
     });
 
     // Load history from REST, seed with greeting if empty
     api
-      .get<ChatMessageDto[]>("/chat/history", {
+      .get<ChatMessageDto[]>('/chat/history', {
         params: { sessionId: analysis.id },
       })
       .then((res) => {
@@ -194,19 +194,23 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
     const text = inputText.trim();
     if (!text || isTyping || !socketRef.current || !analysis) return;
 
-    setInputText("");
+    setInputText('');
     setIsTyping(true);
     setLimitError(null);
 
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = 'auto';
     }
 
     socketRef.current.emit(
-      "send_message",
+      'send_message',
       { content: text, sessionId: analysis.id },
-      (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto } | { error: string }) => {
-        if ("error" in response) {
+      (
+        response:
+          | { userMessage: ChatMessageDto; aiMessage: ChatMessageDto }
+          | { error: string }
+      ) => {
+        if ('error' in response) {
           setLimitError(response.error);
           setIsTyping(false);
           return;
@@ -222,7 +226,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
@@ -230,7 +234,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
-    e.target.style.height = "auto";
+    e.target.style.height = 'auto';
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
 
@@ -252,15 +256,15 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
               </SheetTitle>
               <SheetDescription className="text-xs mt-0.5 truncate">
                 {analysis?.crop
-                  ? `${analysis.crop} · ${format(new Date(analysis.createdAt), "dd/MM/yyyy", { locale: ptBR })}`
-                  : "Nova análise"}
+                  ? `${analysis.crop} · ${format(new Date(analysis.createdAt), 'dd/MM/yyyy', { locale: ptBR })}`
+                  : 'Nova análise'}
               </SheetDescription>
             </div>
           </div>
 
           {/* Analysis context strip */}
           {analysis && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            <div className="!mt-6 flex flex-wrap gap-1.5">
               {analysis.cropConfidence > 0 && (
                 <Badge className="bg-primaryGreen text-xs">
                   {analysis.crop} · {analysis.cropConfidence.toFixed(1)}%
@@ -278,13 +282,13 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
               <Badge
                 variant="outline"
                 className={cn(
-                  "text-xs",
+                  'text-xs',
                   isConnected
-                    ? "text-green-600 border-green-400/40"
-                    : "text-muted-foreground border-muted"
+                    ? 'text-green-600 border-green-400/40'
+                    : 'text-muted-foreground border-muted'
                 )}
               >
-                {isConnected ? "● Conectado" : "○ Conectando..."}
+                {isConnected ? '● Conectado' : '○ Conectando...'}
               </Badge>
             </div>
           )}
@@ -306,7 +310,9 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
         {/* Input */}
         <div className="px-4 py-3 flex flex-col gap-1.5">
           {limitError && (
-            <p className="text-xs text-red-500 text-center py-1">{limitError}</p>
+            <p className="text-xs text-red-500 text-center py-1">
+              {limitError}
+            </p>
           )}
           <div className="flex gap-2 items-end">
             <textarea

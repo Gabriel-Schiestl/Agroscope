@@ -24,7 +24,7 @@ describe('User controller integration tests', () => {
         const result = await userController.createUser({
             name: 'Gabriel',
             email: 'teste@teste.com',
-            password: '1234',
+            password: 'Teste@1234',
         });
 
         expect(result).toBeInstanceOf(Success);

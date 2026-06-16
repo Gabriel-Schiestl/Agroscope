@@ -4,7 +4,7 @@ import { BusinessException } from 'src/shared/exceptions/Business.exception';
 describe('Authentication', () => {
     const validProps = {
         email: 'test@example.com',
-        password: 'securePassword123',
+        password: 'SecurePass@123',
     };
 
     it('should create a valid Authentication instance', () => {
@@ -110,9 +110,9 @@ describe('Authentication', () => {
             auth = result.value;
         }
         auth.setRecoveryToken('token123');
-        const change = auth.applyPasswordChange('token123', 'newPassword');
+        const change = auth.applyPasswordChange('token123', 'NewPass@456');
         expect(change.isSuccess()).toBe(true);
-        expect(auth.password).toBe('newPassword');
+        expect(auth.password).toBe('NewPass@456');
         expect(auth.recoveryCode).toBeNull();
         expect(auth.recoveryCodeExpiration).toBeNull();
         expect(auth.incorrectRecoveryAttempts).toBe(0);
@@ -125,7 +125,7 @@ describe('Authentication', () => {
             auth = result.value;
         }
         auth.setRecoveryToken('token123');
-        const change = auth.applyPasswordChange('wrong', 'newPassword');
+        const change = auth.applyPasswordChange('wrong', 'NewPass@456');
         expect(change.isFailure()).toBe(true);
         expect(change.isFailure() && change.error).toBeInstanceOf(
             BusinessException,

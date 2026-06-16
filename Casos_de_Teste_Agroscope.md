@@ -30,8 +30,8 @@
 |-------|---------|
 | **Objetivo** | Verificar se o usuário consegue acessar o sistema com e-mail e senha corretos |
 | **Pré-condições** | Usuário previamente cadastrado no sistema |
-| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Acessar a tela de login → Tela exibida com campos de e-mail, senha e botão "Entrar" visíveis <br> 2. Preencher o campo de e-mail com `usuario@email.com` → Campo exibe o texto digitado <br> 3. Preencher o campo de senha com `senha@123` → Campo exibe os caracteres mascarados <br> 4. Clicar em "Entrar" → Sistema exibe indicador de carregamento e processa as credenciais |
+| **Dados de entrada** | E-mail: `usuario@email.com` / Senha: `Senha@123` |
+| **Procedimentos** | 1. Acessar a tela de login → Tela exibida com campos de e-mail, senha e botão "Entrar" visíveis <br> 2. Preencher o campo de e-mail com `usuario@email.com` → Campo exibe o texto digitado <br> 3. Preencher o campo de senha com `Senha@123` → Campo exibe os caracteres mascarados <br> 4. Clicar em "Entrar" → Sistema exibe indicador de carregamento e processa as credenciais |
 | **Resultado esperado** | O usuário é redirecionado para a tela principal com sessão ativa |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
@@ -45,8 +45,8 @@
 |-------|---------|
 | **Objetivo** | Verificar se o sistema bloqueia o login quando o campo de e-mail está vazio |
 | **Pré-condições** | Sistema em execução |
-| **Dados de entrada** | E-mail: *(em branco)* / Senha: `senha@123` |
-| **Procedimentos** | 1. Acessar a tela de login → Tela exibida com campos de e-mail, senha e botão "Entrar" visíveis <br> 2. Deixar o campo de e-mail em branco → Campo de e-mail permanece vazio <br> 3. Preencher o campo de senha com `senha@123` → Campo exibe os caracteres mascarados <br> 4. Clicar em "Entrar" → Sistema bloqueia o envio e destaca o campo de e-mail com indicação de erro |
+| **Dados de entrada** | E-mail: *(em branco)* / Senha: `Senha@123` |
+| **Procedimentos** | 1. Acessar a tela de login → Tela exibida com campos de e-mail, senha e botão "Entrar" visíveis <br> 2. Deixar o campo de e-mail em branco → Campo de e-mail permanece vazio <br> 3. Preencher o campo de senha com `Senha@123` → Campo exibe os caracteres mascarados <br> 4. Clicar em "Entrar" → Sistema bloqueia o envio e destaca o campo de e-mail com indicação de erro |
 | **Resultado esperado** | O sistema bloqueia o envio e exibe mensagem de validação indicando que o e-mail é obrigatório |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
@@ -90,8 +90,8 @@
 |-------|---------|
 | **Objetivo** | Verificar se o sistema recusa o acesso quando o e-mail informado não existe |
 | **Pré-condições** | Sistema em execução |
-| **Dados de entrada** | E-mail: `inexistente@email.com` / Senha: `qualquerSenha@123` |
-| **Procedimentos** | 1. Acessar a tela de login → Tela exibida com campos de e-mail, senha e botão "Entrar" visíveis <br> 2. Preencher o campo de e-mail com `inexistente@email.com` → Campo exibe o texto digitado <br> 3. Preencher o campo de senha com `qualquerSenha@123` → Campo exibe os caracteres mascarados <br> 4. Clicar em "Entrar" → Sistema exibe indicador de carregamento, processa e retorna mensagem de erro genérica |
+| **Dados de entrada** | E-mail: `inexistente@email.com` / Senha: `QualquerSenha@123` |
+| **Procedimentos** | 1. Acessar a tela de login → Tela exibida com campos de e-mail, senha e botão "Entrar" visíveis <br> 2. Preencher o campo de e-mail com `inexistente@email.com` → Campo exibe o texto digitado <br> 3. Preencher o campo de senha com `QualquerSenha@123` → Campo exibe os caracteres mascarados <br> 4. Clicar em "Entrar" → Sistema exibe indicador de carregamento, processa e retorna mensagem de erro genérica |
 | **Resultado esperado** | O acesso é negado e o sistema exibe mensagem de credenciais inválidas sem revelar qual campo está errado |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
@@ -165,8 +165,8 @@
 |-------|---------|
 | **Objetivo** | Verificar se o usuário consegue definir nova senha e acessar o sistema com ela |
 | **Pré-condições** | Código de recuperação inserido e validado com sucesso |
-| **Dados de entrada** | Nova senha: `novaSenha@456` |
-| **Procedimentos** | 1. Na tela de nova senha, digitar `novaSenha@456` no campo de nova senha → Campo exibe os caracteres mascarados <br> 2. Digitar `novaSenha@456` no campo de confirmação → Campo exibe os caracteres mascarados <br> 3. Salvar a alteração → Sistema confirma que a senha foi alterada com sucesso <br> 4. Realizar login com a nova senha → Sistema processa e autentica o usuário |
+| **Dados de entrada** | Nova senha: `NovaSenha@456` |
+| **Procedimentos** | 1. Na tela de nova senha, digitar `NovaSenha@456` no campo de nova senha → Campo exibe os caracteres mascarados <br> 2. Digitar `NovaSenha@456` no campo de confirmação → Campo exibe os caracteres mascarados <br> 3. Salvar a alteração → Sistema confirma que a senha foi alterada com sucesso <br> 4. Realizar login com a nova senha → Sistema processa e autentica o usuário |
 | **Resultado esperado** | A senha é alterada com sucesso e o login com a nova senha é efetuado normalmente |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
@@ -214,8 +214,8 @@
 |-------|---------|
 | **Objetivo** | Verificar se um novo usuário consegue se cadastrar e acessar o sistema |
 | **Pré-condições** | E-mail não utilizado em cadastro anterior |
-| **Dados de entrada** | Nome: `João Silva` / E-mail: `joao@email.com` / Senha: `senha@123` |
-| **Procedimentos** | 1. Acessar a tela de cadastro → Tela exibida com campos de nome, e-mail, senha e botão de cadastro <br> 2. Preencher o campo de nome com `João Silva` → Campo exibe o texto digitado <br> 3. Preencher o campo de e-mail com `joao@email.com` → Campo exibe o texto digitado <br> 4. Preencher o campo de senha com `senha@123` → Campo exibe os caracteres mascarados <br> 5. Confirmar o cadastro → Sistema processa e cria a conta com sucesso <br> 6. Realizar login com os dados cadastrados → Sistema autentica e redireciona para a área principal |
+| **Dados de entrada** | Nome: `João Silva` / E-mail: `joao@email.com` / Senha: `Senha@123` |
+| **Procedimentos** | 1. Acessar a tela de cadastro → Tela exibida com campos de nome, e-mail, senha e botão de cadastro <br> 2. Preencher o campo de nome com `João Silva` → Campo exibe o texto digitado <br> 3. Preencher o campo de e-mail com `joao@email.com` → Campo exibe o texto digitado <br> 4. Preencher o campo de senha com `Senha@123` → Campo exibe os caracteres mascarados <br> 5. Confirmar o cadastro → Sistema processa e cria a conta com sucesso <br> 6. Realizar login com os dados cadastrados → Sistema autentica e redireciona para a área principal |
 | **Resultado esperado** | O cadastro é concluído com sucesso e o usuário consegue acessar o sistema |
 | **Resultado obtido** | — |
 | **Status** | Pendente |
@@ -229,7 +229,7 @@
 |-------|---------|
 | **Objetivo** | Verificar se o sistema impede o cadastro com um e-mail já utilizado |
 | **Pré-condições** | Usuário com e-mail `joao@email.com` já cadastrado |
-| **Dados de entrada** | Nome: `Outro Nome` / E-mail: `joao@email.com` / Senha: `outraSenha@123` |
+| **Dados de entrada** | Nome: `Outro Nome` / E-mail: `joao@email.com` / Senha: `OutraSenha@123` |
 | **Procedimentos** | 1. Acessar a tela de cadastro → Tela exibida com campos vazios <br> 2. Preencher nome, e-mail duplicado e senha → Campos exibem os dados digitados <br> 3. Confirmar o cadastro → Sistema processa, detecta e-mail duplicado e retorna mensagem de erro |
 | **Resultado esperado** | O cadastro é recusado e o sistema exibe mensagem informando que o e-mail já está em uso |
 | **Resultado obtido** | — |
@@ -259,8 +259,8 @@
 |-------|---------|
 | **Objetivo** | Verificar se o sistema rejeita e-mail com formato inválido durante o cadastro |
 | **Pré-condições** | Sistema em execução |
-| **Dados de entrada** | Nome: `João` / E-mail: `emailinvalido` (sem @) / Senha: `senha@123` |
-| **Procedimentos** | 1. Acessar a tela de cadastro → Tela exibida com campos vazios <br> 2. Preencher o campo de nome com `João` → Campo exibe o texto digitado <br> 3. Preencher o campo de e-mail com `emailinvalido` → Campo exibe o texto digitado sem sinalizar erro imediato <br> 4. Preencher o campo de senha com `senha@123` → Campo exibe os caracteres mascarados <br> 5. Tentar confirmar o cadastro → Sistema bloqueia o envio e exibe mensagem de validação no campo de e-mail |
+| **Dados de entrada** | Nome: `João` / E-mail: `emailinvalido` (sem @) / Senha: `Senha@123` |
+| **Procedimentos** | 1. Acessar a tela de cadastro → Tela exibida com campos vazios <br> 2. Preencher o campo de nome com `João` → Campo exibe o texto digitado <br> 3. Preencher o campo de e-mail com `emailinvalido` → Campo exibe o texto digitado sem sinalizar erro imediato <br> 4. Preencher o campo de senha com `Senha@123` → Campo exibe os caracteres mascarados <br> 5. Tentar confirmar o cadastro → Sistema bloqueia o envio e exibe mensagem de validação no campo de e-mail |
 | **Resultado esperado** | O sistema exibe mensagem de validação indicando que o e-mail não está em formato válido e impede o cadastro |
 | **Resultado obtido** | — |
 | **Status** | Pendente |

@@ -96,12 +96,22 @@ export default function LoginModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-[#3C493B]">
+      <DialogContent
+              className="
+                w-[calc(100vw-1rem)] max-w-[95vw]
+                max-h-[90vh] overflow-y-auto
+                p-4 sm:p-6
+                bg-[#3C493B]
+                sm:max-w-md
+              "
+            >
         <DialogHeader>
           <div className="flex justify-center mb-4">
             <h2 className="text-[#4DAE50] font-bold text-2xl">AgroScope</h2>
           </div>
-          <DialogTitle className="text-2xl text-center text-[#F4FFF4]">Entrar</DialogTitle>
+          <DialogTitle className="text-2xl text-center text-[#F4FFF4]">
+            Entrar
+          </DialogTitle>
           <DialogDescription className="text-center text-gray-400">
             Entre com sua conta para acessar o sistema
           </DialogDescription>
@@ -165,8 +175,6 @@ export default function LoginModal({
               Entrar
             </Button>
           </form>
-
-       
 
           <Button
             variant="outline"

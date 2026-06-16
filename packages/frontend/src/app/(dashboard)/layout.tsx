@@ -21,7 +21,7 @@ export default function DashboardLayout({
       <div className="hidden md:block">{/* <Sidebar /> */}</div>
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-auto p-4">{children}</main>
+        <main className="flex-1 overflow-auto">{children}</main>
         <div className="md:hidden">
           <MobileNav />
         </div>

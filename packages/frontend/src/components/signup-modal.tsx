@@ -71,15 +71,23 @@ export default function SignupModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-[#3C493B]">
+      <DialogContent
+        className="
+          w-[calc(100vw-1rem)] max-w-[95vw]
+          max-h-[90vh] overflow-y-auto
+          p-4 sm:p-6
+          bg-[#3C493B]
+          sm:max-w-md
+        "
+      >
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <h2 className="text-[#4DAE50] font-bold text-2xl">AgroScope</h2>
+            <h2 className="text-[#4DAE50] font-bold text-xl sm:text-2xl">AgroScope</h2>
           </div>
-          <DialogTitle className="text-2xl text-center text-[#F4FFF4]">
+          <DialogTitle className="text-xl sm:text-2xl text-center text-[#F4FFF4]">
             Criar Conta
           </DialogTitle>
-          <DialogDescription className="text-center text-gray-400">
+          <DialogDescription className="text-center text-sm sm:text-base text-gray-400">
             Preencha os dados abaixo para criar sua conta
           </DialogDescription>
         </DialogHeader>
@@ -210,7 +218,7 @@ export default function SignupModal({
           </Button>
         </div>
 
-        <div className="text-sm text-center text-[#F4FFF4] mt-4">
+        <div className="text-sm text-center text-[#F4FFF4]">
           Já tem uma conta?{" "}
           <button
             className="text-[#4dae50] hover:underline"

@@ -15,33 +15,38 @@ import Sidebar from "./sidebar";
 import { useAuth } from "../contexts/auth-context";
 import Link from "next/link";
 import { User, LogOut, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const { auth, logout } = useAuth();
 
   return (
-    <header className="bg-background border-b border-border py-3 px-4 md:px-6">
-      <div className="flex items-center justify-between">
+    <header className="bg-[#19241b] border-b border-mediumGray/20 py-3 px-4 md:px-6">
+      <div className="flex items-center justify-between max-w-[1400px] mx-auto w-full">
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
-              <button className="p-2 md:hidden text-foreground">
+              <button className="p-2 md:hidden text-primaryGreen">
                 <Menu size={20} />
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
+            <SheetContent side="left" className="p-0 w-64 text-white">
               <Sidebar />
             </SheetContent>
           </Sheet>
 
-          <div className="md:hidden">
-            <h2 className="text-primaryGreen font-bold text-xl">AgroScope</h2>
-          </div>
+          <Link href="/">
+            <div>
+              <h2 className="text-[#4dae50] font-bold text-xl pr-3">
+                AgroScope
+              </h2>
+            </div>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
-            <Bell size={20} className="text-foreground" />
+          <button className="relative p-2 rounded-full] hover:bg-[#354a35] transition-colors">
+            <Bell size={20} className="text-white" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-primaryGreen rounded-full"></span>
           </button>
 
@@ -62,14 +67,17 @@ export default function Header() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden md:block">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-primaryGreen">
                     {auth?.name || "Usuário"}
                   </p>
                   <p className="text-xs text-muted-foreground">{"Agrônomo"}</p>
                 </div>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent
+              align="end"
+              className="w-56 bg-[#19241b] text-white border"
+            >
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>

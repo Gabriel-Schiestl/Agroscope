@@ -14,32 +14,31 @@ export default function MobileNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border py-2 px-4 z-10">
-      <div className="flex justify-between items-center">
-        <Link href="/dashboard" className="flex flex-col items-center">
+    <div className="fixed bottom-0 left-0 right-0 bg-[#19241b]  py-2 px-4 z-10">
+      <div className="flex justify-between items-center text-white">
+        <Link href="/" className="flex flex-col items-center">
           <Home
             size={20}
-            className={
-              isActive("/dashboard") ? "text-primaryGreen" : "text-foreground"
-            }
+            className=
+             "text-primaryGreen"
+            
           />
-          <span className="text-xs mt-1">Dashboard</span>
+          <span className="text-xs mt-1">Início</span>
         </Link>
         <Link href="/clients" className="flex flex-col items-center">
           <Users
             size={20}
-            className={
-              isActive("/clients") ? "text-primaryGreen" : "text-foreground"
-            }
+            className=
+             "text-primaryGreen"
           />
-          <span className="text-xs mt-1">Clientes</span>
+          <span className="text-xs mt-1">Análise</span>
         </Link>
         <Link href="/settings" className="flex flex-col items-center">
           <Settings
             size={20}
-            className={
-              isActive("/settings") ? "text-primaryGreen" : "text-foreground"
-            }
+           className=
+             "text-primaryGreen"
+            
           />
           <span className="text-xs mt-1">Config</span>
         </Link>

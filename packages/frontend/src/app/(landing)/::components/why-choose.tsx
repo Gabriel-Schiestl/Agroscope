@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useAuthModal } from '@/contexts/auth-modal-context';
-import { ArrowRight, Check, Leaf } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuthModal } from "@/contexts/auth-modal-context";
+import { ArrowRight, Check, Leaf } from "lucide-react";
 
 export default function WhyChoose() {
   const { openLogin, openSignup } = useAuthModal();
@@ -11,8 +11,8 @@ export default function WhyChoose() {
       {/* SEÇÃO 3 - Como funciona */}
       <section className="py-12 px-4 ">
         <div className="max-w-[1400px] mx-auto">
-          <h2 className="text-5xl font-bold mb-8 text-center text-[#f4fff4]">
-            Por que escolher o{' '}
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 text-center text-[#f4fff4]">
+            Por que escolher o{" "}
             <span className="text-[#43a547]">AgroScope?</span>
           </h2>
 
@@ -37,7 +37,7 @@ export default function WhyChoose() {
                 <div className="w-12 h-12 rounded-full bg-primaryGreen/10 flex items-center justify-center text-primaryGreen mb-4">
                   <Check size={24} />
                 </div>
-                <h3 className="text-lg font-medium mb-2 text-[#f4fff4]">
+                <h3 className="text-lg font-medium mb-2 text-white">
                   Recomendações Personalizadas
                 </h3>
                 <p className="text-mediumGray">
@@ -55,7 +55,7 @@ export default function WhyChoose() {
                 <h3 className="text-lg font-medium mb-2 text-white">
                   Gestão Completa
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-mediumGray">
                   Além do diagnóstico, nossa plataforma oferece ferramentas
                   completas para gestão agronômica.
                 </p>

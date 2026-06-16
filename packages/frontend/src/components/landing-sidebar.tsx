@@ -18,10 +18,10 @@ export default function LandingSidebar() {
   const { openLogin } = useAuthModal();
 
   return (
-    <div className="w-64 bg-white border-r border-mediumGray/20 h-full flex flex-col">
+    <div className="w-64 bg-[#19241b] border-r border-mediumGray/20 h-full flex flex-col">
       <div className="p-4 border-b border-mediumGray/20">
         <h2 className="text-primaryGreen font-bold text-xl">AgroScope</h2>
-        <p className="text-sm text-mediumGray">Gestão Agronômica</p>
+        <p className="text-sm text-white">Gestão Agronômica</p>
       </div>
 
       <nav className="flex-1 p-4">
@@ -38,7 +38,7 @@ export default function LandingSidebar() {
           <li>
             <Link
               href="/dashboard"
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-darkGray hover:bg-lightGray transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-white hover:bg-lightGray transition-colors"
             >
               <BarChart2 size={18} />
               <span>Dashboard</span>
@@ -47,7 +47,7 @@ export default function LandingSidebar() {
           <li>
             <Link
               href="/planos"
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-darkGray hover:bg-lightGray transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-white hover:bg-lightGray transition-colors"
             >
               <Map size={18} />
               <span>Planos</span>
@@ -56,7 +56,7 @@ export default function LandingSidebar() {
           <li>
             <Link
               href="/sobre"
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-darkGray hover:bg-lightGray transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-white hover:bg-lightGray transition-colors"
             >
               <Users size={18} />
               <span>Sobre Nós</span>
@@ -65,30 +65,30 @@ export default function LandingSidebar() {
           <li>
             <Link
               href="/contato"
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-darkGray hover:bg-lightGray transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-white hover:bg-lightGray transition-colors"
             >
               <Calendar size={18} />
               <span>Contato</span>
             </Link>
           </li>
         </ul>
-
-        <div className="mt-6 mb-4">
-          <Link href="/settings">
-            <Button className="w-full bg-primaryGreen hover:bg-lightGreen text-white py-6 flex items-center justify-center gap-2">
-              <Settings size={20} />
-              <span className="font-medium text-base">CONFIGURAÇÕES</span>
-            </Button>
-          </Link>
-        </div>
       </nav>
 
       <div className="p-4 border-t border-mediumGray/20">
         <ul className="space-y-1">
           <li>
             <Link
+              href="/settings"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-white hover:bg-lightGray transition-colors"
+            >
+              <Settings size={18} />
+              <span>Configurações</span>
+            </Link>
+          </li>
+          <li>
+            <Link
               href="/ajuda"
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-darkGray hover:bg-lightGray transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-white hover:bg-lightGray transition-colors"
             >
               <HelpCircle size={18} />
               <span>Ajuda</span>
@@ -97,7 +97,7 @@ export default function LandingSidebar() {
           <li>
             <button
               onClick={openLogin}
-              className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-darkGray hover:bg-lightGray transition-colors"
+              className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-white hover:bg-lightGray transition-colors"
             >
               <LogIn size={18} />
               <span>Entrar</span>

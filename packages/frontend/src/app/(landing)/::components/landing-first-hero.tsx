@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { useAuthModal } from '@/contexts/auth-modal-context';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useState } from 'react';
-import { Upload } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { useAuthModal } from "@/contexts/auth-modal-context";
+import Link from "next/link";
+import { useState } from "react";
+import { Upload } from "lucide-react";
 
 export default function FirstHero() {
   const [uploadStatus, setUploadStatus] = useState<
-    'idle' | 'success' | 'error'
-  >('idle');
+    "idle" | "success" | "error"
+  >("idle");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { openLogin, openSignup } = useAuthModal();
 
@@ -23,7 +22,7 @@ export default function FirstHero() {
         if (e.target?.result) {
           setPreviewUrl(e.target.result as string);
 
-          setTimeout(() => setUploadStatus('success'), 1500);
+          setTimeout(() => setUploadStatus("success"), 1500);
         }
       };
       reader.readAsDataURL(file);
@@ -32,20 +31,18 @@ export default function FirstHero() {
 
   const resetUpload = () => {
     setPreviewUrl(null);
-    setUploadStatus('idle');
+    setUploadStatus("idle");
   };
 
   return (
     <>
-      <section className=" py-12 md:py-20 px-4">
-        <div className="max-w-[1400px] mx-auto gap-8 flex flex-col items-center">
-          <div className="flex w-1/2 items-center justify-center text-center">
+      <section className="py-12 md:py-20 px-4">
+        <div className="max-w-[1400px] mx-auto gap-8 flex flex-col items-center ">
+          <div className="flex w-full items-center justify-center text-center">
             <div className="flex flex-col items-center justify-center text-center w-full">
-              <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold text-[#f4fff4] mb-4">
-                Diagnóstico de Plantas com{' '}
-                <span className="text-[#43a547]">
-                  Inteligência Artificial
-                </span>
+              <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold text-[#f4fff4] m-4">
+                Diagnóstico de Plantas com{" "}
+                <span className="text-[#43a547]">Inteligência Artificial</span>
               </h1>
               <p className="text-lg text-[#f4fff4] mb-6">
                 Identifique doenças em suas plantas instantaneamente com nossa
@@ -59,7 +56,7 @@ export default function FirstHero() {
                 >
                   Criar Conta Grátis
                 </Button>
-                <Link href="/recursos-detalhes">
+                <Link href="/">
                   <Button variant="outline" className="px-6 py-2 rounded-md">
                     Saiba Mais
                   </Button>
@@ -77,15 +74,15 @@ export default function FirstHero() {
             </div> */}
           </div>
           <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center flex flex-col w-1/2 ${
+            className={`border-2 border-dashed rounded-lg p-6 text-center flex flex-col w-full ${
               previewUrl
-                ? 'border-primaryGreen'
-                : 'border-mediumGray/50 hover:border-primaryGreen/50'
+                ? "border-primaryGreen"
+                : "border-mediumGray/50 hover:border-primaryGreen/50"
             } transition-colors`}
           >
             {!previewUrl ? (
               <>
-                <div className="mb-4 flex justify-center">
+                <div className="mb-4 flex justify-center ">
                   <div className="w-16 h-16 rounded-full bg-primaryGreen/10 flex items-center justify-center text-primaryGreen">
                     <Upload size={24} />
                   </div>
@@ -97,7 +94,7 @@ export default function FirstHero() {
                 <Button
                   className="bg-[#4dae50] hover:bg-[#334f36] relative"
                   onClick={() =>
-                    document.getElementById('file-upload')?.click()
+                    document.getElementById("file-upload")?.click()
                   }
                 >
                   Selecionar Imagem
@@ -116,7 +113,7 @@ export default function FirstHero() {
             ) : (
               <div className="relative">
                 <img
-                  src={previewUrl || 'https://placehold.co/300'}
+                  src={previewUrl || "https://placehold.co/300"}
                   alt="Preview"
                   className="max-h-64 mx-auto rounded-md object-contain"
                 />
@@ -124,7 +121,7 @@ export default function FirstHero() {
                   <Button variant="outline" onClick={resetUpload}>
                     Escolher outra imagem
                   </Button>
-                  {uploadStatus === 'idle' && (
+                  {uploadStatus === "idle" && (
                     <Button className="bg-primaryGreen hover:bg-lightGreen">
                       Analisar Imagem
                     </Button>

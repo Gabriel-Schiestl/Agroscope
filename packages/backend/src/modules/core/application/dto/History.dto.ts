@@ -6,14 +6,15 @@ export class HistoryDto {
     @IsString()
     id: string;
 
+    @IsOptional()
+    @IsString()
+    sicknessId?: string;
+
     @IsString()
     handling: string;
 
     @IsString()
     image: string;
-
-    @IsString()
-    sickness: string;
 
     @IsOptional()
     @IsNumber()
@@ -33,4 +34,8 @@ export class HistoryDto {
 
     @IsString()
     causes?: string;
+
+    @IsOptional()
+    @IsString()
+    precautions?: string;
 }

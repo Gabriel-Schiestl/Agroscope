@@ -13,6 +13,7 @@ export interface HandlingServiceResponse {
     explicacao: string;
     causas: string;
     manejo: string;
+    precautions?: string;
 }
 
 export interface PredictService {

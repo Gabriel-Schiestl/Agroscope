@@ -5,10 +5,12 @@ import { Res, Result } from 'src/shared/Result';
 import { History } from '../../domain/models/History';
 import {
     HistoryExceptions,
+    HistoryFilters,
     HistoryRepository,
 } from '../../domain/repositories/History.repository';
 import { HistoryMapper } from '../mappers/History.mapper';
 import { HistoryModel } from '../models/History.model';
+import { Between, ILike, MoreThanOrEqual, LessThanOrEqual, FindOptionsWhere } from 'typeorm';
 
 @Injectable()
 export class HistoryRepositoryImpl implements HistoryRepository {
@@ -35,10 +37,6 @@ export class HistoryRepositoryImpl implements HistoryRepository {
     async getAll(): Promise<Result<HistoryExceptions, History[]>> {
         try {
             const models = await HistoryModel.find();
-
-            if (models.length === 0) {
-                return Res.failure(new RepositoryNoDataFound('No data found'));
-            }
 
             return Res.success(
                 models.map((model) => HistoryMapper.modelToDomain(model)),
@@ -69,14 +67,27 @@ export class HistoryRepositoryImpl implements HistoryRepository {
 
     async getByUserId(
         userId: string,
+        filters?: HistoryFilters,
     ): Promise<Result<HistoryExceptions, History[]>> {
         try {
-            const models = await HistoryModel.find({ where: { userId } });
-            if (!models || models.length === 0) {
-                return Res.failure(
-                    new RepositoryNoDataFound('History not found'),
-                );
+            const where: FindOptionsWhere<HistoryModel> = { userId };
+
+            if (filters?.crop) {
+                where.crop = ILike(`%${filters.crop}%`);
             }
+
+            if (filters?.startDate && filters?.endDate) {
+                where.createdAt = Between(filters.startDate, filters.endDate);
+            } else if (filters?.startDate) {
+                where.createdAt = MoreThanOrEqual(filters.startDate);
+            } else if (filters?.endDate) {
+                where.createdAt = LessThanOrEqual(filters.endDate);
+            }
+
+            const models = await HistoryModel.find({
+                where,
+                order: { createdAt: filters?.order ?? 'DESC' },
+            });
 
             return Res.success(
                 models.map((model) => HistoryMapper.modelToDomain(model)),

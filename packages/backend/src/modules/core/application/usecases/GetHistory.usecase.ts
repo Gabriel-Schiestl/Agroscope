@@ -4,7 +4,10 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { History } from '../../domain/models/History';
-import { HistoryRepository } from '../../domain/repositories/History.repository';
+import {
+    HistoryFilters,
+    HistoryRepository,
+} from '../../domain/repositories/History.repository';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export type GetHistoryUseCaseExceptions =
@@ -12,9 +15,14 @@ export type GetHistoryUseCaseExceptions =
     | BusinessException
     | TechnicalException;
 
+export interface GetHistoryParams {
+    userId: string;
+    filters?: HistoryFilters;
+}
+
 @Injectable()
 export class GetHistoryUseCase extends AbstractUseCase<
-    { userId: string },
+    GetHistoryParams,
     GetHistoryUseCaseExceptions,
     History[]
 > {
@@ -27,10 +35,12 @@ export class GetHistoryUseCase extends AbstractUseCase<
 
     async onExecute({
         userId,
-    }: {
-        userId: string;
-    }): Promise<Result<GetHistoryUseCaseExceptions, History[]>> {
-        const history = await this.historyRepository.getByUserId(userId);
+        filters,
+    }: GetHistoryParams): Promise<Result<GetHistoryUseCaseExceptions, History[]>> {
+        const history = await this.historyRepository.getByUserId(
+            userId,
+            filters,
+        );
         if (history.isFailure()) {
             return Res.failure(history.error);
         }

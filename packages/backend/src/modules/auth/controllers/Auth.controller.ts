@@ -1,17 +1,17 @@
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { minutes, Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { Public } from 'PublicRoutes';
 import { ChangePasswordUseCase } from '../application/usecases/ChangePassword.usecase';
-import { CreateAuthenticationUseCase } from '../application/usecases/CreateAuthentication.usecase';
 import {
     LoginUseCase,
     LoginUseCaseProps,
 } from '../application/usecases/Login.usecase';
 import { PasswordRecoveryUseCase } from '../application/usecases/PasswordRecovery.usecase';
 import { ValidateRecoveryTokenUseCase } from '../application/usecases/ValidateRecoveryToken.usecase';
-import { UserDto } from '../application/dto/User.dto';
+import { PasswordRecoveryDto } from '../application/dto/PasswordRecovery.dto';
+import { ValidateRecoveryTokenDto } from '../application/dto/ValidateRecoveryToken.dto';
+import { ChangePasswordDto } from '../application/dto/ChangePassword.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -20,7 +20,6 @@ export class AuthController {
         private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
         private readonly validateRecoveryTokenUseCase: ValidateRecoveryTokenUseCase,
         private readonly changePasswordUseCase: ChangePasswordUseCase,
-        private readonly createAuthenticationUseCase: CreateAuthenticationUseCase,
     ) {}
 
     @Public()
@@ -62,7 +61,7 @@ export class AuthController {
 
     @Public()
     @Post('recovery-token')
-    async passwordRecovery(@Body() body: { email: string }) {
+    async passwordRecovery(@Body() body: PasswordRecoveryDto) {
         const result = await this.passwordRecoveryUseCase.execute({
             email: body.email,
         });
@@ -72,9 +71,7 @@ export class AuthController {
 
     @Public()
     @Post('validate-recovery-token')
-    async validateRecoveryToken(
-        @Body() body: { email: string; token: string },
-    ) {
+    async validateRecoveryToken(@Body() body: ValidateRecoveryTokenDto) {
         const result = await this.validateRecoveryTokenUseCase.execute({
             email: body.email,
             token: body.token,
@@ -85,9 +82,7 @@ export class AuthController {
 
     @Public()
     @Post('change-password')
-    async changePassword(
-        @Body() body: { email: string; newPassword: string; token: string },
-    ) {
+    async changePassword(@Body() body: ChangePasswordDto) {
         const result = await this.changePasswordUseCase.execute({
             email: body.email,
             token: body.token,
@@ -95,13 +90,5 @@ export class AuthController {
         });
 
         return result;
-    }
-
-    @OnEvent('user.created')
-    async createCalendar(user: UserDto) {
-        this.createAuthenticationUseCase.execute({
-            email: user.email,
-            password: user.password,
-        });
     }
 }

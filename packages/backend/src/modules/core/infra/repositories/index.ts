@@ -1,14 +1,10 @@
 import { HistoryRepositoryImpl } from './HistoryData.repository';
 import { ImageDataRepository } from './ImageData.repository';
-import { KnowledgeDataRepository } from './KnowledgeData.repository';
 import { SicknessDataRepository } from './SicknessData.repository';
 import { UserDataRepository } from './UserData.repository';
+import { PlanDataRepository } from './PlanData.repository';
 
 export const repositories = [
-    {
-        provide: 'KnowledgeRepository',
-        useClass: KnowledgeDataRepository,
-    },
     {
         provide: 'SicknessRepository',
         useClass: SicknessDataRepository,
@@ -24,5 +20,9 @@ export const repositories = [
     {
         provide: 'UserRepository',
         useClass: UserDataRepository,
+    },
+    {
+        provide: 'PlanRepository',
+        useClass: PlanDataRepository,
     },
 ];

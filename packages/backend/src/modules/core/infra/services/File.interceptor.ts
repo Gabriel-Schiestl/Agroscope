@@ -21,9 +21,12 @@ export const UseFileInterceptor = FileInterceptor('image', {
     },
   }),
   fileFilter: (req, file, callback) => {
-    if (!file.originalname.match(/\.(jpg|jpeg|png|JPG|JPEG|PNG)$/)) {
-      return callback(new Error('Only image files are allowed!'), false);
+    if (!file.originalname.match(/\.(jpg|jpeg|png|webp|JPG|JPEG|PNG|WEBP)$/)) {
+      return callback(new Error('Formato inválido. Formatos aceitos: .jpg, .jpeg, .png, .webp'), false);
     }
     callback(null, true);
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024,
   },
 });

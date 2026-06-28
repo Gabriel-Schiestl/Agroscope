@@ -9,9 +9,19 @@ export type HistoryExceptions =
     | BusinessException
     | TechnicalException;
 
+export interface HistoryFilters {
+    crop?: string;
+    startDate?: Date;
+    endDate?: Date;
+    order?: 'ASC' | 'DESC';
+}
+
 export interface HistoryRepository {
     save(history: History): Promise<Result<HistoryExceptions, void>>;
     getAll(): Promise<Result<HistoryExceptions, History[]>>;
     getById(id: string): Promise<Result<HistoryExceptions, History>>;
-    getByUserId(userId: string): Promise<Result<HistoryExceptions, History[]>>;
+    getByUserId(
+        userId: string,
+        filters?: HistoryFilters,
+    ): Promise<Result<HistoryExceptions, History[]>>;
 }

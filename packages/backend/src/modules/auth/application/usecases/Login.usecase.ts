@@ -1,8 +1,9 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/Authentication.repository';
-import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { AuthUserRepository } from '../../domain/repositories/AuthUser.repository';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { Res, Result } from 'src/shared/Result';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import {
     AuthenticationService,
     JwtPayload,
@@ -20,10 +21,14 @@ export type LoginUseCaseExceptions =
     | UnauthorizedException;
 
 @Injectable()
-export class LoginUseCase {
+export class LoginUseCase extends AbstractUseCase<
+    LoginUseCaseProps,
+    LoginUseCaseExceptions,
+    string
+> {
     constructor(
-        @Inject('UserRepository')
-        private readonly userRepository: UserRepository,
+        @Inject('AuthUserRepository')
+        private readonly userRepository: AuthUserRepository,
         @Inject('AuthenticationRepository')
         private readonly authenticationRepository: AuthenticationRepository,
         @Inject('AuthenticationService')
@@ -32,9 +37,11 @@ export class LoginUseCase {
         private readonly encryptionService: EncryptionService,
         @Inject('AESService')
         private readonly aesService: AESService,
-    ) {}
+    ) {
+        super();
+    }
 
-    async execute(
+    protected async onExecute(
         props: LoginUseCaseProps,
     ): Promise<Result<LoginUseCaseExceptions, string>> {
         const userResult = this.userRepository.getByEmail(props.email);

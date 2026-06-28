@@ -28,7 +28,10 @@ async function bootstrap() {
     });
 
     app.use(cookieParser());
-    app.use(doubleCsrfProtection);
+    app.use((req, res, next) => {
+        if (req.headers['authorization']) return next();
+        doubleCsrfProtection(req, res, next);
+    });
 
     app.use(
         helmet({

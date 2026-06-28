@@ -7,7 +7,7 @@ export class HistoryMapper {
         return new HistoryModel().setProps({
             id: domain.id,
             createdAt: domain.createdAt,
-            sickness: domain.sickness,
+            sicknessId: domain.sicknessId,
             sicknessConfidence: domain.sicknessConfidence,
             crop: domain.crop,
             cropConfidence: domain.cropConfidence,
@@ -16,6 +16,7 @@ export class HistoryMapper {
             explanation: domain.explanation,
             userId: domain.userId,
             causes: domain.causes,
+            precautions: domain.precautions,
         });
     }
 
@@ -23,7 +24,7 @@ export class HistoryMapper {
         return History.load(
             {
                 createdAt: model.createdAt,
-                sickness: model.sickness,
+                sicknessId: model.sicknessId,
                 sicknessConfidence: model.sicknessConfidence,
                 crop: model.crop,
                 cropConfidence: model.cropConfidence,
@@ -32,6 +33,7 @@ export class HistoryMapper {
                 explanation: model.explanation,
                 userId: model.userId,
                 causes: model.causes,
+                precautions: model.precautions,
             },
             model.id,
         );

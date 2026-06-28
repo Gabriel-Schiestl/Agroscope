@@ -10,14 +10,9 @@ export default async function RegisterUser({
   email,
   name,
   password,
-}: RegisterUserProps) {
+}: RegisterUserProps): Promise<boolean> {
   try {
-    const response = await api.post("/api/user", {
-      email,
-      name,
-      password,
-    });
-
+    await api.post("/user", { email, name, password });
     return true;
   } catch (e) {
     return false;

@@ -1,4 +1,4 @@
-import api, { ensureCsrfToken } from "../../shared/http/http.config";
+import api from "../../shared/http/http.config";
 
 export default async function LoginAPI(email: string, password: string) {
   try {

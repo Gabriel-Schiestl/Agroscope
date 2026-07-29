@@ -4,7 +4,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../contexts/auth-context";
 import { AuthModalProvider } from "../contexts/auth-modal-context";
-import CSRFInitializer from "../components/CSRFInitializer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,7 +23,6 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.variable} font-inter bg-lightGray`}>
-        <CSRFInitializer />
         <AuthProvider>
           <AuthModalProvider>{children}</AuthModalProvider>
         </AuthProvider>

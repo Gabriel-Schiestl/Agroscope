@@ -1,4 +1,4 @@
-import api, { ensureCsrfToken } from "../../shared/http/http.config";
+import api from "../../shared/http/http.config";
 
 export interface ValidateResponse {
   isEngineer: boolean;

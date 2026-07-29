@@ -422,13 +422,6 @@ export function createMockAdapter(
     const path = extractPath(config);
     const method = (config.method || "get").toLowerCase();
 
-    // CSRF token
-    if (path.includes("/auth/csrf/token")) {
-      return Promise.resolve(
-        ok(config, { csrfToken: "mock-csrf-token-presentation" })
-      );
-    }
-
     // Auth validate
     if (method === "get" && path.includes("/auth/validate")) {
       return Promise.resolve(

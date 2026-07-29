@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { minutes, Throttle } from '@nestjs/throttler';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Public } from 'PublicRoutes';
 import { ChangePasswordUseCase } from '../application/usecases/ChangePassword.usecase';
 import {
@@ -50,13 +50,6 @@ export class AuthController {
             email: req.user.email,
             name: req.user.name,
         });
-    }
-
-    @Public()
-    @Get('csrf/token')
-    getCsrfToken(@Req() req: Request, @Res() res: Response) {
-        const csrfToken = req.csrfToken();
-        res.json({ csrfToken });
     }
 
     @Public()

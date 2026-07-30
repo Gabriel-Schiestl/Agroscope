@@ -11,6 +11,8 @@ export interface PlanProps {
 }
 
 export class Plan extends Agg<PlanProps> {
+    static readonly FREE_TYPE = 'FREE';
+
     private constructor(props: PlanProps, id?: string) {
         super(props, id);
     }

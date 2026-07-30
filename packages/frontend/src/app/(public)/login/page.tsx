@@ -23,8 +23,8 @@ import LoginAPI from "../../../../api/login/Login";
 import { ro } from "date-fns/locale";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("demo@example.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -38,14 +38,14 @@ export default function LoginPage() {
       const response = await LoginAPI(email, password);
 
       if (response) {
-        refreshAuth();
+        await refreshAuth();
         router.push("/analytics");
+      } else {
+        setError("Email ou senha inválidos. Tente novamente.");
       }
     } catch (error) {
       setError("Email ou senha inválidos. Tente novamente.");
     }
-
-    router.push("/analytics");
   };
 
   const handleGoogleLogin = async () => {

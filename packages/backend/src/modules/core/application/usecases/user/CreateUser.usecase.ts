@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from 'src/modules/core/domain/models/User';
+import { Plan } from 'src/modules/core/domain/models/Plan';
 import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { PlanRepository } from 'src/modules/core/domain/repositories/Plan.repository';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
@@ -23,6 +25,8 @@ export class CreateUserUseCase extends AbstractUseCase<
     constructor(
         @Inject('UserRepository')
         private readonly userRepository: UserRepository,
+        @Inject('PlanRepository')
+        private readonly planRepository: PlanRepository,
         private readonly eventEmitter: EventEmitter2,
     ) {
         super();
@@ -30,7 +34,10 @@ export class CreateUserUseCase extends AbstractUseCase<
     async onExecute(
         props: CreateUserDto,
     ): Promise<Result<CreateUserUseCaseExceptions, void>> {
-        const user = User.create(props);
+        const freePlan = await this.planRepository.getByType(Plan.FREE_TYPE);
+        if (freePlan.isFailure()) return Res.failure(freePlan.error);
+
+        const user = User.create({ ...props, planId: freePlan.value.id });
         if (user.isFailure()) return Res.failure(user.error);
 
         const result = await this.userRepository.save(user.value);

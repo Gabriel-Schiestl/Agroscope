@@ -49,15 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const validateAuth = useCallback(async () => {
     try {
-      // Mock de usuário autenticado - comentar para usar backend real
-      setAuth({
-        isEngineer: true,
-        isAdmin: true,
-        name: "Usuário Teste",
-        email: "teste@agroscope.com",
-      });
-
-      /* Descomentar quando o backend estiver funcionando
       const response = await Validate();
 
       if (response && typeof response === "object") {
@@ -67,8 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: response.name,
           email: response.email,
         });
+      } else {
+        setAuth(null);
       }
-      */
     } catch (error) {
       console.error("Erro ao validar autenticação:", error);
       setAuth(null);

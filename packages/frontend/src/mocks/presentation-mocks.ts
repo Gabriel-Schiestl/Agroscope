@@ -1,6 +1,8 @@
 /**
- * Mock completo para apresentação da pré-banca.
+ * Mock para apresentação da pré-banca.
  * Ativado quando NEXT_PUBLIC_MOCK=true.
+ * Rotas já integradas ao backend real ficam em PASSTHROUGH_ROUTES e não
+ * são mockadas, permitindo remover o mock gradualmente por endpoint.
  *
  * Cenário: Dr. Carlos Agronomia identifica Ferrugem Asiática numa lavoura de soja,
  * analisa via IA e tira dúvidas no chat sobre manejo.
@@ -413,8 +415,17 @@ function ok<T>(
   };
 }
 
+// Rotas já integradas com o backend real — não devem ser interceptadas
+// mesmo com NEXT_PUBLIC_MOCK=true. Removidas do mock gradualmente conforme
+// cada fluxo é validado contra o backend.
+const PASSTHROUGH_ROUTES: { method: string; test: (path: string) => boolean }[] = [
+  { method: "get", test: (path) => path.includes("/auth/validate") },
+  { method: "post", test: (path) => path.includes("/auth/login") },
+  { method: "post", test: (path) => path === "/user" },
+];
+
 export function createMockAdapter(
-  _originalAdapter: AxiosAdapter | undefined
+  originalAdapter: AxiosAdapter | undefined
 ): AxiosAdapter {
   return function mockAdapter(
     config: InternalAxiosRequestConfig
@@ -422,28 +433,16 @@ export function createMockAdapter(
     const path = extractPath(config);
     const method = (config.method || "get").toLowerCase();
 
-    // Auth validate
-    if (method === "get" && path.includes("/auth/validate")) {
-      return Promise.resolve(
-        ok(config, {
-          name: "Dr. Carlos Agronomia",
-          email: "carlos@agroscope.com",
-          isEngineer: true,
-          isAdmin: false,
-        })
-      );
-    }
-
-    // Auth login
-    if (method === "post" && path.includes("/auth/login")) {
-      return Promise.resolve(
-        ok(config, { success: true, message: "Login realizado com sucesso." })
-      );
-    }
-
-    // User registration
-    if (method === "post" && path === "/user") {
-      return Promise.resolve(ok(config, { success: true }, 201));
+    const isPassthrough = PASSTHROUGH_ROUTES.some(
+      (route) => route.method === method && route.test(path)
+    );
+    if (isPassthrough) {
+      if (!originalAdapter) {
+        return Promise.reject(
+          new Error(`No adapter available to handle real request to ${path}`)
+        );
+      }
+      return originalAdapter(config);
     }
 
     // Predict – simula 2,5s de processamento

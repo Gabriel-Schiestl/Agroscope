@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { Bell, CreditCard, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,19 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+          {auth && (
+            <Link href="/plans">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-primaryGreen text-primaryGreen hover:bg-primaryGreen/10 hover:text-primaryGreen"
+              >
+                <CreditCard size={16} />
+                <span className="hidden md:inline">Planos</span>
+              </Button>
+            </Link>
+          )}
+
           <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
             <Bell size={20} className="text-foreground" />
           </button>

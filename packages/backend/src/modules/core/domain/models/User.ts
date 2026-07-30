@@ -72,4 +72,13 @@ export class User implements UserProps {
     get limit() {
         return this.#limit;
     }
+
+    changePlan(planId: string): Result<BusinessException, void> {
+        if (!planId) {
+            return Res.failure(new BusinessException('Plan is required'));
+        }
+        this.#planId = planId;
+
+        return Res.success();
+    }
 }

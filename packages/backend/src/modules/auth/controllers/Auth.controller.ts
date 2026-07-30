@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
 import { minutes, Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { Public } from 'PublicRoutes';
@@ -12,6 +12,7 @@ import { ValidateRecoveryTokenUseCase } from '../application/usecases/ValidateRe
 import { PasswordRecoveryDto } from '../application/dto/PasswordRecovery.dto';
 import { ValidateRecoveryTokenDto } from '../application/dto/ValidateRecoveryToken.dto';
 import { ChangePasswordDto } from '../application/dto/ChangePassword.dto';
+import { AuthUserRepository } from '../domain/repositories/AuthUser.repository';
 
 @Controller('auth')
 export class AuthController {
@@ -20,6 +21,8 @@ export class AuthController {
         private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
         private readonly validateRecoveryTokenUseCase: ValidateRecoveryTokenUseCase,
         private readonly changePasswordUseCase: ChangePasswordUseCase,
+        @Inject('AuthUserRepository')
+        private readonly authUserRepository: AuthUserRepository,
     ) {}
 
     @Public()
@@ -44,11 +47,14 @@ export class AuthController {
 
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
+        const user = await this.authUserRepository.getById(req.user.sub);
+
         return res.status(200).json({
             isEngineer: req.user.engineer,
             isAdmin: req.user.admin,
             email: req.user.email,
             name: req.user.name,
+            planId: user.isSuccess() ? user.value.planId : undefined,
         });
     }
 

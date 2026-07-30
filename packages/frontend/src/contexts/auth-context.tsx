@@ -17,6 +17,7 @@ interface AuthState {
   isAdmin: boolean;
   name: string;
   email: string;
+  planId?: string;
 }
 
 interface AuthContextType {
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isAdmin: response.isAdmin || false,
           name: response.name,
           email: response.email,
+          planId: response.planId,
         });
       } else {
         setAuth(null);

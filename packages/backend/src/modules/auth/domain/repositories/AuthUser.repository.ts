@@ -10,10 +10,14 @@ export interface AuthUserProjection {
     id: string;
     name: string;
     email: string;
+    planId?: string;
 }
 
 export interface AuthUserRepository {
     getByEmail(
         email: string,
+    ): Promise<Result<AuthUserRepositoryExceptions, AuthUserProjection>>;
+    getById(
+        id: string,
     ): Promise<Result<AuthUserRepositoryExceptions, AuthUserProjection>>;
 }

@@ -28,3 +28,8 @@ export class UpdateUserDto extends OmitType(UserDto, ['id']) {
     @Matches(PASSWORD_REGEX, { message: PASSWORD_MESSAGE })
     password: string;
 }
+
+export class ChangePlanDto {
+    @IsString()
+    planId: string;
+}

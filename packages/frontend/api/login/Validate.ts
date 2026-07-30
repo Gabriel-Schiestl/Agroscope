@@ -5,6 +5,7 @@ export interface ValidateResponse {
   isAdmin: boolean;
   name: string;
   email: string;
+  planId?: string;
 }
 
 export default async function Validate(

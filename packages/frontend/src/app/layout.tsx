@@ -1,6 +1,8 @@
 import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 import { AuthProvider } from "../contexts/auth-context";
 import { AuthModalProvider } from "../contexts/auth-modal-context";
@@ -26,6 +28,7 @@ export default function RootLayout({
         <AuthProvider>
           <AuthModalProvider>{children}</AuthModalProvider>
         </AuthProvider>
+        <ToastContainer position="top-right" autoClose={4000} />
       </body>
     </html>
   );

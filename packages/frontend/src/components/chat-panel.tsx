@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { createMockSocket } from '@/mocks/presentation-mocks';
+import { useLimit } from '@/hooks/use-limit';
 import {
   Sheet,
   SheetContent,
@@ -127,10 +127,14 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [limitError, setLimitError] = useState<string | null>(null);
+  const { limit, refetch: refetchLimit } = useLimit();
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const socketRef = useRef<Socket | null>(null);
+
+  const chatLimitReached =
+    limit !== null && limit.chatRequests >= limit.chatLimit;
 
   // Connect socket and load history when panel opens
   useEffect(() => {
@@ -138,16 +142,14 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
 
     setInputText('');
     setIsTyping(false);
+    refetchLimit();
 
-    const isMock = process.env.NEXT_PUBLIC_MOCK === 'true';
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-    const socket: Socket = isMock
-      ? createMockSocket(analysis)
-      : io(`${apiUrl}/chat`, {
-          withCredentials: true,
-          transports: ['websocket', 'polling'],
-        });
+    const socket: Socket = io(`${apiUrl}/chat`, {
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+    });
 
     socketRef.current = socket;
 
@@ -193,6 +195,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   const sendMessage = () => {
     const text = inputText.trim();
     if (!text || isTyping || !socketRef.current || !analysis) return;
+    if (chatLimitReached) return;
 
     setInputText('');
     setIsTyping(true);
@@ -213,6 +216,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
         if ('error' in response) {
           setLimitError(response.error);
           setIsTyping(false);
+          refetchLimit();
           return;
         }
         setMessages((prev) => [
@@ -221,6 +225,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
           dtoToMessage(response.aiMessage),
         ]);
         setIsTyping(false);
+        refetchLimit();
       }
     );
   };
@@ -309,7 +314,23 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
 
         {/* Input */}
         <div className="px-4 py-3 flex flex-col gap-1.5">
-          {limitError && (
+          {limit && (
+            <p
+              className={cn(
+                'text-xs text-right',
+                chatLimitReached ? 'text-red-500' : 'text-muted-foreground'
+              )}
+            >
+              Mensagens: {limit.chatRequests}/{limit.chatLimit}
+            </p>
+          )}
+          {chatLimitReached && (
+            <p className="text-xs text-red-500 text-center py-1">
+              Limite de {limit?.chatLimit} mensagens atingido. Faça upgrade do
+              seu plano para continuar conversando.
+            </p>
+          )}
+          {!chatLimitReached && limitError && (
             <p className="text-xs text-red-500 text-center py-1">
               {limitError}
             </p>
@@ -322,13 +343,18 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
               onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
               placeholder="Escreva sua dúvida... (Enter para enviar)"
-              disabled={isTyping || !isConnected}
+              disabled={isTyping || !isConnected || chatLimitReached}
               className="flex-1 resize-none rounded-xl border bg-muted/50 px-3.5 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primaryGreen/40 disabled:opacity-50 min-h-[42px] max-h-[120px] overflow-y-auto leading-relaxed"
             />
             <Button
               size="icon"
               onClick={sendMessage}
-              disabled={!inputText.trim() || isTyping || !isConnected}
+              disabled={
+                !inputText.trim() ||
+                isTyping ||
+                !isConnected ||
+                chatLimitReached
+              }
               className="bg-primaryGreen hover:bg-lightGreen h-[42px] w-[42px] flex-shrink-0 rounded-xl"
             >
               <Send className="h-4 w-4" />

@@ -228,6 +228,12 @@ export default function AnalyticsPage() {
                     </>
                   )}
                 </Button>
+                {limit !== null && limit.imageRequests >= limit.imageLimit && (
+                  <p className="text-xs text-red-500 text-center">
+                    Limite de {limit.imageLimit} análises atingido. Faça
+                    upgrade do seu plano para continuar analisando imagens.
+                  </p>
+                )}
               </CardFooter>
             </Card>
 

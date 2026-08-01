@@ -36,8 +36,13 @@ export function formatPeriodLabel(
 
 // O backend persiste a imagem da análise como base64 puro (sem prefixo
 // data:). Já URLs (blob:, http, /placeholder.svg) devem passar direto.
+// Atenção: base64 de JPEG quase sempre começa com "/9j/" (o marcador SOI
+// 0xFFD8FF codificado), então checar apenas o prefixo "/" para detectar um
+// caminho local geraria falso positivo para imagens reais — por isso exige-se
+// que o "caminho" termine com uma extensão de imagem conhecida.
 export function toImageSrc(image?: string): string {
   if (!image) return "/placeholder.svg";
-  if (/^(data:|blob:|https?:|\/)/.test(image)) return image;
+  if (/^(data:|blob:|https?:)/.test(image)) return image;
+  if (/^\/[\w\-./]*\.(svg|png|jpe?g|gif|webp)$/i.test(image)) return image;
   return `data:image/jpeg;base64,${image}`;
 }

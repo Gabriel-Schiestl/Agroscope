@@ -33,6 +33,7 @@ import {
   History,
   BarChart2,
   MessageCircle,
+  FileText,
 } from "lucide-react";
 import api from "../../../../shared/http/http.config";
 import { toast } from "react-toastify";
@@ -42,6 +43,7 @@ import { AnalyticsDashboard } from "../../../components/analytics-dashboard";
 import { useLimit } from "../../../hooks/use-limit";
 import { useHistory } from "../../../hooks/use-history";
 import { toImageSrc } from "../../../lib/utils";
+import { generateAnalysisReportPdf } from "../../../lib/pdf/generate-analysis-report";
 
 export default function AnalyticsPage() {
   const [file, setFile] = useState<File | undefined>();
@@ -49,6 +51,9 @@ export default function AnalyticsPage() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [chatAnalysis, setChatAnalysis] = useState<HistoryModel | null>(null);
+  const [generatingReportId, setGeneratingReportId] = useState<string | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const { limit, refetch: refetchLimit } = useLimit();
@@ -94,6 +99,17 @@ export default function AnalyticsPage() {
       refetchLimit();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async (analysis: HistoryModel) => {
+    setGeneratingReportId(analysis.id);
+    try {
+      await generateAnalysisReportPdf(analysis);
+    } catch (error) {
+      toast.error("Não foi possível gerar o relatório em PDF.");
+    } finally {
+      setGeneratingReportId(null);
     }
   };
 
@@ -301,13 +317,26 @@ export default function AnalyticsPage() {
                       </AlertDescription>
                     </Alert>
 
-                    <Button
-                      className="w-full mt-2 bg-primaryGreen hover:bg-lightGreen"
-                      onClick={() => setChatAnalysis(result)}
-                    >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Tirar dúvidas sobre esta análise
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                      <Button
+                        className="w-full bg-primaryGreen hover:bg-lightGreen"
+                        onClick={() => setChatAnalysis(result)}
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Tirar dúvidas
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full text-primaryGreen border-primaryGreen/30"
+                        disabled={generatingReportId === result.id}
+                        onClick={() => handleGenerateReport(result)}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        {generatingReportId === result.id
+                          ? "Gerando..."
+                          : "Gerar Relatório PDF"}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -432,6 +461,18 @@ export default function AnalyticsPage() {
                           >
                             <MessageCircle className="mr-1 h-3 w-3" />
                             Chat
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-primaryGreen border-primaryGreen/30 h-7 px-2 text-xs"
+                            disabled={generatingReportId === analysis.id}
+                            onClick={() => handleGenerateReport(analysis)}
+                          >
+                            <FileText className="mr-1 h-3 w-3" />
+                            {generatingReportId === analysis.id
+                              ? "Gerando..."
+                              : "Relatório PDF"}
                           </Button>
                         </div>
                       </div>

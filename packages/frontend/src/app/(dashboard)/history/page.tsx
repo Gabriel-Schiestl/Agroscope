@@ -73,6 +73,8 @@ import type { History } from "../../../models/History";
 import { ChatPanel } from "../../../components/chat-panel";
 import { useHistory } from "../../../hooks/use-history";
 import { toImageSrc } from "../../../lib/utils";
+import { generateAnalysisReportPdf } from "../../../lib/pdf/generate-analysis-report";
+import { toast } from "react-toastify";
 
 const CROP_OPTIONS = ["Todos", "Soja", "Milho", "Café", "Algodão", "Trigo"];
 const SORT_OPTIONS = [
@@ -93,7 +95,21 @@ export default function HistoryPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [generatingReportId, setGeneratingReportId] = useState<string | null>(
+    null
+  );
   const itemsPerPage = 5;
+
+  const handleGenerateReport = async (history: History) => {
+    setGeneratingReportId(history.id);
+    try {
+      await generateAnalysisReportPdf(history);
+    } catch (error) {
+      toast.error("Não foi possível gerar o relatório em PDF.");
+    } finally {
+      setGeneratingReportId(null);
+    }
+  };
 
   const filteredHistories = historyEntries
     .filter((history) => {
@@ -421,9 +437,14 @@ export default function HistoryPage() {
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleGenerateReport(history)}
+                                disabled={generatingReportId === history.id}
+                              >
                                 <FileText className="mr-2 h-4 w-4" />
-                                Gerar relatório
+                                {generatingReportId === history.id
+                                  ? "Gerando relatório..."
+                                  : "Gerar relatório"}
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <Download className="mr-2 h-4 w-4" />
@@ -517,9 +538,14 @@ export default function HistoryPage() {
                         <Eye className="mr-2 h-4 w-4" />
                         Ver detalhes
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleGenerateReport(history)}
+                        disabled={generatingReportId === history.id}
+                      >
                         <FileText className="mr-2 h-4 w-4" />
-                        Gerar relatório
+                        {generatingReportId === history.id
+                          ? "Gerando relatório..."
+                          : "Gerar relatório"}
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Download className="mr-2 h-4 w-4" />
@@ -712,9 +738,16 @@ export default function HistoryPage() {
                   <Download className="mr-2 h-4 w-4" />
                   Exportar
                 </Button>
-                <Button variant="outline">
+                <Button
+                  variant="outline"
+                  className="bg-primaryGreen hover:bg-lightGreen text-white hover:text-white"
+                  disabled={generatingReportId === selectedHistory.id}
+                  onClick={() => handleGenerateReport(selectedHistory)}
+                >
                   <FileText className="mr-2 h-4 w-4" />
-                  Gerar Relatório
+                  {generatingReportId === selectedHistory.id
+                    ? "Gerando..."
+                    : "Gerar Relatório PDF"}
                 </Button>
               </DialogFooter>
             </>

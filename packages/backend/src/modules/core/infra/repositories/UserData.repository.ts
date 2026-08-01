@@ -8,6 +8,7 @@ import { User } from '../../domain/models/User';
 import { UserMapper } from '../mappers/User.mapper';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { UserModel } from '../models/User.model';
+import { LimitModel } from '../models/Limit.model';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 
 @Injectable()
@@ -70,6 +71,19 @@ export class UserDataRepository implements UserRepository {
             }
 
             return Res.success(UserMapper.modelToDomain(model));
+        } catch (e) {
+            return Res.failure(new TechnicalException(e));
+        }
+    }
+
+    async resetAllLimits(): Promise<Result<UserRepositoryExceptions, void>> {
+        try {
+            await LimitModel.createQueryBuilder()
+                .update(LimitModel)
+                .set({ imageRequests: 0, chatRequests: 0 })
+                .execute();
+
+            return Res.success();
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }

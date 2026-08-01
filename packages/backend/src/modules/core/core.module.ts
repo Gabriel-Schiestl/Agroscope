@@ -6,6 +6,7 @@ import { useCases } from './application/usecases';
 import { controllers } from './controllers';
 import { repositories } from './infra/repositories';
 import { services } from './infra/services';
+import { jobs } from './infra/jobs';
 import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { SharedModule } from 'src/shared/shared.module';
         ...queries,
         ...repositories,
         ...services,
+        ...jobs,
         {
             provide: 'OPEN_METEO_API_URL',
             useValue: 'https://api.open-meteo.com/v1/forecast', // TODO: Move to env

@@ -12,4 +12,5 @@ export interface UserRepository {
     getAll(): Promise<Result<UserRepositoryExceptions, User[]>>;
     getById(id: string): Promise<Result<UserRepositoryExceptions, User>>;
     getByEmail(email: string): Promise<Result<UserRepositoryExceptions, User>>;
+    resetAllLimits(): Promise<Result<UserRepositoryExceptions, void>>;
 }

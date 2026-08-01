@@ -15,6 +15,8 @@ import { GetHistoryByIdUseCase } from '../application/usecases/GetHistoryById.us
 import { GetLimitUseCase } from '../application/usecases/GetLimit.usecase';
 import { PredictUseCase } from '../application/usecases/Predict.usecase';
 import { UseFileInterceptor } from '../infra/services/File.interceptor';
+import { GetHistoryAnalyticsQuery } from '../application/query/GetHistoryAnalytics.query';
+import { AnalyticsGranularity } from '../domain/repositories/History.repository';
 
 class PredictBody {
     latitude?: string;
@@ -28,6 +30,18 @@ class HistoryQuery {
     order?: 'ASC' | 'DESC';
 }
 
+class HistoryAnalyticsQuery {
+    startDate?: string;
+    endDate?: string;
+    granularity?: string;
+}
+
+const VALID_ANALYTICS_GRANULARITIES: AnalyticsGranularity[] = [
+    'day',
+    'week',
+    'month',
+];
+
 @Controller()
 export class CoreController {
     constructor(
@@ -35,6 +49,7 @@ export class CoreController {
         private readonly getHistoryUseCase: GetHistoryUseCase,
         private readonly getHistoryByIdUseCase: GetHistoryByIdUseCase,
         private readonly getLimitUseCase: GetLimitUseCase,
+        private readonly getHistoryAnalyticsQuery: GetHistoryAnalyticsQuery,
     ) {}
 
     @Post('predict')
@@ -59,10 +74,31 @@ export class CoreController {
             userId: req['user'].sub,
             filters: {
                 crop: query.crop,
-                startDate: query.startDate ? new Date(query.startDate) : undefined,
+                startDate: query.startDate
+                    ? new Date(query.startDate)
+                    : undefined,
                 endDate: query.endDate ? new Date(query.endDate) : undefined,
                 order: query.order,
             },
+        });
+    }
+
+    @Get('history/analytics')
+    async getHistoryAnalytics(
+        @Query() query: HistoryAnalyticsQuery,
+        @Req() req: Request,
+    ) {
+        const granularity = VALID_ANALYTICS_GRANULARITIES.includes(
+            query.granularity as AnalyticsGranularity,
+        )
+            ? (query.granularity as AnalyticsGranularity)
+            : 'month';
+
+        return this.getHistoryAnalyticsQuery.execute({
+            userId: req['user'].sub,
+            startDate: query.startDate ? new Date(query.startDate) : undefined,
+            endDate: query.endDate ? new Date(query.endDate) : undefined,
+            granularity,
         });
     }
 

@@ -38,6 +38,7 @@ import api from "../../../../shared/http/http.config";
 import { toast } from "react-toastify";
 import type { History as HistoryModel } from "../../../models/History";
 import { ChatPanel } from "../../../components/chat-panel";
+import { AnalyticsDashboard } from "../../../components/analytics-dashboard";
 import { useLimit } from "../../../hooks/use-limit";
 import { useHistory } from "../../../hooks/use-history";
 import { toImageSrc } from "../../../lib/utils";
@@ -443,75 +444,7 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="statistics">
-          <Card>
-            <CardHeader>
-              <CardTitle>Estatísticas de Análises</CardTitle>
-              <CardDescription>
-                Visão geral das análises realizadas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Total de Análises</CardDescription>
-                    <CardTitle className="text-2xl">24</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xs text-primaryGreen">+8 este mês</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Culturas Analisadas</CardDescription>
-                    <CardTitle className="text-2xl">5</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xs text-primaryGreen">
-                      Soja, Milho, Café, Algodão, Trigo
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Confiança Média</CardDescription>
-                    <CardTitle className="text-2xl">89.4%</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xs text-primaryGreen">
-                      +2.1% desde o último mês
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <h3 className="font-medium mb-4">Doenças Mais Frequentes</h3>
-              <div className="space-y-4">
-                {[
-                  { label: "Ferrugem Asiática", pct: 38 },
-                  { label: "Mancha de Cercospora", pct: 24 },
-                  { label: "Ferrugem do Cafeeiro", pct: 18 },
-                  { label: "Antracnose", pct: 12 },
-                  { label: "Outras", pct: 8 },
-                ].map((item) => (
-                  <div key={item.label} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{item.label}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {item.pct}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primaryGreen h-2 rounded-full"
-                        style={{ width: `${item.pct}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <AnalyticsDashboard />
         </TabsContent>
       </Tabs>
 

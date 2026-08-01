@@ -18,6 +18,7 @@ import {
 } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
+import { Checkbox } from "../../../components/ui/checkbox";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
 import CreateUserAPI from "../../../../api/user/CreateUser";
 
@@ -28,6 +29,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const { auth } = useAuth();
   const router = useRouter();
@@ -41,8 +43,20 @@ export default function SignupPage() {
       return;
     }
 
+    if (!acceptedTerms) {
+      setError(
+        "Você precisa aceitar os termos de uso e a política de privacidade"
+      );
+      return;
+    }
+
     try {
-      const result = await CreateUserAPI({ email, name, password });
+      const result = await CreateUserAPI({
+        email,
+        name,
+        password,
+        acceptedTerms,
+      });
       if (result) {
         router.push("/login");
       }
@@ -146,9 +160,34 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
+            <div className="flex items-start gap-2 pt-1">
+              <Checkbox
+                id="acceptedTerms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) =>
+                  setAcceptedTerms(checked === true)
+                }
+              />
+              <Label
+                htmlFor="acceptedTerms"
+                className="font-normal leading-snug text-sm"
+              >
+                Li e aceito os{" "}
+                <Link
+                  href="/termos"
+                  target="_blank"
+                  className="text-primaryGreen hover:underline"
+                >
+                  Termos de Uso e Consentimento LGPD
+                </Link>{" "}
+                sobre o tratamento dos meus dados e das imagens enviadas para
+                análise.
+              </Label>
+            </div>
             <Button
               type="submit"
               className="w-full bg-primaryGreen hover:bg-lightGreen"
+              disabled={!acceptedTerms}
             >
               Criar Conta
             </Button>

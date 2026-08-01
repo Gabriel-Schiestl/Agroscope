@@ -22,6 +22,10 @@ import { SharedModule } from 'src/shared/shared.module';
             provide: 'OPEN_METEO_API_URL',
             useValue: 'https://api.open-meteo.com/v1/forecast', // TODO: Move to env
         },
+        {
+            provide: 'TERMS_VERSION',
+            useValue: process.env.TERMS_VERSION || '2026-08-01',
+        },
     ],
     exports: [...repositories, ...services],
 })

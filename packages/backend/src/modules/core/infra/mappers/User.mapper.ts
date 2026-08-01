@@ -9,6 +9,8 @@ export class UserMapper {
             email: user.email,
             name: user.name,
             planId: user.planId,
+            termsAcceptedAt: user.termsAcceptedAt,
+            termsVersion: user.termsVersion,
             limit: undefined,
         });
 
@@ -25,6 +27,8 @@ export class UserMapper {
                 email: user.email,
                 name: user.name,
                 planId: user.planId,
+                termsAcceptedAt: user.termsAcceptedAt,
+                termsVersion: user.termsVersion,
                 limit: LimitMapper.modelToDomain(user.limit),
             },
             user.id,

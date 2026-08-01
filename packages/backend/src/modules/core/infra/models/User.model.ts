@@ -16,6 +16,8 @@ export interface UserModelProps {
     email: string;
     limit: LimitModel;
     planId?: string;
+    termsAcceptedAt?: Date;
+    termsVersion?: string;
 }
 
 @Entity('user')
@@ -52,6 +54,16 @@ export class UserModel extends BaseEntity implements UserModelProps {
         name: 'created_at',
     })
     createdAt: Date;
+
+    @Column({
+        type: 'timestamp',
+        nullable: true,
+        name: 'terms_accepted_at',
+    })
+    termsAcceptedAt?: Date;
+
+    @Column({ nullable: true, name: 'terms_version' })
+    termsVersion?: string;
 
     setProps(props: UserModelProps): this {
         Object.assign(this, props);

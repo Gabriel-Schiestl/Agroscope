@@ -9,6 +9,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     StatusBar,
+    Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -16,6 +17,20 @@ import { ThemedText } from '@/components/themed-text';
 import { useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
+
+const TERMS_TEXT = `Termos de Uso e Consentimento para Tratamento de Dados (LGPD)
+
+O AgroScope trata seus dados pessoais e as imagens de plantas que você envia para análise em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+
+Dados coletados: nome, e-mail, senha e as imagens enviadas para diagnóstico, incluindo o histórico das análises realizadas.
+
+Finalidade: as imagens são utilizadas exclusivamente para processamento no serviço de inteligência artificial do AgroScope, com o objetivo de identificar doenças nas plantas e gerar o diagnóstico solicitado por você, além de manter o histórico de análises da sua conta.
+
+Compartilhamento: as imagens são compartilhadas apenas com o serviço interno de inteligência artificial do AgroScope. Não vendemos nem compartilhamos seus dados com terceiros para fins comerciais.
+
+Seus direitos: você pode, a qualquer momento, solicitar acesso, correção ou exclusão dos seus dados, além de revogar este consentimento, entrando em contato pelo e-mail privacidade@agroscope.com. A revogação pode implicar a impossibilidade de continuar utilizando funcionalidades que dependem do envio de imagens.
+
+Ao aceitar este termo, você consente com o tratamento dos seus dados pessoais e das imagens enviadas para análise, nos termos aqui descritos.`;
 
 export default function SignupScreen() {
     const router = useRouter();
@@ -27,6 +42,8 @@ export default function SignupScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [showTermsModal, setShowTermsModal] = useState(false);
     const [error, setError] = useState('');
 
     const handleSignup = async () => {
@@ -38,8 +55,14 @@ export default function SignupScreen() {
             setError('A senha deve ter pelo menos 6 caracteres.');
             return;
         }
+        if (!acceptedTerms) {
+            setError(
+                'Você precisa aceitar os termos de uso e a política de privacidade.',
+            );
+            return;
+        }
         setError('');
-        const success = await signup(name, email, password);
+        const success = await signup(name, email, password, acceptedTerms);
         if (success) {
             router.replace('/analytics');
         } else {
@@ -199,6 +222,66 @@ export default function SignupScreen() {
                             </View>
                         </View>
 
+                        {/* Terms acceptance */}
+                        <View style={styles.termsRow}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.checkbox,
+                                    {
+                                        borderColor: colors.tint,
+                                        backgroundColor: acceptedTerms
+                                            ? colors.tint
+                                            : 'transparent',
+                                    },
+                                ]}
+                                onPress={() =>
+                                    setAcceptedTerms(!acceptedTerms)
+                                }
+                                accessibilityRole="checkbox"
+                                accessibilityState={{
+                                    checked: acceptedTerms,
+                                }}
+                            >
+                                {acceptedTerms && (
+                                    <ThemedText style={styles.checkboxMark}>
+                                        ✓
+                                    </ThemedText>
+                                )}
+                            </TouchableOpacity>
+                            <View style={styles.termsTextWrap}>
+                                <ThemedText
+                                    style={[
+                                        styles.termsText,
+                                        { color: colors.textSecondary },
+                                    ]}
+                                >
+                                    Li e aceito os{' '}
+                                </ThemedText>
+                                <TouchableOpacity
+                                    onPress={() => setShowTermsModal(true)}
+                                >
+                                    <ThemedText
+                                        style={[
+                                            styles.termsLink,
+                                            { color: colors.tint },
+                                        ]}
+                                    >
+                                        Termos de Uso e Consentimento LGPD
+                                    </ThemedText>
+                                </TouchableOpacity>
+                                <ThemedText
+                                    style={[
+                                        styles.termsText,
+                                        { color: colors.textSecondary },
+                                    ]}
+                                >
+                                    {' '}
+                                    sobre o tratamento dos meus dados e
+                                    imagens.
+                                </ThemedText>
+                            </View>
+                        </View>
+
                         {/* Submit */}
                         <TouchableOpacity
                             style={[
@@ -244,6 +327,51 @@ export default function SignupScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <Modal
+                visible={showTermsModal}
+                animationType="slide"
+                transparent
+                onRequestClose={() => setShowTermsModal(false)}
+            >
+                <View style={styles.termsModalOverlay}>
+                    <View
+                        style={[
+                            styles.termsModalCard,
+                            {
+                                backgroundColor: isDark
+                                    ? colors.backgroundElement
+                                    : '#fff',
+                            },
+                        ]}
+                    >
+                        <ThemedText style={styles.termsModalTitle}>
+                            Termos de Uso e Consentimento LGPD
+                        </ThemedText>
+                        <ScrollView style={styles.termsModalScroll}>
+                            <ThemedText
+                                style={[
+                                    styles.termsModalBody,
+                                    { color: colors.textSecondary },
+                                ]}
+                            >
+                                {TERMS_TEXT}
+                            </ThemedText>
+                        </ScrollView>
+                        <TouchableOpacity
+                            style={[
+                                styles.termsModalCloseBtn,
+                                { backgroundColor: colors.tint },
+                            ]}
+                            onPress={() => setShowTermsModal(false)}
+                        >
+                            <ThemedText style={styles.submitBtnText}>
+                                Fechar
+                            </ThemedText>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -332,6 +460,70 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         justifyContent: 'center',
+    },
+    termsRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 20,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
+        borderWidth: 1.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+        marginTop: 1,
+    },
+    checkboxMark: {
+        color: '#fff',
+        fontSize: 13,
+        lineHeight: 13,
+        fontWeight: '700',
+    },
+    termsTextWrap: {
+        flex: 1,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    termsText: {
+        fontSize: 13,
+        lineHeight: 18,
+    },
+    termsLink: {
+        fontSize: 13,
+        lineHeight: 18,
+        fontWeight: '600',
+    },
+    termsModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    termsModalCard: {
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        padding: 20,
+        maxHeight: '80%',
+    },
+    termsModalTitle: {
+        fontSize: 17,
+        fontWeight: '700',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    termsModalScroll: {
+        marginBottom: 16,
+    },
+    termsModalBody: {
+        fontSize: 13,
+        lineHeight: 20,
+    },
+    termsModalCloseBtn: {
+        borderRadius: 8,
+        paddingVertical: 12,
+        alignItems: 'center',
     },
     submitBtn: {
         borderRadius: 8,

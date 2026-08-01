@@ -27,6 +27,8 @@ export class CreateUserUseCase extends AbstractUseCase<
         private readonly userRepository: UserRepository,
         @Inject('PlanRepository')
         private readonly planRepository: PlanRepository,
+        @Inject('TERMS_VERSION')
+        private readonly termsVersion: string,
         private readonly eventEmitter: EventEmitter2,
     ) {
         super();
@@ -37,7 +39,11 @@ export class CreateUserUseCase extends AbstractUseCase<
         const freePlan = await this.planRepository.getByType(Plan.FREE_TYPE);
         if (freePlan.isFailure()) return Res.failure(freePlan.error);
 
-        const user = User.create({ ...props, planId: freePlan.value.id });
+        const user = User.create({
+            ...props,
+            planId: freePlan.value.id,
+            termsVersion: this.termsVersion,
+        });
         if (user.isFailure()) return Res.failure(user.error);
 
         const result = await this.userRepository.save(user.value);

@@ -8,12 +8,16 @@ export interface UserProps {
     email: string;
     limit: Limit;
     planId?: string;
+    termsAcceptedAt?: Date;
+    termsVersion?: string;
 }
 
 export interface CreateUserProps {
     name: string;
     email: string;
     planId?: string;
+    acceptedTerms: boolean;
+    termsVersion: string;
 }
 export interface LoadUserProps extends UserProps {}
 
@@ -23,6 +27,8 @@ export class User implements UserProps {
     #email: string;
     #limit: Limit;
     #planId?: string;
+    #termsAcceptedAt?: Date;
+    #termsVersion?: string;
 
     private constructor(props: UserProps, id?: string) {
         this.#id = id || uuid();
@@ -30,6 +36,8 @@ export class User implements UserProps {
         this.#email = props.email;
         this.#limit = props.limit;
         this.#planId = props.planId;
+        this.#termsAcceptedAt = props.termsAcceptedAt;
+        this.#termsVersion = props.termsVersion;
     }
 
     static create(props: CreateUserProps): Result<BusinessException, User> {
@@ -39,12 +47,20 @@ export class User implements UserProps {
         if (!props.email) {
             return Res.failure(new BusinessException('Email is required'));
         }
+        if (!props.acceptedTerms) {
+            return Res.failure(
+                new BusinessException(
+                    'A aceitação dos termos de uso e da política de privacidade é obrigatória',
+                ),
+            );
+        }
         const limit = Limit.create();
 
         return Res.success(
             new User({
                 ...props,
                 limit,
+                termsAcceptedAt: new Date(),
             }),
         );
     }
@@ -71,6 +87,14 @@ export class User implements UserProps {
 
     get limit() {
         return this.#limit;
+    }
+
+    get termsAcceptedAt() {
+        return this.#termsAcceptedAt;
+    }
+
+    get termsVersion() {
+        return this.#termsVersion;
     }
 
     changePlan(planId: string): Result<BusinessException, void> {

@@ -4,6 +4,7 @@ interface CreateUserParams {
   name: string;
   email: string;
   password: string;
+  acceptedTerms: boolean;
   planId?: string;
 }
 

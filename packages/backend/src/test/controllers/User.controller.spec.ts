@@ -25,6 +25,7 @@ describe('User controller integration tests', () => {
             name: 'Gabriel',
             email: 'teste@teste.com',
             password: 'Teste@1234',
+            acceptedTerms: true,
         });
 
         expect(result).toBeInstanceOf(Success);

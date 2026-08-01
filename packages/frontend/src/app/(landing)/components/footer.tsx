@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <>
@@ -7,9 +9,12 @@ export default function Footer() {
             AgroScope - Tecnologia para o Agronegócio
           </p>
           <div className="flex items-center gap-4 text-sm text-[#f4fff4]">
-            <span className="hover:text-gray-400  cursor-pointer transition-colors">
+            <Link
+              href="/termos"
+              className="hover:text-gray-400 cursor-pointer transition-colors"
+            >
               Termos
-            </span>
+            </Link>
             <span className="hover:text-gray-400  cursor-pointer transition-colors">
               Privacidade
             </span>

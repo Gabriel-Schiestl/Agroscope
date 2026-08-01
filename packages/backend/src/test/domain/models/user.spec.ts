@@ -6,6 +6,8 @@ describe('User domain model', () => {
         const user = User.create({
             email: 'test@test',
             name: 'test',
+            acceptedTerms: true,
+            termsVersion: '2026-08-01',
         });
 
         expect(user).toBeInstanceOf(Success);
@@ -16,11 +18,27 @@ describe('User domain model', () => {
         const user = User.create({
             email: '',
             name: 'Test',
+            acceptedTerms: true,
+            termsVersion: '2026-08-01',
         });
 
         expect(user).toBeInstanceOf(Failure);
         expect(user.isFailure() && user.error.message).toBe(
             'Email is required',
+        );
+    });
+
+    it('should return failure creating a user without accepting terms', () => {
+        const user = User.create({
+            email: 'test@test',
+            name: 'test',
+            acceptedTerms: false,
+            termsVersion: '2026-08-01',
+        });
+
+        expect(user).toBeInstanceOf(Failure);
+        expect(user.isFailure() && user.error.message).toBe(
+            'A aceitação dos termos de uso e da política de privacidade é obrigatória',
         );
     });
 });

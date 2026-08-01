@@ -12,7 +12,12 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<boolean>;
-    signup: (name: string, email: string, password: string) => Promise<boolean>;
+    signup: (
+        name: string,
+        email: string,
+        password: string,
+        acceptedTerms: boolean,
+    ) => Promise<boolean>;
     logout: () => void;
 }
 
@@ -60,10 +65,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: string,
         email: string,
         password: string,
+        acceptedTerms: boolean,
     ): Promise<boolean> => {
         setIsLoading(true);
         try {
-            await api.post('/user', { name, email, password });
+            await api.post('/user', { name, email, password, acceptedTerms });
             // After signup, log in to get the token
             const loginOk = await login(email, password);
             return loginOk;

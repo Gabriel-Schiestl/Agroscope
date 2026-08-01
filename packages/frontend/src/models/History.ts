@@ -9,5 +9,6 @@ export interface History {
   image: string;
   explanation?: string;
   causes?: string;
+  precautions?: string;
   userId?: string;
 }

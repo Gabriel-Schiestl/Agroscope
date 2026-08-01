@@ -225,6 +225,7 @@ const PASSTHROUGH_ROUTES: { method: string; test: (path: string) => boolean }[] 
   { method: "post", test: (path) => path.includes("/predict") },
   { method: "get", test: (path) => path.includes("/limit") },
   { method: "get", test: (path) => path.includes("/chat/history") },
+  { method: "get", test: (path) => path.includes("/history") },
 ];
 
 export function createMockAdapter(

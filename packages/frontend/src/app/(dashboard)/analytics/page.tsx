@@ -39,55 +39,8 @@ import { toast } from "react-toastify";
 import type { History as HistoryModel } from "../../../models/History";
 import { ChatPanel } from "../../../components/chat-panel";
 import { useLimit } from "../../../hooks/use-limit";
-
-// Mock history data matching HistoryDto shape
-const ANALYSIS_HISTORY: HistoryModel[] = [
-  {
-    id: "1",
-    createdAt: new Date("2024-04-15"),
-    crop: "Soja",
-    cropConfidence: 95.0,
-    sicknessId: "sid-ferrugem-asiatica",
-    sicknessConfidence: 92.5,
-    handling:
-      "Aplicar fungicida triazol nas primeiras horas da manhã. Respeitar o intervalo de segurança de 14 dias entre aplicações.",
-    explanation:
-      "Ferrugem Asiática identificada na folhagem. Lesões pequenas de coloração marrom-avermelhada características desta doença.",
-    causes:
-      "Condições de alta umidade relativa do ar (acima de 85%) e temperatura entre 18°C e 26°C favoreceram o desenvolvimento do patógeno.",
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: "2",
-    createdAt: new Date("2024-04-10"),
-    crop: "Milho",
-    cropConfidence: 88.0,
-    sicknessId: "sid-mancha-cercospora",
-    sicknessConfidence: 88.7,
-    handling:
-      "Utilizar híbridos resistentes e realizar aplicação preventiva de fungicida na fase de desenvolvimento vegetativo.",
-    explanation:
-      "Mancha de Cercospora identificada nas folhas. Lesões retangulares de coloração cinza-palha típicas da doença.",
-    causes:
-      "Alta umidade e temperaturas entre 22°C e 30°C. Plantio adensado favorece a disseminação do fungo.",
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: "3",
-    createdAt: new Date("2024-04-05"),
-    crop: "Café",
-    cropConfidence: 97.0,
-    sicknessId: "sid-ferrugem-cafeeiro",
-    sicknessConfidence: 95.2,
-    handling:
-      "Aplicar fungicidas sistêmicos à base de triazol ou estrobilurina. Realizar podas para melhorar a aeração do cafezal.",
-    explanation:
-      "Ferrugem do Cafeeiro identificada. Pústulas alaranjadas na face inferior das folhas, características desta doença.",
-    causes:
-      "Temperatura entre 20°C e 25°C e períodos prolongados de molhamento foliar favoreceram o desenvolvimento.",
-    image: "/placeholder.svg?height=100&width=100",
-  },
-];
+import { useHistory } from "../../../hooks/use-history";
+import { toImageSrc } from "../../../lib/utils";
 
 export default function AnalyticsPage() {
   const [file, setFile] = useState<File | undefined>();
@@ -98,6 +51,11 @@ export default function AnalyticsPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const { limit, refetch: refetchLimit } = useLimit();
+  const {
+    history: analysisHistory,
+    isLoading: historyLoading,
+    refetch: refetchHistory,
+  } = useHistory();
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -126,6 +84,7 @@ export default function AnalyticsPage() {
       if (response.status === 201) {
         setResult(response.data);
         refetchLimit();
+        refetchHistory();
       } else {
         toast.error("Falha na análise. Tente novamente.");
       }
@@ -396,7 +355,14 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {ANALYSIS_HISTORY.length === 0 ? (
+              {historyLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="animate-spin h-8 w-8 border-4 border-primaryGreen border-t-transparent rounded-full mb-4"></div>
+                  <p className="text-muted-foreground">
+                    Carregando histórico...
+                  </p>
+                </div>
+              ) : analysisHistory.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                   <Leaf className="h-12 w-12 mb-4 text-primaryGreen/30" />
                   <p className="font-medium">Nenhuma análise realizada ainda.</p>
@@ -406,15 +372,15 @@ export default function AnalyticsPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {ANALYSIS_HISTORY.map((analysis) => (
+                  {analysisHistory.map((analysis) => (
                     <div
                       key={analysis.id}
                       className="flex items-start gap-4 p-4 rounded-lg border"
                     >
                       <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0 bg-muted">
                         <Image
-                          src={analysis.image || "/placeholder.svg"}
-                          alt={analysis.crop}
+                          src={toImageSrc(analysis.image)}
+                          alt={analysis.crop || "Análise"}
                           fill
                           className="object-cover"
                         />
@@ -422,7 +388,9 @@ export default function AnalyticsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h3 className="font-medium">{analysis.crop}</h3>
+                            <h3 className="font-medium">
+                              {analysis.crop || "Planta saudável"}
+                            </h3>
                             {analysis.explanation && (
                               <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
                                 {analysis.explanation}

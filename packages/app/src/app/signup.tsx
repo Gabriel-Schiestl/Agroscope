@@ -20,17 +20,58 @@ import { Colors } from '@/constants/theme';
 
 const TERMS_TEXT = `Termos de Uso e Consentimento para Tratamento de Dados (LGPD)
 
-O AgroScope trata seus dados pessoais e as imagens de plantas que você envia para análise em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+Última atualização: 01 de agosto de 2026
 
-Dados coletados: nome, e-mail, senha e as imagens enviadas para diagnóstico, incluindo o histórico das análises realizadas.
+Este texto descreve, em linguagem acessível, como o AgroScope trata os dados pessoais e as imagens enviadas por seus usuários, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD). Este é um modelo de referência e deve ser revisado pelo setor jurídico responsável antes de sua utilização definitiva em produção.
 
-Finalidade: as imagens são utilizadas exclusivamente para processamento no serviço de inteligência artificial do AgroScope, com o objetivo de identificar doenças nas plantas e gerar o diagnóstico solicitado por você, além de manter o histórico de análises da sua conta.
+1. Controlador dos dados
+O AgroScope ("nós", "nosso sistema") é o controlador dos dados pessoais tratados por meio da plataforma, nos termos do art. 5º, VI, da LGPD, sendo responsável pelas decisões referentes ao tratamento dos dados pessoais dos usuários.
 
-Compartilhamento: as imagens são compartilhadas apenas com o serviço interno de inteligência artificial do AgroScope. Não vendemos nem compartilhamos seus dados com terceiros para fins comerciais.
+2. Dados coletados
+Para prestar o serviço, coletamos e armazenamos:
+- Dados de cadastro: nome, e-mail e senha (armazenada de forma criptografada).
+- Imagens de plantas enviadas por você para análise e diagnóstico de doenças, incluindo os metadados associados a cada envio (data, resultado da análise, histórico).
+- Dados de uso da plataforma, necessários para o funcionamento dos planos, limites de uso e histórico de análises.
 
-Seus direitos: você pode, a qualquer momento, solicitar acesso, correção ou exclusão dos seus dados, além de revogar este consentimento, entrando em contato pelo e-mail privacidade@agroscope.com. A revogação pode implicar a impossibilidade de continuar utilizando funcionalidades que dependem do envio de imagens.
+3. Finalidade do tratamento
+Os dados e imagens informados acima são utilizados para:
+- Criar e autenticar sua conta na plataforma.
+- Processar as imagens enviadas em nosso serviço de inteligência artificial, com a finalidade exclusiva de identificar doenças e gerar o diagnóstico solicitado por você.
+- Manter um histórico das análises realizadas, para que você possa consultá-las posteriormente.
+- Cumprir obrigações legais e regulatórias, quando aplicável.
 
-Ao aceitar este termo, você consente com o tratamento dos seus dados pessoais e das imagens enviadas para análise, nos termos aqui descritos.`;
+4. Compartilhamento de dados
+As imagens enviadas são compartilhadas apenas com o serviço interno de inteligência artificial do próprio AgroScope, responsável por processar o diagnóstico. Não vendemos, alugamos ou compartilhamos seus dados pessoais ou imagens com terceiros para fins comerciais ou publicitários.
+
+5. Base legal
+O tratamento dos seus dados pessoais e das imagens enviadas é realizado com fundamento na execução do contrato de prestação de serviço (art. 7º, V, da LGPD) e no seu consentimento livre, informado e inequívoco (art. 7º, I, da LGPD), manifestado no momento da criação da sua conta.
+
+6. Retenção e exclusão dos dados
+Seus dados e imagens são mantidos enquanto sua conta estiver ativa ou pelo tempo necessário para cumprir as finalidades descritas neste termo. Você pode solicitar a exclusão da sua conta e dos dados associados a qualquer momento, através dos canais de contato indicados abaixo.
+
+7. Seus direitos como titular dos dados
+Nos termos do art. 18 da LGPD, você tem direito a, a qualquer momento e mediante requisição:
+- Confirmar a existência de tratamento dos seus dados;
+- Acessar seus dados;
+- Corrigir dados incompletos, inexatos ou desatualizados;
+- Solicitar a anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade com a LGPD;
+- Solicitar a portabilidade dos seus dados;
+- Eliminar os dados tratados com base no seu consentimento;
+- Revogar o consentimento a qualquer momento, o que pode implicar a impossibilidade de continuar utilizando os serviços que dependem do uso das imagens enviadas.
+
+8. Segurança das informações
+Adotamos medidas técnicas e administrativas para proteger seus dados pessoais e as imagens enviadas contra acessos não autorizados e situações acidentais ou ilícitas de destruição, perda, alteração, comunicação ou qualquer forma de tratamento inadequado ou ilícito.
+
+9. Contato
+Em caso de dúvidas sobre este termo ou para exercer seus direitos como titular de dados, entre em contato com nosso encarregado de proteção de dados (DPO) pelo e-mail privacidade@agroscope.com.
+
+10. Aceite
+Ao marcar a opção de aceite no momento da criação da sua conta, você declara ter lido e compreendido este termo e consente, de forma livre, informada e inequívoca, com o tratamento dos seus dados pessoais e das imagens enviadas para análise, nos termos aqui descritos.`;
+
+const PASSWORD_REGEX =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+const PASSWORD_MESSAGE =
+    'A senha deve conter ao menos 8 caracteres, incluindo maiúsculas, minúsculas, números e símbolos (@$!%*?&#)';
 
 export default function SignupScreen() {
     const router = useRouter();
@@ -51,8 +92,8 @@ export default function SignupScreen() {
             setError('Preencha todos os campos.');
             return;
         }
-        if (password.length < 6) {
-            setError('A senha deve ter pelo menos 6 caracteres.');
+        if (!PASSWORD_REGEX.test(password)) {
+            setError(PASSWORD_MESSAGE);
             return;
         }
         if (!acceptedTerms) {
@@ -202,7 +243,7 @@ export default function SignupScreen() {
                                     ]}
                                     value={password}
                                     onChangeText={setPassword}
-                                    placeholder="Mínimo 6 caracteres"
+                                    placeholder="Mín. 8 caracteres, com maiúscula, número e símbolo"
                                     placeholderTextColor={colors.textSecondary}
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"

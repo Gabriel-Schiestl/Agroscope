@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     StyleSheet,
     View,
@@ -14,23 +14,65 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
+import { CartesianChart, Area, Line } from 'victory-native';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ChatModal } from '@/components/chat-modal';
 import { useAuth } from '@/contexts/auth-context';
 import { useLimit } from '@/hooks/use-limit';
+import { useAnalytics, type AnalyticsRangePreset } from '@/hooks/use-analytics';
+import { formatCompactNumber, formatPeriodLabel } from '@/lib/utils';
 import api from '@/shared/http/http.config';
 import type { History } from '@/models/History';
+import type { AnalyticsGranularity } from '@/models/Analytics';
+import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
 
+const SEQUENTIAL_HUE = '#4CAF50';
+const CATEGORICAL_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
+const OTHER_HUE = '#898781';
+const BAR_CHART_DISPLAY_LIMIT = 7;
+const OTHER_BUCKET_LABEL = 'Outras';
 
-const DISEASES_STATS = [
-    { name: 'Ferrugem Asiática', pct: 38 },
-    { name: 'Mancha de Cercospora', pct: 24 },
-    { name: 'Ferrugem do Cafeeiro', pct: 18 },
-    { name: 'Antracnose', pct: 12 },
-    { name: 'Outras', pct: 8 },
+const RANGE_OPTIONS: { value: AnalyticsRangePreset; label: string }[] = [
+    { value: '30d', label: '30 dias' },
+    { value: '90d', label: '90 dias' },
+    { value: '365d', label: '12 meses' },
+    { value: 'all', label: 'Tudo' },
 ];
+
+const GRANULARITY_OPTIONS: { value: AnalyticsGranularity; label: string }[] = [
+    { value: 'day', label: 'Diário' },
+    { value: 'week', label: 'Semanal' },
+    { value: 'month', label: 'Mensal' },
+];
+
+interface RankedBar {
+    name: string;
+    count: number;
+}
+
+// A "Incidência de Doenças por Período" tem uma série por doença, cujas chaves
+// (sicknessId) só são conhecidas em tempo de execução — o CartesianChart não
+// consegue tipar genericamente um conjunto dinâmico de yKeys, então usamos um
+// wrapper com tipos relaxados apenas para esse gráfico multi-série.
+const DynamicCartesianChart = CartesianChart as unknown as React.ComponentType<{
+    data: Record<string, string | number>[];
+    xKey: string;
+    yKeys: string[];
+    children: (args: {
+        points: Record<string, import('victory-native').PointsArray>;
+    }) => React.ReactNode;
+}>;
+
+function foldTopN(items: RankedBar[], limit: number): RankedBar[] {
+    if (items.length <= limit) return items;
+    const top = items.slice(0, limit);
+    const otherCount = items
+        .slice(limit)
+        .reduce((sum, item) => sum + item.count, 0);
+    return [...top, { name: OTHER_BUCKET_LABEL, count: otherCount }];
+}
 
 export default function AnalyticsScreen() {
     const colorScheme = useColorScheme();
@@ -44,6 +86,95 @@ export default function AnalyticsScreen() {
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'analysis' | 'history' | 'stats'>('analysis');
     const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
+    const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
+
+    const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRangePreset>('90d');
+    const [analyticsGranularity, setAnalyticsGranularity] = useState<AnalyticsGranularity>('month');
+    const { analytics, isLoading: analyticsLoading } = useAnalytics(
+        analyticsRange,
+        analyticsGranularity,
+    );
+
+    const diseaseBars = useMemo<RankedBar[]>(() => {
+        if (!analytics) return [];
+        return foldTopN(
+            analytics.byDisease.map((d) => ({ name: d.sicknessName, count: d.count })),
+            BAR_CHART_DISPLAY_LIMIT,
+        );
+    }, [analytics]);
+
+    const cropBars = useMemo<RankedBar[]>(() => {
+        if (!analytics) return [];
+        return foldTopN(
+            analytics.byCrop.map((c) => ({ name: c.crop, count: c.count })),
+            BAR_CHART_DISPLAY_LIMIT,
+        );
+    }, [analytics]);
+
+    const periodSeries = useMemo(() => {
+        if (!analytics) return [];
+        return analytics.byPeriod.map((p) => ({ period: p.period, count: p.count }));
+    }, [analytics]);
+
+    const incidenceSeries = useMemo(() => {
+        if (!analytics || analytics.diseaseIncidenceByPeriod.length === 0) {
+            return { data: [] as Record<string, string | number>[], keys: [] as string[] };
+        }
+        const seriesList = analytics.diseaseIncidenceByPeriod;
+        const periods = seriesList[0]?.points.map((p) => p.period) ?? [];
+        const data = periods.map((period, index) => {
+            const row: Record<string, string | number> = { period };
+            seriesList.forEach((series) => {
+                row[series.sicknessId] = series.points[index]?.count ?? 0;
+            });
+            return row;
+        });
+        return { data, keys: seriesList.map((s) => s.sicknessId) };
+    }, [analytics]);
+
+    const seriesNameById = useMemo(() => {
+        const map = new Map<string, string>();
+        analytics?.diseaseIncidenceByPeriod.forEach((s) => map.set(s.sicknessId, s.sicknessName));
+        return map;
+    }, [analytics]);
+
+    const renderRankedList = (items: RankedBar[], emptyLabel: string) => {
+        if (items.length === 0) {
+            return (
+                <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
+                    {emptyLabel}
+                </ThemedText>
+            );
+        }
+        const maxCount = Math.max(1, ...items.map((i) => i.count));
+        return (
+            <View style={styles.diseasesList}>
+                {items.map((item) => (
+                    <View key={item.name} style={styles.diseaseItem}>
+                        <View style={styles.diseaseHeader}>
+                            <ThemedText style={styles.diseaseName} numberOfLines={1}>
+                                {item.name}
+                            </ThemedText>
+                            <ThemedText style={[styles.diseasePct, { color: colors.textSecondary }]}>
+                                {item.count}
+                            </ThemedText>
+                        </View>
+                        <View style={[styles.progressBar, { backgroundColor: colors.backgroundSelected }]}>
+                            <View
+                                style={[
+                                    styles.progressFill,
+                                    {
+                                        width: `${(item.count / maxCount) * 100}%`,
+                                        backgroundColor: colors.tint,
+                                    },
+                                ]}
+                            />
+                        </View>
+                    </View>
+                ))}
+            </View>
+        );
+    };
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -192,6 +323,17 @@ export default function AnalyticsScreen() {
         router.replace('/');
     };
 
+    const handleGenerateReport = async (analysis: History) => {
+        setGeneratingReportId(analysis.id);
+        try {
+            await generateAnalysisReportPdf(analysis);
+        } catch {
+            Alert.alert('Erro', 'Não foi possível gerar o relatório.');
+        } finally {
+            setGeneratingReportId(null);
+        }
+    };
+
     const isDark = colorScheme === 'dark';
 
     return (
@@ -228,6 +370,22 @@ export default function AnalyticsScreen() {
                                 {auth.name}
                             </ThemedText>
                         ) : null}
+                        <TouchableOpacity
+                            style={[
+                                styles.logoutBtn,
+                                { borderColor: colors.backgroundElement },
+                            ]}
+                            onPress={() => router.push('/plans')}
+                        >
+                            <ThemedText
+                                style={[
+                                    styles.logoutBtnText,
+                                    { color: colors.textSecondary },
+                                ]}
+                            >
+                                💳 Planos
+                            </ThemedText>
+                        </TouchableOpacity>
                         <TouchableOpacity
                             style={[
                                 styles.logoutBtn,
@@ -758,6 +916,25 @@ export default function AnalyticsScreen() {
                                             💬  Tirar dúvidas sobre esta análise
                                         </ThemedText>
                                     </TouchableOpacity>
+
+                                    {/* PDF report */}
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.reportBtn,
+                                            { borderColor: colors.tint },
+                                            generatingReportId === result.id && { opacity: 0.6 },
+                                        ]}
+                                        onPress={() => handleGenerateReport(result)}
+                                        disabled={generatingReportId === result.id}
+                                    >
+                                        {generatingReportId === result.id ? (
+                                            <ActivityIndicator color={colors.tint} />
+                                        ) : (
+                                            <ThemedText style={[styles.reportBtnText, { color: colors.tint }]}>
+                                                📄  Gerar Relatório PDF
+                                            </ThemedText>
+                                        )}
+                                    </TouchableOpacity>
                                 </View>
                             </ThemedView>
                         )}
@@ -951,6 +1128,23 @@ export default function AnalyticsScreen() {
                                                         💬 Chat
                                                     </ThemedText>
                                                 </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[
+                                                        styles.historyChatBtn,
+                                                        { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' },
+                                                        generatingReportId === item.id && { opacity: 0.6 },
+                                                    ]}
+                                                    onPress={() => handleGenerateReport(item)}
+                                                    disabled={generatingReportId === item.id}
+                                                >
+                                                    {generatingReportId === item.id ? (
+                                                        <ActivityIndicator size="small" color={colors.tint} />
+                                                    ) : (
+                                                        <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
+                                                            📄 PDF
+                                                        </ThemedText>
+                                                    )}
+                                                </TouchableOpacity>
                                             </View>
                                         </View>
                                     ))}
@@ -982,109 +1176,269 @@ export default function AnalyticsScreen() {
                                 Visão geral das análises realizadas
                             </ThemedText>
 
-                            {/* Stat cards */}
-                            <View style={styles.statsGrid}>
-                                {[
-                                    {
-                                        label: 'Total de Análises',
-                                        value: '24',
-                                        change: '+8 este mês',
-                                    },
-                                    {
-                                        label: 'Culturas Analisadas',
-                                        value: '5',
-                                        change: 'Soja, Milho, Café...',
-                                    },
-                                    {
-                                        label: 'Confiança Média',
-                                        value: '89.4%',
-                                        change: '+2.1% desde o último mês',
-                                    },
-                                ].map((stat) => (
-                                    <ThemedView
-                                        key={stat.label}
-                                        type="background"
-                                        style={[
-                                            styles.statCard,
-                                            {
-                                                borderColor:
-                                                    colors.backgroundElement,
-                                            },
-                                        ]}
-                                    >
-                                        <ThemedText
-                                            style={[
-                                                styles.statLabel,
-                                                { color: colors.textSecondary },
-                                            ]}
-                                        >
-                                            {stat.label}
-                                        </ThemedText>
-                                        <ThemedText style={styles.statValue}>
-                                            {stat.value}
-                                        </ThemedText>
-                                        <ThemedText
-                                            style={[
-                                                styles.statChange,
-                                                { color: colors.tint },
-                                            ]}
-                                        >
-                                            {stat.change}
-                                        </ThemedText>
-                                    </ThemedView>
-                                ))}
-                            </View>
-
-                            {/* Diseases list */}
-                            <ThemedText
-                                style={[
-                                    styles.diseasesTitle,
-                                    { marginBottom: 14 },
-                                ]}
-                            >
-                                Doenças Mais Frequentes
+                            {/* Período */}
+                            <ThemedText style={[styles.filterLabel, { color: colors.textSecondary, marginTop: 0 }]}>
+                                Período
                             </ThemedText>
-                            <View style={styles.diseasesList}>
-                                {DISEASES_STATS.map((d) => (
-                                    <View key={d.name} style={styles.diseaseItem}>
-                                        <View style={styles.diseaseHeader}>
-                                            <ThemedText
-                                                style={styles.diseaseName}
-                                            >
-                                                {d.name}
-                                            </ThemedText>
-                                            <ThemedText
-                                                style={[
-                                                    styles.diseasePct,
-                                                    { color: colors.textSecondary },
-                                                ]}
-                                            >
-                                                {d.pct}%
-                                            </ThemedText>
-                                        </View>
-                                        <View
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+                                {RANGE_OPTIONS.map((option) => {
+                                    const active = analyticsRange === option.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={option.value}
                                             style={[
-                                                styles.progressBar,
-                                                {
-                                                    backgroundColor:
-                                                        colors.backgroundSelected,
-                                                },
+                                                styles.filterChip,
+                                                active
+                                                    ? { backgroundColor: colors.tint }
+                                                    : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
                                             ]}
+                                            onPress={() => setAnalyticsRange(option.value)}
                                         >
-                                            <View
+                                            <ThemedText style={[styles.filterChipText, { color: active ? '#fff' : colors.textSecondary }]}>
+                                                {option.label}
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
+
+                            {/* Agrupamento */}
+                            <ThemedText style={[styles.filterLabel, { color: colors.textSecondary }]}>
+                                Agrupamento
+                            </ThemedText>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+                                {GRANULARITY_OPTIONS.map((option) => {
+                                    const active = analyticsGranularity === option.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={option.value}
+                                            style={[
+                                                styles.filterChip,
+                                                active
+                                                    ? { backgroundColor: colors.tint }
+                                                    : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
+                                            ]}
+                                            onPress={() => setAnalyticsGranularity(option.value)}
+                                        >
+                                            <ThemedText style={[styles.filterChipText, { color: active ? '#fff' : colors.textSecondary }]}>
+                                                {option.label}
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
+
+                            {analyticsLoading ? (
+                                <View style={styles.emptyState}>
+                                    <ActivityIndicator color={colors.tint} />
+                                    <ThemedText style={[styles.loadingSubtext, { marginTop: 10, color: colors.textSecondary }]}>
+                                        Carregando estatísticas...
+                                    </ThemedText>
+                                </View>
+                            ) : !analytics || analytics.totalAnalyses === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <ThemedText style={{ fontSize: 40, marginBottom: 12 }}>📊</ThemedText>
+                                    <ThemedText style={[styles.emptyText, { fontWeight: '600' }]}>
+                                        Ainda não há dados suficientes.
+                                    </ThemedText>
+                                    <ThemedText style={[styles.emptyText, { color: colors.textSecondary, marginTop: 4 }]}>
+                                        Faça sua primeira análise na aba &quot;Nova Análise&quot; para ver suas estatísticas aqui.
+                                    </ThemedText>
+                                </View>
+                            ) : (
+                                <>
+                                    {/* Stat cards */}
+                                    <View style={[styles.statsGrid, { marginTop: 18 }]}>
+                                        {[
+                                            {
+                                                label: 'Total de Análises',
+                                                value: formatCompactNumber(analytics.totalAnalyses),
+                                                change: analytics.peakPeriod
+                                                    ? `Pico em ${formatPeriodLabel(analytics.peakPeriod.period, analytics.granularity)} (${analytics.peakPeriod.count})`
+                                                    : undefined,
+                                            },
+                                            {
+                                                label: 'Culturas Analisadas',
+                                                value: String(analytics.distinctCropsCount),
+                                                change: analytics.byCrop.map((c) => c.crop).slice(0, 4).join(', ') || undefined,
+                                            },
+                                            {
+                                                label: 'Doenças Detectadas',
+                                                value: String(analytics.distinctDiseasesCount),
+                                                change: `${analytics.totalAnalyses > 0 ? Math.round((analytics.diseasedCount / analytics.totalAnalyses) * 100) : 0}% das análises com doença identificada`,
+                                            },
+                                            {
+                                                label: 'Confiança Média',
+                                                value: analytics.averageCropConfidence !== null
+                                                    ? `${analytics.averageCropConfidence.toFixed(1)}%`
+                                                    : '—',
+                                                change: 'Confiança na identificação da cultura',
+                                            },
+                                        ].map((stat) => (
+                                            <ThemedView
+                                                key={stat.label}
+                                                type="background"
                                                 style={[
-                                                    styles.progressFill,
-                                                    {
-                                                        width: `${d.pct}%`,
-                                                        backgroundColor:
-                                                            colors.tint,
-                                                    },
+                                                    styles.statCard,
+                                                    { borderColor: colors.backgroundElement },
                                                 ]}
-                                            />
-                                        </View>
+                                            >
+                                                <ThemedText style={[styles.statLabel, { color: colors.textSecondary }]}>
+                                                    {stat.label}
+                                                </ThemedText>
+                                                <ThemedText style={styles.statValue}>{stat.value}</ThemedText>
+                                                {!!stat.change && (
+                                                    <ThemedText
+                                                        style={[styles.statChange, { color: colors.tint }]}
+                                                        numberOfLines={2}
+                                                    >
+                                                        {stat.change}
+                                                    </ThemedText>
+                                                )}
+                                            </ThemedView>
+                                        ))}
                                     </View>
-                                ))}
-                            </View>
+
+                                    {/* Análises ao longo do tempo */}
+                                    <View style={styles.chartCard}>
+                                        <ThemedText style={styles.diseasesTitle}>
+                                            Análises ao Longo do Tempo
+                                        </ThemedText>
+                                        <ThemedText style={[styles.chartSubtitle, { color: colors.textSecondary }]}>
+                                            Volume de análises por período selecionado
+                                        </ThemedText>
+                                        <View style={styles.chartArea}>
+                                            <CartesianChart data={periodSeries} xKey="period" yKeys={['count']}>
+                                                {({ points, chartBounds }) => (
+                                                    <>
+                                                        <Area
+                                                            points={points.count}
+                                                            y0={chartBounds.bottom}
+                                                            color={SEQUENTIAL_HUE}
+                                                            opacity={0.15}
+                                                            curveType="natural"
+                                                        />
+                                                        <Line
+                                                            points={points.count}
+                                                            color={SEQUENTIAL_HUE}
+                                                            strokeWidth={2}
+                                                            curveType="natural"
+                                                        />
+                                                    </>
+                                                )}
+                                            </CartesianChart>
+                                        </View>
+                                        {periodSeries.length > 0 && (
+                                            <View style={styles.chartAxisRow}>
+                                                <ThemedText style={[styles.chartAxisLabel, { color: colors.textSecondary }]}>
+                                                    {formatPeriodLabel(periodSeries[0].period, analytics.granularity)}
+                                                </ThemedText>
+                                                <ThemedText style={[styles.chartAxisLabel, { color: colors.textSecondary }]}>
+                                                    {formatPeriodLabel(periodSeries[periodSeries.length - 1].period, analytics.granularity)}
+                                                </ThemedText>
+                                            </View>
+                                        )}
+                                    </View>
+
+                                    {/* Doenças mais frequentes */}
+                                    <ThemedText style={[styles.diseasesTitle, { marginTop: 4, marginBottom: 14 }]}>
+                                        Doenças Mais Frequentes
+                                    </ThemedText>
+                                    {renderRankedList(diseaseBars, 'Nenhuma doença identificada no período.')}
+
+                                    {/* Análises por cultura */}
+                                    <ThemedText style={[styles.diseasesTitle, { marginTop: 22, marginBottom: 14 }]}>
+                                        Análises por Cultura
+                                    </ThemedText>
+                                    {renderRankedList(cropBars, 'Nenhuma cultura registrada no período.')}
+
+                                    {/* Incidência de doenças por período */}
+                                    <View style={[styles.chartCard, { marginTop: 22 }]}>
+                                        <ThemedText style={styles.diseasesTitle}>
+                                            Incidência de Doenças por Período
+                                        </ThemedText>
+                                        <ThemedText style={[styles.chartSubtitle, { color: colors.textSecondary }]}>
+                                            {`As ${Math.min(5, analytics.byDisease.length)} doenças mais frequentes, comparadas período a período`}
+                                        </ThemedText>
+
+                                        {incidenceSeries.data.length === 0 ? (
+                                            <ThemedText style={[styles.emptyText, { color: colors.textSecondary, marginTop: 16 }]}>
+                                                Nenhuma doença identificada no período.
+                                            </ThemedText>
+                                        ) : (
+                                            <>
+                                                <View style={styles.chartArea}>
+                                                    <DynamicCartesianChart
+                                                        data={incidenceSeries.data}
+                                                        xKey="period"
+                                                        yKeys={incidenceSeries.keys}
+                                                    >
+                                                        {({ points }) => (
+                                                            <>
+                                                                {incidenceSeries.keys.map((key, index) => (
+                                                                    <Line
+                                                                        key={key}
+                                                                        points={points[key]}
+                                                                        color={
+                                                                            key === 'other'
+                                                                                ? OTHER_HUE
+                                                                                : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length]
+                                                                        }
+                                                                        strokeWidth={2}
+                                                                        curveType="natural"
+                                                                    />
+                                                                ))}
+                                                            </>
+                                                        )}
+                                                    </DynamicCartesianChart>
+                                                </View>
+
+                                                {/* Legenda */}
+                                                <View style={styles.legendWrap}>
+                                                    {incidenceSeries.keys.map((key, index) => (
+                                                        <View key={key} style={styles.legendItem}>
+                                                            <View
+                                                                style={[
+                                                                    styles.legendSwatch,
+                                                                    {
+                                                                        backgroundColor:
+                                                                            key === 'other'
+                                                                                ? OTHER_HUE
+                                                                                : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length],
+                                                                    },
+                                                                ]}
+                                                            />
+                                                            <ThemedText
+                                                                style={[styles.legendLabel, { color: colors.textSecondary }]}
+                                                                numberOfLines={1}
+                                                            >
+                                                                {seriesNameById.get(key) ?? key}
+                                                            </ThemedText>
+                                                        </View>
+                                                    ))}
+                                                </View>
+
+                                                {/* Períodos de pico */}
+                                                {analytics.diseasePeakPeriods.length > 0 && (
+                                                    <View style={styles.peakList}>
+                                                        {analytics.diseasePeakPeriods.map((peak) => (
+                                                            <View key={peak.sicknessId} style={styles.peakRow}>
+                                                                <ThemedText style={styles.peakName} numberOfLines={1}>
+                                                                    {peak.sicknessName}
+                                                                </ThemedText>
+                                                                <ThemedText style={[styles.peakPeriod, { color: colors.textSecondary }]}>
+                                                                    {formatPeriodLabel(peak.period, analytics.granularity)}
+                                                                </ThemedText>
+                                                                <ThemedText style={styles.peakCount}>{peak.count}</ThemedText>
+                                                            </View>
+                                                        ))}
+                                                    </View>
+                                                )}
+                                            </>
+                                        )}
+                                    </View>
+                                </>
+                            )}
                         </ThemedView>
                     </View>
                 )}
@@ -1251,6 +1605,29 @@ const styles = StyleSheet.create({
     diseasePct: { fontSize: 12 },
     progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
     progressFill: { height: '100%', borderRadius: 3 },
+    chartCard: { marginTop: 22 },
+    chartSubtitle: { fontSize: 12, marginTop: 2, marginBottom: 4 },
+    chartArea: { height: 200, marginTop: 10 },
+    chartAxisRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 4,
+    },
+    chartAxisLabel: { fontSize: 11 },
+    legendWrap: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        marginTop: 14,
+    },
+    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: 150 },
+    legendSwatch: { width: 10, height: 10, borderRadius: 2 },
+    legendLabel: { fontSize: 11 },
+    peakList: { marginTop: 18, gap: 10 },
+    peakRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    peakName: { flex: 1, fontSize: 12, fontWeight: '500' },
+    peakPeriod: { fontSize: 11 },
+    peakCount: { fontSize: 12, fontWeight: '700', minWidth: 24, textAlign: 'right' },
     chatBtn: {
         marginTop: 6,
         paddingVertical: 12,
@@ -1258,6 +1635,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     chatBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    reportBtn: {
+        marginTop: 6,
+        paddingVertical: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    reportBtnText: { fontWeight: '600', fontSize: 14 },
     historyChatBtn: {
         marginTop: 4,
         paddingHorizontal: 10,

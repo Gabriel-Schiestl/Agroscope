@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
+import { ToastProvider } from 'expo-toast';
 import React from 'react';
 import { useColorScheme } from 'react-native';
 
@@ -14,8 +15,10 @@ export default function RootLayout() {
             value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
         >
             <AuthProvider>
-                <AnimatedSplashOverlay />
-                <Stack screenOptions={{ headerShown: false }} />
+                <ToastProvider>
+                    <AnimatedSplashOverlay />
+                    <Stack screenOptions={{ headerShown: false }} />
+                </ToastProvider>
             </AuthProvider>
         </ThemeProvider>
     );

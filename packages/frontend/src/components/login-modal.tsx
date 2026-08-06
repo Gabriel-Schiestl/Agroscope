@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useAuth } from "../contexts/auth-context";
 import {
   Dialog,
@@ -30,23 +30,34 @@ export default function LoginModal({
   onClose,
   onOpenSignup,
 }: LoginModalProps) {
-  const [email, setEmail] = useState("demo@example.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  // const { setAuth, setIsLoading } = useAuth();
+  const { refreshAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
-      router.push("/analytics");
-      //await LoginAPI(email, password);
+      const success = await LoginAPI(email, password);
+
+      if (!success) {
+        setError("Email ou senha inválidos. Tente novamente.");
+        return;
+      }
+
+      await refreshAuth();
       onClose();
+      router.push("/analytics");
     } catch (error) {
       setError("Email ou senha inválidos. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -161,8 +172,9 @@ export default function LoginModal({
             <Button
               type="submit"
               className="w-full bg-[#4dae50] hover:bg-[#4dae50]/60"
+              disabled={isSubmitting}
             >
-              Entrar
+              {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
           </form>
 

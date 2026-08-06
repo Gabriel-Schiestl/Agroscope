@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { useAuth } from "../contexts/auth-context";
+import { toast } from "react-toastify";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,11 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { Checkbox } from "../components/ui/checkbox";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import CreateUserAPI from "../../api/user/CreateUser";
+import Link from "next/link";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -34,9 +37,9 @@ export default function SignupModal({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
-
-  //const {  } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,11 +50,33 @@ export default function SignupModal({
       return;
     }
 
+    if (!acceptedTerms) {
+      setError("É necessário aceitar os termos de uso e a política de privacidade");
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      //await signup(name, email, password);
+      const success = await CreateUserAPI({
+        name,
+        email,
+        password,
+        acceptedTerms,
+      });
+
+      if (!success) {
+        setError("Erro ao criar conta. Verifique os dados e tente novamente.");
+        return;
+      }
+
+      toast.success("Conta criada com sucesso! Faça login para continuar.");
       onClose();
+      onOpenLogin();
     } catch (error) {
       setError("Erro ao criar conta. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -164,11 +189,31 @@ export default function SignupModal({
               </div>
             </div>
 
+            <div className="flex items-start gap-2 text-[#F4FFF4]">
+              <Checkbox
+                id="acceptedTerms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="acceptedTerms" className="text-sm font-normal leading-snug">
+                Li e aceito os{" "}
+                <Link
+                  href="/termos"
+                  target="_blank"
+                  className="text-[#4dae50] hover:underline"
+                >
+                  termos de uso e a política de privacidade
+                </Link>
+              </Label>
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-[#4dae50] hover:bg-[#4dae50]/60"
+              disabled={isSubmitting}
             >
-              Criar Conta
+              {isSubmitting ? "Criando conta..." : "Criar Conta"}
             </Button>
           </form>
 

@@ -25,6 +25,7 @@ import { useAuth } from "../../../contexts/auth-context";
 import { Plan } from "../../../models/Plan";
 import GetAllPlansAPI from "../../../../api/plan/GetAllPlans";
 import ChangePlanAPI from "../../../../api/user/ChangePlan";
+import { cn } from "../../../lib/utils";
 
 function formatPrice(price: number) {
   if (price === 0) return "Gratuito";
@@ -91,9 +92,10 @@ export default function PlansPage() {
             return (
               <Card
                 key={plan.id}
-                className={
+                className={cn(
+                  "flex h-full flex-col",
                   isCurrentPlan ? "border-primaryGreen shadow-md" : ""
-                }
+                )}
               >
                 <CardHeader>
                   <div className="flex items-center justify-between gap-2">
@@ -113,7 +115,7 @@ export default function PlansPage() {
                     )}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primaryGreen shrink-0" />
@@ -131,7 +133,7 @@ export default function PlansPage() {
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="mt-auto">
                   {isCurrentPlan ? (
                     <Button className="w-full" variant="secondary" disabled>
                       Em uso

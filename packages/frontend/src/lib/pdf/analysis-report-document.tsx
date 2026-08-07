@@ -129,12 +129,14 @@ const styles = StyleSheet.create({
   summaryValueRow: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
     gap: 6,
   },
   summaryValue: {
     fontSize: 12,
     fontFamily: "Helvetica-Bold",
     color: COLORS.darkGreen,
+    flexShrink: 1,
   },
   badge: {
     backgroundColor: COLORS.primaryGreen,

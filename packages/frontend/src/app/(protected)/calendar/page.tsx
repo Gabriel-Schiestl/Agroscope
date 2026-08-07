@@ -72,27 +72,32 @@ const EVENT_TYPES = {
   [EventType.VISIT]: {
     label: "Visita",
     icon: Users,
-    color: "bg-blue-100 text-blue-800 border-blue-200",
+    color:
+      "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
   },
   [EventType.MEETING]: {
     label: "Reunião",
     icon: Users,
-    color: "bg-purple-100 text-purple-800 border-purple-200",
+    color:
+      "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800",
   },
   [EventType.REPORT]: {
     label: "Relatório",
     icon: FileText,
-    color: "bg-green-100 text-green-800 border-green-200",
+    color:
+      "bg-green-100 text-green-800 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
   },
   [EventType.APPLICATION]: {
     label: "Aplicação",
     icon: FileText,
-    color: "bg-gray-100 text-gray-800 border-gray-200",
+    color:
+      "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
   },
   [EventType.COLLECTION]: {
     label: "Coleta",
     icon: FileText,
-    color: "bg-gray-100 text-gray-800 border-gray-200",
+    color:
+      "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
   },
 };
 
@@ -555,7 +560,7 @@ export default function CalendarPage() {
                     EVENT_TYPES[event.type]?.icon || CalendarIcon;
                   const eventColor =
                     EVENT_TYPES[event.type]?.color ||
-                    "bg-gray-100 text-gray-800 border-gray-200";
+                    "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
 
                   // Encontrar o cliente pelo ID
                   const client = clients.find((c) => c.id === event.clientId);
@@ -656,7 +661,7 @@ export default function CalendarPage() {
                 const EventIcon = EVENT_TYPES[event.type]?.icon || CalendarIcon;
                 const eventColor =
                   EVENT_TYPES[event.type]?.color ||
-                  "bg-gray-100 text-gray-800 border-gray-200";
+                  "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
 
                 return (
                   <Card
@@ -702,10 +707,10 @@ export default function CalendarPage() {
                         <Badge
                           className={`mt-2 ${
                             event.status === EventStatus.COMPLETED
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300"
                               : event.status === EventStatus.CANCELLED
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
+                              ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300"
+                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300"
                           }`}
                         >
                           {event.status}

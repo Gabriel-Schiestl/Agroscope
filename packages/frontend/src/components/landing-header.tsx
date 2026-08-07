@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '../components/ui/sheet';
 import { useAuthModal } from '../contexts/auth-modal-context';
 import LandingSidebar from './landing-sidebar';
+import { ThemeToggle } from './theme-toggle';
 import Link from 'next/link';
 
 export default function LandingHeader() {
@@ -33,6 +34,8 @@ export default function LandingHeader() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle className="text-[#f4fff4] hover:bg-white/10" />
+
           <Button
             variant="outline"
             size="sm"

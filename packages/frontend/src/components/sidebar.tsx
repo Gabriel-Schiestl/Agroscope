@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart2, Settings, LogOut } from "lucide-react";
 import { useAuth } from "../contexts/auth-context";
+import { ThemeToggle } from "./theme-toggle";
 
 export default function Sidebar() {
   const { logout } = useAuth();
@@ -15,9 +16,12 @@ export default function Sidebar() {
 
   return (
     <div className="w-64 bg-background border-r border-border h-full flex flex-col">
-      <div className="p-4 border-b border-border">
-        <h2 className="text-primaryGreen font-bold text-xl">AgroScope</h2>
-        <p className="text-sm text-muted-foreground">Gestão Agronômica</p>
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <div>
+          <h2 className="text-primaryGreen font-bold text-xl">AgroScope</h2>
+          <p className="text-sm text-muted-foreground">Gestão Agronômica</p>
+        </div>
+        <ThemeToggle />
       </div>
 
       <nav className="flex-1 p-4">

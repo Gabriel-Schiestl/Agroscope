@@ -27,7 +27,7 @@ export default function TermosPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 text-sm leading-relaxed text-darkGray">
-          <p className="rounded-md border border-yellow-400 bg-yellow-50 p-3 text-yellow-800">
+          <p className="rounded-md border border-yellow-400 bg-yellow-50 p-3 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-300">
             Este texto descreve, em linguagem acessível, como o AgroScope
             trata os dados pessoais e as imagens enviadas por seus usuários,
             em conformidade com a Lei Geral de Proteção de Dados (Lei nº

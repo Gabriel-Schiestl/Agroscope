@@ -8,6 +8,7 @@ const config = {
     "*.{js,ts,jsx,tsx,mdx}",
   ],
   prefix: "",
+  darkMode: ["class"],
   theme: {
     container: {
       center: true,

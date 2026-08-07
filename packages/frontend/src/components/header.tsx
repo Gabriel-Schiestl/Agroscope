@@ -13,6 +13,7 @@ import {
 } from "../components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
 import Sidebar from "./sidebar";
+import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "../contexts/auth-context";
 import Link from "next/link";
 import { User, LogOut, Settings } from "lucide-react";
@@ -53,6 +54,8 @@ export default function Header() {
               </Button>
             </Link>
           )}
+
+          <ThemeToggle />
 
           <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
             <Bell size={20} className="text-foreground" />

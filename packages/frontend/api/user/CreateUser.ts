@@ -8,14 +8,23 @@ interface CreateUserParams {
   planId?: string;
 }
 
+export interface CreateUserResult {
+  success: boolean;
+  message?: string;
+}
+
 export default async function CreateUserAPI(
   userData: CreateUserParams
-): Promise<boolean> {
+): Promise<CreateUserResult> {
   try {
     await api.post("/user", userData);
-    return true;
-  } catch (error) {
+    return { success: true };
+  } catch (error: any) {
     console.error("Error creating user:", error);
-    return false;
+    const message = error?.response?.data?.message;
+    return {
+      success: false,
+      message: typeof message === "string" ? message : undefined,
+    };
   }
 }

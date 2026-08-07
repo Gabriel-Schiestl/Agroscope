@@ -103,11 +103,11 @@ export default function SignupScreen() {
             return;
         }
         setError('');
-        const success = await signup(name, email, password, acceptedTerms);
-        if (success) {
+        const result = await signup(name, email, password, acceptedTerms);
+        if (result.success) {
             router.replace('/analytics');
         } else {
-            setError('Erro ao criar conta. Tente novamente.');
+            setError(result.message || 'Erro ao criar conta. Tente novamente.');
         }
     };
 

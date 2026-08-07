@@ -58,15 +58,18 @@ export default function SignupModal({
     setIsSubmitting(true);
 
     try {
-      const success = await CreateUserAPI({
+      const result = await CreateUserAPI({
         name,
         email,
         password,
         acceptedTerms,
       });
 
-      if (!success) {
-        setError("Erro ao criar conta. Verifique os dados e tente novamente.");
+      if (!result.success) {
+        setError(
+          result.message ||
+            "Erro ao criar conta. Verifique os dados e tente novamente."
+        );
         return;
       }
 

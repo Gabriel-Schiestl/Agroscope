@@ -20,7 +20,16 @@ export class UserDataRepository implements UserRepository {
 
             return Res.success();
         } catch (e) {
-            return Res.failure(new TechnicalException(e));
+            if (e.code === '23505' || e.driverError?.code === '23505') {
+                return Res.failure(
+                    new TechnicalException('O e-mail e senha não conferem'),
+                );
+            }
+            return Res.failure(
+                new TechnicalException(
+                    e.message ?? 'Erro ao salvar usuário.',
+                ),
+            );
         }
     }
 

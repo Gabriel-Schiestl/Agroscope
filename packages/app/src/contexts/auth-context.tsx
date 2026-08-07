@@ -20,18 +20,28 @@ interface AuthState {
     planId?: string;
 }
 
+export interface LoginResult {
+    success: boolean;
+    blocked?: boolean;
+}
+
+export interface SignupResult {
+    success: boolean;
+    message?: string;
+}
+
 interface AuthContextType {
     auth: AuthState | null;
     token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<boolean>;
+    login: (email: string, password: string) => Promise<LoginResult>;
     signup: (
         name: string,
         email: string,
         password: string,
         acceptedTerms: boolean,
-    ) => Promise<boolean>;
+    ) => Promise<SignupResult>;
     logout: () => void;
     refreshAuth: () => Promise<void>;
 }
@@ -41,8 +51,8 @@ const AuthContext = createContext<AuthContextType>({
     token: null,
     isAuthenticated: false,
     isLoading: true,
-    login: async () => false,
-    signup: async () => false,
+    login: async () => ({ success: false }),
+    signup: async () => ({ success: false }),
     logout: () => {},
     refreshAuth: async () => {},
 });
@@ -82,7 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })();
     }, [validateAuth]);
 
-    const login = async (email: string, password: string): Promise<boolean> => {
+    const login = async (
+        email: string,
+        password: string,
+    ): Promise<LoginResult> => {
         setIsLoading(true);
         try {
             const response = await api.post<{ token: string }>(
@@ -94,10 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(authToken);
             api.defaults.headers.common['authorization'] = authToken;
             await validateAuth();
-            return true;
-        } catch (e) {
+            return { success: true };
+        } catch (e: any) {
             console.log('Login failed:', JSON.stringify(e));
-            return false;
+            const message = e?.response?.data?.message;
+            const blocked =
+                typeof message === 'string' &&
+                message.toLowerCase().includes('blocked');
+            return { success: false, blocked };
         } finally {
             setIsLoading(false);
         }
@@ -108,15 +125,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: string,
         password: string,
         acceptedTerms: boolean,
-    ): Promise<boolean> => {
+    ): Promise<SignupResult> => {
         setIsLoading(true);
         try {
             await api.post('/user', { name, email, password, acceptedTerms });
             // Após o cadastro, efetua login para obter o token da sessão.
-            const loginOk = await login(email, password);
-            return loginOk;
-        } catch {
-            return false;
+            const loginResult = await login(email, password);
+            return { success: loginResult.success };
+        } catch (e: any) {
+            const message = e?.response?.data?.message;
+            return {
+                success: false,
+                message: typeof message === 'string' ? message : undefined,
+            };
         } finally {
             setIsLoading(false);
         }

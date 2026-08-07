@@ -35,11 +35,15 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await LoginAPI(email, password);
+      const result = await LoginAPI(email, password);
 
-      if (response) {
+      if (result.success) {
         await refreshAuth();
         router.push("/analytics");
+      } else if (result.blocked) {
+        setError(
+          "Sua conta foi bloqueada por excesso de tentativas incorretas. Entre em contato com o suporte ou recupere sua senha."
+        );
       } else {
         setError("Email ou senha inválidos. Tente novamente.");
       }

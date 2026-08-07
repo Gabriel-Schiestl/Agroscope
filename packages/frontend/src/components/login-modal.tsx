@@ -44,10 +44,14 @@ export default function LoginModal({
     setIsSubmitting(true);
 
     try {
-      const success = await LoginAPI(email, password);
+      const result = await LoginAPI(email, password);
 
-      if (!success) {
-        setError("Email ou senha inválidos. Tente novamente.");
+      if (!result.success) {
+        setError(
+          result.blocked
+            ? "Sua conta foi bloqueada por excesso de tentativas incorretas. Entre em contato com o suporte ou recupere sua senha."
+            : "Email ou senha inválidos. Tente novamente."
+        );
         return;
       }
 

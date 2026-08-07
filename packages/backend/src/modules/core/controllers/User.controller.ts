@@ -1,4 +1,13 @@
-import { Body, Controller, Patch, Post, Req } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Patch,
+    Post,
+    Req,
+    UsePipes,
+    ValidationPipe,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { Public } from 'PublicRoutes';
 import { ChangePlanDto, CreateUserDto } from '../application/dto/User.dto';
@@ -14,6 +23,19 @@ export class UserController {
 
     @Public()
     @Post()
+    @UsePipes(
+        new ValidationPipe({
+            whitelist: true,
+            exceptionFactory: (errors) => {
+                const message = errors
+                    .flatMap((error) => Object.values(error.constraints ?? {}))
+                    .join(' ');
+                return new BadRequestException(
+                    message || 'Dados inválidos. Verifique os campos preenchidos.',
+                );
+            },
+        }),
+    )
     async createUser(@Body() user: CreateUserDto) {
         const result = await this.createUserUseCase.execute(user);
 

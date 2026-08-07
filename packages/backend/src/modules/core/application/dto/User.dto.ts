@@ -4,6 +4,8 @@ import {
     Matches,
     IsBoolean,
     Equals,
+    IsEmail,
+    MinLength,
 } from 'class-validator';
 import { OmitType } from '@nestjs/mapped-types';
 
@@ -11,15 +13,18 @@ const PASSWORD_REGEX =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
 const PASSWORD_MESSAGE =
     'A senha deve conter ao menos 8 caracteres, incluindo maiúsculas, minúsculas, números e símbolos (@$!%*?&#)';
+const EMAIL_MESSAGE = 'Informe um e-mail válido.';
+const NAME_MESSAGE = 'Informe seu nome completo.';
 
 export class UserDto {
     @IsString()
     id: string;
 
     @IsString()
+    @MinLength(2, { message: NAME_MESSAGE })
     name: string;
 
-    @IsString()
+    @IsEmail({}, { message: EMAIL_MESSAGE })
     email: string;
 
     @IsOptional()

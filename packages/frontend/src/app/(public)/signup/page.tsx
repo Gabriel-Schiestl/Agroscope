@@ -57,8 +57,10 @@ export default function SignupPage() {
         password,
         acceptedTerms,
       });
-      if (result) {
+      if (result.success) {
         router.push("/login");
+      } else {
+        setError(result.message || "Erro ao criar conta. Tente novamente.");
       }
     } catch (error) {
       setError("Erro ao criar conta. Tente novamente.");

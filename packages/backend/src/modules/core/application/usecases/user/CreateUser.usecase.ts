@@ -36,6 +36,15 @@ export class CreateUserUseCase extends AbstractUseCase<
     async onExecute(
         props: CreateUserDto,
     ): Promise<Result<CreateUserUseCaseExceptions, void>> {
+        const existingUser = await this.userRepository.getByEmail(
+            props.email,
+        );
+        if (existingUser.isSuccess()) {
+            return Res.failure(
+                new BusinessException('O e-mail e senha não conferem'),
+            );
+        }
+
         const freePlan = await this.planRepository.getByType(Plan.FREE_TYPE);
         if (freePlan.isFailure()) return Res.failure(freePlan.error);
 

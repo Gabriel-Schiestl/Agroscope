@@ -34,9 +34,13 @@ export default function LoginScreen() {
             return;
         }
         setError('');
-        const success = await login(email, password);
-        if (success) {
+        const result = await login(email, password);
+        if (result.success) {
             router.replace('/analytics');
+        } else if (result.blocked) {
+            setError(
+                'Sua conta foi bloqueada por excesso de tentativas incorretas. Entre em contato com o suporte.',
+            );
         } else {
             setError('Email ou senha inválidos. Tente novamente.');
         }

@@ -75,7 +75,7 @@ export default function PlansScreen() {
                 edges={['top']}
             >
                 <View style={styles.topBar}>
-                    <TouchableOpacity onPress={() => router.back()}>
+                    <TouchableOpacity onPress={() => router.replace('/analytics')}>
                         <ThemedText style={[styles.backBtn, { color: colors.tint }]}>
                             ← Voltar
                         </ThemedText>

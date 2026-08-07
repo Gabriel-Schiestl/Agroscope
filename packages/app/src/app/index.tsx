@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     StyleSheet,
     View,
@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
+import { useAuth } from '@/contexts/auth-context';
 
 const C = {
     bg: '#19241b',
@@ -63,6 +64,17 @@ const STEPS = [
 
 export default function HomeScreen() {
     const router = useRouter();
+    const { isAuthenticated, isLoading } = useAuth();
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated) {
+            router.replace('/analytics');
+        }
+    }, [isAuthenticated, isLoading, router]);
+
+    if (isLoading || isAuthenticated) {
+        return null;
+    }
 
     return (
         <View style={styles.root}>

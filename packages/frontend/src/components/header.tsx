@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CreditCard, Menu } from "lucide-react";
+import { ArrowLeft, Bell, CreditCard, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import {
@@ -16,25 +16,39 @@ import Sidebar from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "../contexts/auth-context";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { User, LogOut, Settings } from "lucide-react";
 
 export default function Header() {
   const { auth, logout } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isPlansPage = pathname === "/plans";
 
   return (
     <header className="bg-background border-b border-border py-3 px-4 md:px-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="p-2 md:hidden text-foreground">
-                <Menu size={20} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
-              <Sidebar />
-            </SheetContent>
-          </Sheet>
+          {isPlansPage ? (
+            <button
+              onClick={() => router.push("/analytics")}
+              className="p-2 rounded-full hover:bg-muted transition-colors text-foreground"
+              aria-label="Voltar para Analytics"
+            >
+              <ArrowLeft size={20} />
+            </button>
+          ) : (
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="p-2 md:hidden text-foreground">
+                  <Menu size={20} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <Sidebar />
+              </SheetContent>
+            </Sheet>
+          )}
 
           <div className="md:hidden">
             <h2 className="text-primaryGreen font-bold text-xl">AgroScope</h2>

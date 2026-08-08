@@ -221,6 +221,7 @@ function ok<T>(
 const PASSTHROUGH_ROUTES: { method: string; test: (path: string) => boolean }[] = [
   { method: "get", test: (path) => path.includes("/auth/validate") },
   { method: "post", test: (path) => path.includes("/auth/login") },
+  { method: "post", test: (path) => path.includes("/auth/logout") },
   { method: "post", test: (path) => path === "/user" },
   { method: "post", test: (path) => path.includes("/predict") },
   { method: "get", test: (path) => path.includes("/limit") },

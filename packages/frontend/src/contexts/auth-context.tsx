@@ -11,6 +11,7 @@ import {
 import api from "../../shared/http/http.config";
 import { useRouter } from "next/navigation";
 import Validate from "../../api/login/Validate";
+import LogoutAPI from "../../api/login/Logout";
 
 interface AuthState {
   isEngineer: boolean;
@@ -77,11 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      //TODO: implementar logout no backend
+      await LogoutAPI();
+    } finally {
       setAuth(null);
-      router.push("/login");
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
+      router.push("/");
     }
   };
 

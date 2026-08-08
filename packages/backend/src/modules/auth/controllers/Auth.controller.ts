@@ -45,6 +45,18 @@ export class AuthController {
             .json(result.isFailure() ? result.error : { token: result.value });
     }
 
+    @Public()
+    @Post('logout')
+    async logout(@Res() res: Response) {
+        res.clearCookie('agroscope-authentication', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+        });
+
+        return res.status(200).json({ success: true });
+    }
+
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
         const user = await this.authUserRepository.getById(req.user.sub);

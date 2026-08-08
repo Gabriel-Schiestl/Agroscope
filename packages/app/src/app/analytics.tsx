@@ -78,8 +78,14 @@ export default function AnalyticsScreen() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
     const router = useRouter();
-    const { auth, logout } = useAuth();
+    const { auth, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const { limit, refetch: refetchLimit } = useLimit();
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.replace('/');
+        }
+    }, [authLoading, isAuthenticated, router]);
 
     const [file, setFile] = useState<ImagePicker.ImagePickerAsset | undefined>();
     const [result, setResult] = useState<History | null>(null);
@@ -335,6 +341,10 @@ export default function AnalyticsScreen() {
     };
 
     const isDark = colorScheme === 'dark';
+
+    if (authLoading || !isAuthenticated) {
+        return null;
+    }
 
     return (
         <View style={[styles.root, { backgroundColor: colors.background }]}>

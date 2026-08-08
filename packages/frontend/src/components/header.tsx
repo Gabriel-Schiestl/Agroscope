@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Bell, CreditCard, Menu } from "lucide-react";
+import { ArrowLeft, CreditCard, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import {
@@ -71,10 +71,6 @@ export default function Header() {
 
           <ThemeToggle />
 
-          <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
-            <Bell size={20} className="text-foreground" />
-          </button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2">
@@ -95,7 +91,6 @@ export default function Header() {
                   <p className="text-sm font-medium text-foreground">
                     {auth?.name || "Usuário"}
                   </p>
-                  <p className="text-xs text-muted-foreground">{"Agrônomo"}</p>
                 </div>
               </button>
             </DropdownMenuTrigger>

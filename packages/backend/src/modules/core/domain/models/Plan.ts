@@ -7,6 +7,7 @@ export interface PlanProps {
     imageLimit: number;
     chatLimit: number;
     features: string[];
+    featureFlags: string[];
     price: number;
 }
 
@@ -33,6 +34,11 @@ export class Plan extends Agg<PlanProps> {
         if (!props.features) {
             return Res.failure(new BusinessException('Features are required'));
         }
+        if (!props.featureFlags) {
+            return Res.failure(
+                new BusinessException('Feature flags are required'),
+            );
+        }
 
         return Res.success(new Plan(props));
     }
@@ -56,6 +62,14 @@ export class Plan extends Agg<PlanProps> {
 
     get features(): string[] {
         return this.props.features;
+    }
+
+    get featureFlags(): string[] {
+        return this.props.featureFlags;
+    }
+
+    hasFeature(feature: string): boolean {
+        return this.props.featureFlags.includes(feature);
     }
 
     get price(): number {

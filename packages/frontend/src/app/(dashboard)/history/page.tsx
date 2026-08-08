@@ -72,8 +72,13 @@ import {
 import type { History } from "../../../models/History";
 import { ChatPanel } from "../../../components/chat-panel";
 import { useHistory } from "../../../hooks/use-history";
+import { useLimit } from "../../../hooks/use-limit";
 import { toImageSrc } from "../../../lib/utils";
 import { generateAnalysisReportPdf } from "../../../lib/pdf/generate-analysis-report";
+import {
+  hasPlanFeature,
+  PLAN_FEATURE_REPORT_GENERATION,
+} from "../../../lib/plan-features";
 import { toast } from "react-toastify";
 
 const CROP_OPTIONS = ["Todos", "Soja", "Milho", "Café", "Algodão", "Trigo"];
@@ -99,8 +104,19 @@ export default function HistoryPage() {
     null
   );
   const itemsPerPage = 5;
+  const { limit } = useLimit();
+  const canGenerateReport = hasPlanFeature(
+    limit?.featureFlags,
+    PLAN_FEATURE_REPORT_GENERATION
+  );
 
   const handleGenerateReport = async (history: History) => {
+    if (!canGenerateReport) {
+      toast.error(
+        "Relatórios em PDF disponíveis apenas nos planos pagos. Faça upgrade do seu plano."
+      );
+      return;
+    }
     setGeneratingReportId(history.id);
     try {
       await generateAnalysisReportPdf(history);
@@ -439,7 +455,10 @@ export default function HistoryPage() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleGenerateReport(history)}
-                                disabled={generatingReportId === history.id}
+                                disabled={
+                                  generatingReportId === history.id ||
+                                  !canGenerateReport
+                                }
                               >
                                 <FileText className="mr-2 h-4 w-4" />
                                 {generatingReportId === history.id
@@ -540,7 +559,10 @@ export default function HistoryPage() {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleGenerateReport(history)}
-                        disabled={generatingReportId === history.id}
+                        disabled={
+                          generatingReportId === history.id ||
+                          !canGenerateReport
+                        }
                       >
                         <FileText className="mr-2 h-4 w-4" />
                         {generatingReportId === history.id
@@ -741,7 +763,10 @@ export default function HistoryPage() {
                 <Button
                   variant="outline"
                   className="bg-primaryGreen hover:bg-lightGreen text-white hover:text-white"
-                  disabled={generatingReportId === selectedHistory.id}
+                  disabled={
+                    generatingReportId === selectedHistory.id ||
+                    !canGenerateReport
+                  }
                   onClick={() => handleGenerateReport(selectedHistory)}
                 >
                   <FileText className="mr-2 h-4 w-4" />
@@ -750,6 +775,12 @@ export default function HistoryPage() {
                     : "Gerar Relatório PDF"}
                 </Button>
               </DialogFooter>
+              {!canGenerateReport && (
+                <p className="text-xs text-red-500 text-center">
+                  Relatórios em PDF disponíveis nos planos pagos. Faça
+                  upgrade do seu plano para gerar relatórios.
+                </p>
+              )}
             </>
           )}
         </DialogContent>

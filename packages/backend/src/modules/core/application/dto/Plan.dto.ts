@@ -16,6 +16,9 @@ export class PlanDto {
     @IsArray()
     features: string[];
 
+    @IsArray()
+    featureFlags: string[];
+
     @IsNumber()
     price: number;
 }

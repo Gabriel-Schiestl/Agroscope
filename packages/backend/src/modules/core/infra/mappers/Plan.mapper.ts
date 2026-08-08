@@ -9,6 +9,7 @@ export class PlanMapper {
         model.imageLimit = domain.imageLimit;
         model.chatLimit = domain.chatLimit;
         model.features = domain.features;
+        model.featureFlags = domain.featureFlags;
         model.price = domain.price;
         return model;
     }
@@ -20,6 +21,7 @@ export class PlanMapper {
                 imageLimit: model.imageLimit,
                 chatLimit: model.chatLimit,
                 features: model.features,
+                featureFlags: model.featureFlags,
                 price: model.price,
             },
             model.id,

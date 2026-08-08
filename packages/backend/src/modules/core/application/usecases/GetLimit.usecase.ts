@@ -52,6 +52,7 @@ export class GetLimitUseCase extends AbstractUseCase<
             imageLimit: plan.imageLimit,
             chatRequests: user.limit.chatRequests,
             chatLimit: plan.chatLimit,
+            featureFlags: plan.featureFlags,
         });
     }
 }

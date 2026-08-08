@@ -8,6 +8,7 @@ export interface LimitData {
   imageLimit: number;
   chatRequests: number;
   chatLimit: number;
+  featureFlags: string[];
 }
 
 export function useLimit() {

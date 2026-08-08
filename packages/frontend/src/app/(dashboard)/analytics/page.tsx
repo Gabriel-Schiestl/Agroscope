@@ -45,6 +45,10 @@ import { useLimit } from '../../../hooks/use-limit';
 import { useHistory } from '../../../hooks/use-history';
 import { toImageSrc } from '../../../lib/utils';
 import { generateAnalysisReportPdf } from '../../../lib/pdf/generate-analysis-report';
+import {
+  hasPlanFeature,
+  PLAN_FEATURE_REPORT_GENERATION,
+} from '../../../lib/plan-features';
 
 export default function AnalyticsPage() {
   const [file, setFile] = useState<File | undefined>();
@@ -58,6 +62,10 @@ export default function AnalyticsPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const { limit, refetch: refetchLimit } = useLimit();
+  const canGenerateReport = hasPlanFeature(
+    limit?.featureFlags,
+    PLAN_FEATURE_REPORT_GENERATION
+  );
   const {
     history: analysisHistory,
     isLoading: historyLoading,
@@ -104,6 +112,12 @@ export default function AnalyticsPage() {
   };
 
   const handleGenerateReport = async (analysis: HistoryModel) => {
+    if (!canGenerateReport) {
+      toast.error(
+        'Relatórios em PDF disponíveis apenas nos planos pagos. Faça upgrade do seu plano.'
+      );
+      return;
+    }
     setGeneratingReportId(analysis.id);
     try {
       await generateAnalysisReportPdf(analysis);
@@ -343,7 +357,10 @@ export default function AnalyticsPage() {
                         <Button
                           variant="outline"
                           className="w-full text-primaryGreen border-primaryGreen/30"
-                          disabled={generatingReportId === result.id}
+                          disabled={
+                            generatingReportId === result.id ||
+                            !canGenerateReport
+                          }
                           onClick={() => handleGenerateReport(result)}
                         >
                           <FileText className="mr-2 h-4 w-4" />
@@ -352,6 +369,12 @@ export default function AnalyticsPage() {
                             : 'Gerar Relatório PDF'}
                         </Button>
                       </div>
+                      {!canGenerateReport && (
+                        <p className="text-xs text-red-500 text-center">
+                          Relatórios em PDF disponíveis nos planos pagos.
+                          Faça upgrade do seu plano para gerar relatórios.
+                        </p>
+                      )}
                     </div>
                   )}
                 </CardContent>
@@ -483,7 +506,15 @@ export default function AnalyticsPage() {
                               variant="outline"
                               size="sm"
                               className="text-primaryGreen border-primaryGreen/30 h-7 px-2 text-xs"
-                              disabled={generatingReportId === analysis.id}
+                              disabled={
+                                generatingReportId === analysis.id ||
+                                !canGenerateReport
+                              }
+                              title={
+                                !canGenerateReport
+                                  ? 'Disponível nos planos pagos'
+                                  : undefined
+                              }
                               onClick={() => handleGenerateReport(analysis)}
                             >
                               <FileText className="mr-1 h-3 w-3" />

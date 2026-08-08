@@ -7,6 +7,7 @@ interface PlanModelProps {
     imageLimit: number;
     chatLimit: number;
     features: string[];
+    featureFlags: string[];
     price: number;
 }
 
@@ -26,6 +27,13 @@ export class PlanModel extends BaseEntity implements PlanModelProps {
 
     @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
     features: string[];
+
+    @Column({
+        type: 'jsonb',
+        name: 'feature_flags',
+        default: () => "'[]'::jsonb",
+    })
+    featureFlags: string[];
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     price: number;

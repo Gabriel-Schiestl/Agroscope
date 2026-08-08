@@ -3,4 +3,5 @@ export class LimitDto {
     imageLimit: number;
     chatRequests: number;
     chatLimit: number;
+    featureFlags: string[];
 }

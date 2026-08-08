@@ -9,6 +9,7 @@ export class PlanAppMapper {
             imageLimit: plan.imageLimit,
             chatLimit: plan.chatLimit,
             features: plan.features,
+            featureFlags: plan.featureFlags,
             price: plan.price,
         };
     }

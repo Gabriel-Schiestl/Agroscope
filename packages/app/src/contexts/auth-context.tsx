@@ -6,7 +6,7 @@ import React, {
     useCallback,
     ReactNode,
 } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import tokenStorage from '@/shared/storage/token-storage';
 import api from '@/shared/http/http.config';
 import Validate from '../../api/login/Validate';
 
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         (async () => {
             try {
-                const storedToken = await SecureStore.getItemAsync(TOKEN_KEY);
+                const storedToken = await tokenStorage.getItem(TOKEN_KEY);
                 if (storedToken) {
                     setToken(storedToken);
                     api.defaults.headers.common['authorization'] = storedToken;
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 { email, password },
             );
             const { token: authToken } = response.data;
-            await SecureStore.setItemAsync(TOKEN_KEY, authToken);
+            await tokenStorage.setItem(TOKEN_KEY, authToken);
             setToken(authToken);
             api.defaults.headers.common['authorization'] = authToken;
             await validateAuth();
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuth(null);
         setToken(null);
         delete api.defaults.headers.common['authorization'];
-        SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+        tokenStorage.deleteItem(TOKEN_KEY).catch(() => {});
     };
 
     const refreshAuth = async () => {

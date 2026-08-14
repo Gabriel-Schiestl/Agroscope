@@ -211,47 +211,6 @@ export default function LoginScreen() {
                             )}
                         </TouchableOpacity>
 
-                        {/* Divider */}
-                        <View style={styles.dividerRow}>
-                            <View
-                                style={[
-                                    styles.dividerLine,
-                                    { backgroundColor: colors.backgroundElement },
-                                ]}
-                            />
-                            <ThemedText
-                                style={[
-                                    styles.dividerText,
-                                    { color: colors.textSecondary },
-                                ]}
-                            >
-                                ou continue com
-                            </ThemedText>
-                            <View
-                                style={[
-                                    styles.dividerLine,
-                                    { backgroundColor: colors.backgroundElement },
-                                ]}
-                            />
-                        </View>
-
-                        {/* Google (stub) */}
-                        <TouchableOpacity
-                            style={[
-                                styles.googleBtn,
-                                {
-                                    borderColor: colors.backgroundElement,
-                                    backgroundColor: isDark
-                                        ? colors.backgroundSelected
-                                        : '#fff',
-                                },
-                            ]}
-                        >
-                            <ThemedText style={styles.googleBtnText}>
-                                G  Google
-                            </ThemedText>
-                        </TouchableOpacity>
-
                         {/* Footer link */}
                         <View style={styles.footerLink}>
                             <ThemedText
@@ -386,32 +345,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '600',
         fontSize: 15,
-    },
-    dividerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 16,
-        gap: 8,
-    },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-    },
-    dividerText: {
-        fontSize: 11,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    googleBtn: {
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingVertical: 12,
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    googleBtnText: {
-        fontSize: 14,
-        fontWeight: '500',
     },
     footerLink: {
         flexDirection: 'row',

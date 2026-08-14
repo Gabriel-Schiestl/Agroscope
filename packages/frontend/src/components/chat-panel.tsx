@@ -56,7 +56,7 @@ function buildInitialMessage(analysis: History | null): ChatMessage {
     analysis?.explanation ?? analysis?.crop ?? 'a cultura analisada';
   const crop = analysis?.crop ?? '';
   const confidence = analysis?.sicknessConfidence
-    ? ` (${analysis.sicknessConfidence.toFixed(1)}% de confiança)`
+    ? ` (${(analysis.sicknessConfidence * 100).toFixed(1)}% de confiança)`
     : '';
 
   return {
@@ -144,7 +144,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
     setIsTyping(false);
     refetchLimit();
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     const socket: Socket = io(`${apiUrl}/chat`, {
       withCredentials: true,
@@ -272,7 +272,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
             <div className="!mt-6 flex flex-wrap gap-1.5">
               {analysis.cropConfidence > 0 && (
                 <Badge className="bg-primaryGreen text-xs">
-                  {analysis.crop} · {analysis.cropConfidence.toFixed(1)}%
+                  {analysis.crop} · {(analysis.cropConfidence * 100).toFixed(1)}%
                 </Badge>
               )}
               {analysis.sicknessConfidence &&
@@ -281,7 +281,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
                     variant="outline"
                     className="text-xs text-primaryGreen border-primaryGreen/40"
                   >
-                    Doença · {analysis.sicknessConfidence.toFixed(1)}%
+                    Doença · {(analysis.sicknessConfidence * 100).toFixed(1)}%
                   </Badge>
                 )}
               <Badge

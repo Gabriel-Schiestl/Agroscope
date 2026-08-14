@@ -300,7 +300,7 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
                   {analysis.cropConfidence != null && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>
-                        {analysis.cropConfidence.toFixed(1)}% confiança
+                        {(analysis.cropConfidence * 100).toFixed(1)}% confiança
                       </Text>
                     </View>
                   )}
@@ -318,7 +318,7 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
                   {!isHealthy && analysis.sicknessConfidence != null && (
                     <View style={styles.badgeOutline}>
                       <Text style={styles.badgeOutlineText}>
-                        {analysis.sicknessConfidence.toFixed(1)}% confiança
+                        {(analysis.sicknessConfidence * 100).toFixed(1)}% confiança
                       </Text>
                     </View>
                   )}

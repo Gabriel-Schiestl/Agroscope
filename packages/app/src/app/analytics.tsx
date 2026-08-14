@@ -1307,7 +1307,7 @@ export default function AnalyticsScreen() {
                                             {
                                                 label: 'Confiança Média',
                                                 value: analytics.averageCropConfidence !== null
-                                                    ? `${analytics.averageCropConfidence.toFixed(1)}%`
+                                                    ? `${(analytics.averageCropConfidence * 100).toFixed(1)}%`
                                                     : '—',
                                                 change: 'Confiança na identificação da cultura',
                                             },

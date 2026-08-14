@@ -381,7 +381,7 @@ export default function HistoryPage() {
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {history.sicknessConfidence != null && (
                               <Badge className="bg-primaryGreen">
-                                {history.sicknessConfidence.toFixed(1)}%
+                                {(history.sicknessConfidence * 100).toFixed(1)}%
                               </Badge>
                             )}
                           </div>
@@ -403,7 +403,7 @@ export default function HistoryPage() {
                               <span>
                                 Cultura: {history.crop}
                                 {history.cropConfidence != null &&
-                                  ` (${history.cropConfidence.toFixed(1)}%)`}
+                                  ` (${(history.cropConfidence * 100).toFixed(1)}%)`}
                               </span>
                             </div>
                           )}
@@ -499,7 +499,7 @@ export default function HistoryPage() {
                       <span>Cultura: {history.crop || "—"}</span>
                       {history.sicknessConfidence != null && (
                         <Badge className="bg-primaryGreen text-xs">
-                          {history.sicknessConfidence.toFixed(1)}%
+                          {(history.sicknessConfidence * 100).toFixed(1)}%
                         </Badge>
                       )}
                     </div>

@@ -1,12 +1,47 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const AUTH_COOKIE = "agroscope-authentication";
+
+// Rotas acessíveis sem autenticação (landing/marketing + fluxo de login/cadastro).
+// Tudo que não estiver aqui é tratado como protegido.
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/signin",
+  "/signup",
+  "/termos",
+  "/recursos-detalhes",
+  "/landing-dashboard",
+  "/landing-settings",
+];
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+}
+
 export function middleware(request: NextRequest) {
-  // Autenticação desabilitada temporariamente - permite acesso a todas as rotas
+  const { pathname } = request.nextUrl;
+  const hasSession = Boolean(request.cookies.get(AUTH_COOKIE)?.value);
+
+  if (pathname === "/login" || pathname === "/signin" || pathname === "/signup") {
+    if (hasSession) {
+      return NextResponse.redirect(new URL("/analytics", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (!isPublicPath(pathname) && !hasSession) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   return NextResponse.next();
 }
 
-// Ou simplesmente comente/remova o matcher para desativar o middleware
-// export const config = {
-//   matcher: [],
-// };
+// Aplica a todas as rotas de página, exceto assets estáticos, internals do
+// Next.js e rotas de API.
+export const config = {
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+};

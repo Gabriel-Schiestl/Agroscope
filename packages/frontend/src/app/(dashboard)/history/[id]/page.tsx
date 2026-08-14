@@ -153,7 +153,7 @@ export default function HistoryDetailsPage({
                 {history.sicknessConfidence != null && (
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className="bg-primaryGreen">
-                      Confiança: {history.sicknessConfidence.toFixed(1)}%
+                      Confiança: {(history.sicknessConfidence * 100).toFixed(1)}%
                     </Badge>
                   </div>
                 )}
@@ -166,7 +166,7 @@ export default function HistoryDetailsPage({
                 <p>
                   {history.crop || "Não identificada"}
                   {history.cropConfidence != null &&
-                    ` (Confiança: ${history.cropConfidence.toFixed(1)}%)`}
+                    ` (Confiança: ${(history.cropConfidence * 100).toFixed(1)}%)`}
                 </p>
               </div>
             </div>

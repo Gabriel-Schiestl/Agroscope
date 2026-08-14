@@ -13,36 +13,36 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
-import { useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
+import PasswordRecoveryAPI from '../../api/auth/PasswordRecovery';
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
     const router = useRouter();
-    const { login, isLoading } = useAuth();
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
 
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            setError('Preencha todos os campos.');
+    const handleSubmit = async () => {
+        if (!email) {
+            setError('Preencha o email.');
             return;
         }
         setError('');
-        const result = await login(email, password);
+        setIsSubmitting(true);
+        const result = await PasswordRecoveryAPI(email);
+        setIsSubmitting(false);
+
         if (result.success) {
-            router.replace('/analytics');
-        } else if (result.blocked) {
-            setError(
-                'Sua conta foi bloqueada por excesso de tentativas incorretas. Entre em contato com o suporte.',
-            );
+            router.push({
+                pathname: '/reset-password',
+                params: { email },
+            });
         } else {
-            setError('Email ou senha inválidos. Tente novamente.');
+            setError('Não foi possível enviar o código. Tente novamente.');
         }
     };
 
@@ -73,7 +73,6 @@ export default function LoginScreen() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Card */}
                     <View
                         style={[
                             styles.card,
@@ -85,23 +84,24 @@ export default function LoginScreen() {
                             },
                         ]}
                     >
-                        {/* Brand */}
                         <ThemedText
                             style={[styles.brand, { color: colors.tint }]}
                         >
                             AgroScope
                         </ThemedText>
-                        <ThemedText style={styles.cardTitle}>Entrar</ThemedText>
+                        <ThemedText style={styles.cardTitle}>
+                            Esqueceu a senha?
+                        </ThemedText>
                         <ThemedText
                             style={[
                                 styles.cardSubtitle,
                                 { color: colors.textSecondary },
                             ]}
                         >
-                            Entre com sua conta para acessar o sistema
+                            Informe seu email para receber um código de
+                            recuperação
                         </ThemedText>
 
-                        {/* Error */}
                         {!!error && (
                             <View
                                 style={[
@@ -115,7 +115,6 @@ export default function LoginScreen() {
                             </View>
                         )}
 
-                        {/* Email */}
                         <View style={styles.fieldGroup}>
                             <ThemedText style={styles.label}>Email</ThemedText>
                             <TextInput
@@ -139,83 +138,24 @@ export default function LoginScreen() {
                             />
                         </View>
 
-                        {/* Password */}
-                        <View style={styles.fieldGroup}>
-                            <View style={styles.labelRow}>
-                                <ThemedText style={styles.label}>
-                                    Senha
-                                </ThemedText>
-                                <TouchableOpacity
-                                    onPress={() =>
-                                        router.push('/forgot-password')
-                                    }
-                                >
-                                    <ThemedText
-                                        style={[
-                                            styles.forgotLink,
-                                            { color: colors.tint },
-                                        ]}
-                                    >
-                                        Esqueceu a senha?
-                                    </ThemedText>
-                                </TouchableOpacity>
-                            </View>
-                            <View style={styles.passwordWrap}>
-                                <TextInput
-                                    style={[
-                                        styles.input,
-                                        styles.passwordInput,
-                                        {
-                                            backgroundColor: isDark
-                                                ? colors.backgroundSelected
-                                                : '#f8f8f8',
-                                            borderColor:
-                                                colors.backgroundElement,
-                                            color: colors.text,
-                                        },
-                                    ]}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    placeholder="••••••••"
-                                    placeholderTextColor={colors.textSecondary}
-                                    secureTextEntry={!showPassword}
-                                    autoCapitalize="none"
-                                />
-                                <TouchableOpacity
-                                    style={styles.eyeBtn}
-                                    onPress={() =>
-                                        setShowPassword(!showPassword)
-                                    }
-                                >
-                                    <ThemedText
-                                        style={{ color: colors.textSecondary }}
-                                    >
-                                        {showPassword ? '🙈' : '👁'}
-                                    </ThemedText>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Submit */}
                         <TouchableOpacity
                             style={[
                                 styles.submitBtn,
                                 { backgroundColor: colors.tint },
-                                isLoading && { opacity: 0.7 },
+                                isSubmitting && { opacity: 0.7 },
                             ]}
-                            onPress={handleLogin}
-                            disabled={isLoading}
+                            onPress={handleSubmit}
+                            disabled={isSubmitting}
                         >
-                            {isLoading ? (
+                            {isSubmitting ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
                                 <ThemedText style={styles.submitBtnText}>
-                                    Entrar
+                                    Enviar código
                                 </ThemedText>
                             )}
                         </TouchableOpacity>
 
-                        {/* Footer link */}
                         <View style={styles.footerLink}>
                             <ThemedText
                                 style={[
@@ -223,10 +163,10 @@ export default function LoginScreen() {
                                     { color: colors.textSecondary },
                                 ]}
                             >
-                                Não tem uma conta?{' '}
+                                Lembrou a senha?{' '}
                             </ThemedText>
                             <TouchableOpacity
-                                onPress={() => router.replace('/signup')}
+                                onPress={() => router.replace('/login')}
                             >
                                 <ThemedText
                                     style={[
@@ -234,7 +174,7 @@ export default function LoginScreen() {
                                         { color: colors.tint },
                                     ]}
                                 >
-                                    Cadastre-se
+                                    Entrar
                                 </ThemedText>
                             </TouchableOpacity>
                         </View>
@@ -309,34 +249,12 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         marginBottom: 6,
     },
-    labelRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 6,
-    },
-    forgotLink: {
-        fontSize: 12,
-    },
     input: {
         borderWidth: 1,
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 10,
         fontSize: 14,
-    },
-    passwordWrap: {
-        position: 'relative',
-    },
-    passwordInput: {
-        paddingRight: 44,
-    },
-    eyeBtn: {
-        position: 'absolute',
-        right: 12,
-        top: 0,
-        bottom: 0,
-        justifyContent: 'center',
     },
     submitBtn: {
         borderRadius: 8,

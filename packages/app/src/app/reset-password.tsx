@@ -11,38 +11,57 @@ import {
     StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
-import { useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
+import ChangePasswordAPI from '../../api/auth/ChangePassword';
 
-export default function LoginScreen() {
+const PASSWORD_REGEX =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+const PASSWORD_MESSAGE =
+    'A senha deve conter ao menos 8 caracteres, incluindo maiúsculas, minúsculas, números e símbolos (@$!%*?&#)';
+
+export default function ResetPasswordScreen() {
     const router = useRouter();
-    const { login, isLoading } = useAuth();
+    const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
+    const email = typeof emailParam === 'string' ? emailParam : '';
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [token, setToken] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleLogin = async () => {
-        if (!email || !password) {
+    const handleSubmit = async () => {
+        if (!token || !newPassword || !confirmPassword) {
             setError('Preencha todos os campos.');
             return;
         }
+        if (newPassword !== confirmPassword) {
+            setError('As senhas não coincidem.');
+            return;
+        }
+        if (!PASSWORD_REGEX.test(newPassword)) {
+            setError(PASSWORD_MESSAGE);
+            return;
+        }
         setError('');
-        const result = await login(email, password);
+        setIsSubmitting(true);
+        const result = await ChangePasswordAPI(email, token, newPassword);
+        setIsSubmitting(false);
+
         if (result.success) {
-            router.replace('/analytics');
-        } else if (result.blocked) {
-            setError(
-                'Sua conta foi bloqueada por excesso de tentativas incorretas. Entre em contato com o suporte.',
-            );
+            router.replace('/login');
         } else {
-            setError('Email ou senha inválidos. Tente novamente.');
+            setError(
+                result.message ||
+                    'Código inválido ou expirado. Tente novamente.',
+            );
         }
     };
 
@@ -73,7 +92,6 @@ export default function LoginScreen() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Card */}
                     <View
                         style={[
                             styles.card,
@@ -85,23 +103,25 @@ export default function LoginScreen() {
                             },
                         ]}
                     >
-                        {/* Brand */}
                         <ThemedText
                             style={[styles.brand, { color: colors.tint }]}
                         >
                             AgroScope
                         </ThemedText>
-                        <ThemedText style={styles.cardTitle}>Entrar</ThemedText>
+                        <ThemedText style={styles.cardTitle}>
+                            Redefinir senha
+                        </ThemedText>
                         <ThemedText
                             style={[
                                 styles.cardSubtitle,
                                 { color: colors.textSecondary },
                             ]}
                         >
-                            Entre com sua conta para acessar o sistema
+                            {email
+                                ? `Digite o código enviado para ${email} e escolha uma nova senha`
+                                : 'Digite o código recebido por email e escolha uma nova senha'}
                         </ThemedText>
 
-                        {/* Error */}
                         {!!error && (
                             <View
                                 style={[
@@ -115,9 +135,10 @@ export default function LoginScreen() {
                             </View>
                         )}
 
-                        {/* Email */}
                         <View style={styles.fieldGroup}>
-                            <ThemedText style={styles.label}>Email</ThemedText>
+                            <ThemedText style={styles.label}>
+                                Código de verificação
+                            </ThemedText>
                             <TextInput
                                 style={[
                                     styles.input,
@@ -129,37 +150,19 @@ export default function LoginScreen() {
                                         color: colors.text,
                                     },
                                 ]}
-                                value={email}
-                                onChangeText={setEmail}
-                                placeholder="seu@email.com"
+                                value={token}
+                                onChangeText={setToken}
+                                placeholder="000000"
                                 placeholderTextColor={colors.textSecondary}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                autoCorrect={false}
+                                keyboardType="number-pad"
+                                maxLength={6}
                             />
                         </View>
 
-                        {/* Password */}
                         <View style={styles.fieldGroup}>
-                            <View style={styles.labelRow}>
-                                <ThemedText style={styles.label}>
-                                    Senha
-                                </ThemedText>
-                                <TouchableOpacity
-                                    onPress={() =>
-                                        router.push('/forgot-password')
-                                    }
-                                >
-                                    <ThemedText
-                                        style={[
-                                            styles.forgotLink,
-                                            { color: colors.tint },
-                                        ]}
-                                    >
-                                        Esqueceu a senha?
-                                    </ThemedText>
-                                </TouchableOpacity>
-                            </View>
+                            <ThemedText style={styles.label}>
+                                Nova senha
+                            </ThemedText>
                             <View style={styles.passwordWrap}>
                                 <TextInput
                                     style={[
@@ -174,9 +177,9 @@ export default function LoginScreen() {
                                             color: colors.text,
                                         },
                                     ]}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    placeholder="••••••••"
+                                    value={newPassword}
+                                    onChangeText={setNewPassword}
+                                    placeholder="Mín. 8 caracteres, com maiúscula, número e símbolo"
                                     placeholderTextColor={colors.textSecondary}
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"
@@ -196,26 +199,66 @@ export default function LoginScreen() {
                             </View>
                         </View>
 
-                        {/* Submit */}
+                        <View style={styles.fieldGroup}>
+                            <ThemedText style={styles.label}>
+                                Confirmar nova senha
+                            </ThemedText>
+                            <View style={styles.passwordWrap}>
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        styles.passwordInput,
+                                        {
+                                            backgroundColor: isDark
+                                                ? colors.backgroundSelected
+                                                : '#f8f8f8',
+                                            borderColor:
+                                                colors.backgroundElement,
+                                            color: colors.text,
+                                        },
+                                    ]}
+                                    value={confirmPassword}
+                                    onChangeText={setConfirmPassword}
+                                    placeholder="••••••••"
+                                    placeholderTextColor={colors.textSecondary}
+                                    secureTextEntry={!showConfirmPassword}
+                                    autoCapitalize="none"
+                                />
+                                <TouchableOpacity
+                                    style={styles.eyeBtn}
+                                    onPress={() =>
+                                        setShowConfirmPassword(
+                                            !showConfirmPassword,
+                                        )
+                                    }
+                                >
+                                    <ThemedText
+                                        style={{ color: colors.textSecondary }}
+                                    >
+                                        {showConfirmPassword ? '🙈' : '👁'}
+                                    </ThemedText>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
                         <TouchableOpacity
                             style={[
                                 styles.submitBtn,
                                 { backgroundColor: colors.tint },
-                                isLoading && { opacity: 0.7 },
+                                isSubmitting && { opacity: 0.7 },
                             ]}
-                            onPress={handleLogin}
-                            disabled={isLoading}
+                            onPress={handleSubmit}
+                            disabled={isSubmitting}
                         >
-                            {isLoading ? (
+                            {isSubmitting ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
                                 <ThemedText style={styles.submitBtnText}>
-                                    Entrar
+                                    Redefinir senha
                                 </ThemedText>
                             )}
                         </TouchableOpacity>
 
-                        {/* Footer link */}
                         <View style={styles.footerLink}>
                             <ThemedText
                                 style={[
@@ -223,10 +266,12 @@ export default function LoginScreen() {
                                     { color: colors.textSecondary },
                                 ]}
                             >
-                                Não tem uma conta?{' '}
+                                Não recebeu o código?{' '}
                             </ThemedText>
                             <TouchableOpacity
-                                onPress={() => router.replace('/signup')}
+                                onPress={() =>
+                                    router.replace('/forgot-password')
+                                }
                             >
                                 <ThemedText
                                     style={[
@@ -234,7 +279,7 @@ export default function LoginScreen() {
                                         { color: colors.tint },
                                     ]}
                                 >
-                                    Cadastre-se
+                                    Solicitar novamente
                                 </ThemedText>
                             </TouchableOpacity>
                         </View>
@@ -308,15 +353,6 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '500',
         marginBottom: 6,
-    },
-    labelRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 6,
-    },
-    forgotLink: {
-        fontSize: 12,
     },
     input: {
         borderWidth: 1,

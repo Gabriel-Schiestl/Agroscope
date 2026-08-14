@@ -71,6 +71,7 @@ export class AuthController {
     }
 
     @Public()
+    @Throttle({ medium: { limit: 10, ttl: minutes(1) } })
     @Post('recovery-token')
     async passwordRecovery(@Body() body: PasswordRecoveryDto) {
         const result = await this.passwordRecoveryUseCase.execute({

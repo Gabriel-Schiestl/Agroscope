@@ -4,6 +4,7 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
+import { EncryptionService } from '../../domain/services/Encryption.service';
 
 export interface ChangePasswordUseCaseProps {
     email: string;
@@ -24,6 +25,8 @@ export class ChangePasswordUseCase extends AbstractUseCase<
     constructor(
         @Inject('AuthenticationRepository')
         private readonly authenticationRepository: AuthenticationRepository,
+        @Inject('EncryptionService')
+        private readonly encryptionService: EncryptionService,
     ) {
         super();
     }
@@ -41,9 +44,11 @@ export class ChangePasswordUseCase extends AbstractUseCase<
                 ),
             );
 
+        const hash = await this.encryptionService.encrypt(props.newPassword);
+
         const passwordChange = authentication.value.applyPasswordChange(
             props.token,
-            props.newPassword,
+            hash,
         );
         if (passwordChange.isFailure())
             return Res.failure(passwordChange.error);

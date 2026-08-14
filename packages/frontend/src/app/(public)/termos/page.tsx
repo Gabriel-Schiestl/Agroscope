@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -6,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
+import { VoltarButton } from "./voltar-button";
 
 export const metadata = {
   title: "Termos de Uso e Consentimento LGPD | AgroScope",
@@ -196,12 +196,7 @@ export default function TermosPage() {
           </section>
 
           <div className="text-center pt-2">
-            <Link
-              href="/signup"
-              className="text-primaryGreen hover:underline text-sm"
-            >
-              Voltar para o cadastro
-            </Link>
+            <VoltarButton />
           </div>
         </CardContent>
       </Card>

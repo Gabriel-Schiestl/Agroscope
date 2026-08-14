@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { io, Socket } from 'socket.io-client';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import api from '@/shared/http/http.config';
 import { useAuth } from '@/contexts/auth-context';
 import type { History } from '@/models/History';
@@ -439,7 +439,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
     );
 }
 
-function makeStyles(colors: (typeof Colors)['light'], isDark: boolean) {
+function makeStyles(colors: ThemePalette, isDark: boolean) {
     return StyleSheet.create({
         overlay: {
             flex: 1,

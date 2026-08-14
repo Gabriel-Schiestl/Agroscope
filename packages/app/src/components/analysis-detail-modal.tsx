@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import { imageToDataUri } from '@/lib/utils';
 import type { History } from '@/models/History';
 
@@ -132,7 +132,7 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
     );
 }
 
-function makeStyles(colors: (typeof Colors)['light'], isDark: boolean) {
+function makeStyles(colors: ThemePalette, isDark: boolean) {
     return StyleSheet.create({
         overlay: {
             flex: 1,

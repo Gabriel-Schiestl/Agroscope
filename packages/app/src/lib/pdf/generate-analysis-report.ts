@@ -78,7 +78,7 @@ function buildReportHtml(analysis: History): string {
 
     const cropConfidenceBadge =
         analysis.cropConfidence != null
-            ? `<span class="badge">${analysis.cropConfidence.toFixed(1)}% confiança</span>`
+            ? `<span class="badge">${(analysis.cropConfidence * 100).toFixed(1)}% confiança</span>`
             : '';
 
     const diagnosisText = isHealthy
@@ -87,7 +87,7 @@ function buildReportHtml(analysis: History): string {
 
     const sicknessConfidenceBadge =
         !isHealthy && analysis.sicknessConfidence != null
-            ? `<span class="badge-outline">${analysis.sicknessConfidence.toFixed(1)}% confiança</span>`
+            ? `<span class="badge-outline">${(analysis.sicknessConfidence * 100).toFixed(1)}% confiança</span>`
             : '';
 
     const handlingBlock = analysis.handling

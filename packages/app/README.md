@@ -28,7 +28,7 @@ cp .env.example .env
 Edite `.env`:
 
 ```
-EXPO_PUBLIC_API_URL=http://localhost:3000
+EXPO_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ### 3. Iniciar o app

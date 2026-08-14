@@ -108,7 +108,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                 friction: 11,
             }).start();
 
-            const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+            const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
 
             const socket = io(`${apiUrl}/chat`, {
                 transports: ['websocket', 'polling'],

@@ -28,6 +28,7 @@ import api from '@/shared/http/http.config';
 import type { History } from '@/models/History';
 import type { AnalyticsGranularity } from '@/models/Analytics';
 import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
+import { hasPlanFeature, PLAN_FEATURE_REPORT_GENERATION } from '@/lib/plan-features';
 
 const SEQUENTIAL_HUE = '#4CAF50';
 const CATEGORICAL_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
@@ -81,6 +82,10 @@ export default function AnalyticsScreen() {
     const router = useRouter();
     const { auth, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const { limit, refetch: refetchLimit } = useLimit();
+    const canGenerateReport = hasPlanFeature(
+        limit?.featureFlags,
+        PLAN_FEATURE_REPORT_GENERATION,
+    );
 
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
@@ -184,8 +189,6 @@ export default function AnalyticsScreen() {
         );
     };
 
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-
     const [historyItems, setHistoryItems] = useState<History[]>([]);
     const [historyLoading, setHistoryLoading] = useState(false);
     const [cropFilter, setCropFilter] = useState<string | undefined>();
@@ -211,7 +214,7 @@ export default function AnalyticsScreen() {
             params.append('order', order);
 
             const response = await api.get<History[]>(
-                `${apiUrl}/history?${params.toString()}`,
+                `/history?${params.toString()}`,
             );
             setHistoryItems(response.data);
         } catch {
@@ -219,7 +222,7 @@ export default function AnalyticsScreen() {
         } finally {
             setHistoryLoading(false);
         }
-    }, [apiUrl, cropFilter, dateRange, order]);
+    }, [cropFilter, dateRange, order]);
 
     useEffect(() => {
         if (activeTab === 'history') {
@@ -288,7 +291,7 @@ export default function AnalyticsScreen() {
             } as any);
 
             const response = await api.post<History>(
-                `${apiUrl}/predict`,
+                '/predict',
                 formData,
                 { headers: { 'Content-Type': 'multipart/form-data' } },
             );
@@ -332,6 +335,13 @@ export default function AnalyticsScreen() {
     };
 
     const handleGenerateReport = async (analysis: History) => {
+        if (!canGenerateReport) {
+            Alert.alert(
+                'Recurso indisponível',
+                'Relatórios em PDF estão disponíveis apenas nos planos pagos. Faça upgrade do seu plano.',
+            );
+            return;
+        }
         setGeneratingReportId(analysis.id);
         try {
             await generateAnalysisReportPdf(analysis);
@@ -741,7 +751,7 @@ export default function AnalyticsScreen() {
                                                     <ThemedText
                                                         style={styles.badgeText}
                                                     >
-                                                        {result.cropConfidence.toFixed(
+                                                        {(result.cropConfidence * 100).toFixed(
                                                             1,
                                                         )}
                                                         % confiança
@@ -795,7 +805,7 @@ export default function AnalyticsScreen() {
                                                                         },
                                                                     ]}
                                                                 >
-                                                                    {result.sicknessConfidence.toFixed(
+                                                                    {(result.sicknessConfidence * 100).toFixed(
                                                                         1,
                                                                     )}
                                                                     %
@@ -934,10 +944,10 @@ export default function AnalyticsScreen() {
                                         style={[
                                             styles.reportBtn,
                                             { borderColor: colors.tint },
-                                            generatingReportId === result.id && { opacity: 0.6 },
+                                            (generatingReportId === result.id || !canGenerateReport) && { opacity: 0.6 },
                                         ]}
                                         onPress={() => handleGenerateReport(result)}
-                                        disabled={generatingReportId === result.id}
+                                        disabled={generatingReportId === result.id || !canGenerateReport}
                                     >
                                         {generatingReportId === result.id ? (
                                             <ActivityIndicator color={colors.tint} />
@@ -947,6 +957,13 @@ export default function AnalyticsScreen() {
                                             </ThemedText>
                                         )}
                                     </TouchableOpacity>
+                                    {!canGenerateReport && (
+                                        <ThemedText
+                                            style={[styles.reportLockedText, { color: colors.textSecondary }]}
+                                        >
+                                            Disponível nos planos pagos. Faça upgrade para gerar relatórios.
+                                        </ThemedText>
+                                    )}
                                 </View>
                             </ThemedView>
                         )}
@@ -1152,7 +1169,7 @@ export default function AnalyticsScreen() {
                                                     style={[
                                                         styles.historyChatBtn,
                                                         { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' },
-                                                        generatingReportId === item.id && { opacity: 0.6 },
+                                                        (generatingReportId === item.id || !canGenerateReport) && { opacity: 0.6 },
                                                     ]}
                                                     onPress={() => handleGenerateReport(item)}
                                                     disabled={generatingReportId === item.id}
@@ -1669,6 +1686,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     reportBtnText: { fontWeight: '600', fontSize: 14 },
+    reportLockedText: { fontSize: 11, textAlign: 'center', marginTop: 6 },
     historyChatBtn: {
         marginTop: 4,
         paddingHorizontal: 10,

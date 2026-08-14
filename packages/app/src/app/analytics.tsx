@@ -19,6 +19,7 @@ import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ChatModal } from '@/components/chat-modal';
+import { AnalysisDetailModal } from '@/components/analysis-detail-modal';
 import { useAuth } from '@/contexts/auth-context';
 import { useLimit } from '@/hooks/use-limit';
 import { useAnalytics, type AnalyticsRangePreset } from '@/hooks/use-analytics';
@@ -92,6 +93,7 @@ export default function AnalyticsScreen() {
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'analysis' | 'history' | 'stats'>('analysis');
     const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
+    const [detailAnalysis, setDetailAnalysis] = useState<History | null>(null);
     const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
 
     const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRangePreset>('90d');
@@ -1132,6 +1134,14 @@ export default function AnalyticsScreen() {
                                                 )}
                                                 <TouchableOpacity
                                                     style={[styles.historyChatBtn, { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' }]}
+                                                    onPress={() => setDetailAnalysis(item)}
+                                                >
+                                                    <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
+                                                        👁️ Detalhes
+                                                    </ThemedText>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.historyChatBtn, { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' }]}
                                                     onPress={() => setChatAnalysis(item)}
                                                 >
                                                     <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
@@ -1461,6 +1471,12 @@ export default function AnalyticsScreen() {
                 analysis={chatAnalysis}
                 onClose={() => setChatAnalysis(null)}
                 limit={limit}
+            />
+
+            <AnalysisDetailModal
+                visible={detailAnalysis !== null}
+                analysis={detailAnalysis}
+                onClose={() => setDetailAnalysis(null)}
             />
         </View>
     );

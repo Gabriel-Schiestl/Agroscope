@@ -517,7 +517,7 @@ export function AnalyticsDashboard() {
                       key={key}
                       type="monotone"
                       dataKey={key}
-                      name={key}
+                      name={seriesNameById.get(key) ?? key}
                       stroke={
                         key === "other"
                           ? OTHER_HUE

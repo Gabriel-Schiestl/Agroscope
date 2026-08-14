@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,14 +29,6 @@ import {
   PopoverTrigger,
 } from "../../../components/ui/popover";
 import { Calendar } from "../../../components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../../components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,14 +83,13 @@ const SORT_OPTIONS = [
 ];
 
 export default function HistoryPage() {
+  const router = useRouter();
   const { history: historyEntries, isLoading } = useHistory();
   const [searchQuery, setSearchQuery] = useState("");
   const [cropFilter, setCropFilter] = useState("Todos");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [sortOption, setSortOption] = useState("date-desc");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [selectedHistory, setSelectedHistory] = useState<History | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [generatingReportId, setGeneratingReportId] = useState<string | null>(
@@ -172,8 +164,7 @@ export default function HistoryPage() {
   };
 
   const openHistoryDetails = (history: History) => {
-    setSelectedHistory(history);
-    setIsDetailsOpen(true);
+    router.push(`/history/${history.id}`);
   };
 
   return (
@@ -656,135 +647,6 @@ export default function HistoryPage() {
           </Pagination>
         )}
       </div>
-
-      {/* Modal de detalhes */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-[700px]">
-          {selectedHistory && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Detalhes da Análise</DialogTitle>
-                <DialogDescription>
-                  Análise realizada em{" "}
-                  {format(
-                    new Date(selectedHistory.createdAt),
-                    "dd 'de' MMMM 'de' yyyy, HH:mm",
-                    { locale: ptBR }
-                  )}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative w-full h-48 rounded-md overflow-hidden bg-muted">
-                  <Image
-                    src={toImageSrc(selectedHistory.image)}
-                    alt={selectedHistory.crop || "Análise"}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Diagnóstico
-                    </h3>
-                    <p className="font-medium">
-                      {selectedHistory.explanation || "Não identificado"}
-                    </p>
-                    {selectedHistory.sicknessConfidence != null && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className="bg-primaryGreen">
-                          Confiança:{" "}
-                          {selectedHistory.sicknessConfidence.toFixed(1)}%
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Cultura
-                    </h3>
-                    <p>
-                      {selectedHistory.crop || "Não identificada"}
-                      {selectedHistory.cropConfidence != null &&
-                        ` (Confiança: ${selectedHistory.cropConfidence.toFixed(1)}%)`}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                {selectedHistory.causes && (
-                  <div>
-                    <h3 className="font-medium">Causas / Sintomas</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {selectedHistory.causes}
-                    </p>
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="font-medium">Recomendações de Manejo</h3>
-                  <p className="text-muted-foreground mt-1">
-                    {selectedHistory.handling}
-                  </p>
-                </div>
-
-                {selectedHistory.precautions && (
-                  <div>
-                    <h3 className="font-medium">Precauções</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {selectedHistory.precautions}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <DialogFooter className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  variant="outline"
-                  className="text-primaryGreen border-primaryGreen/30"
-                  onClick={() => {
-                    setIsDetailsOpen(false);
-                    setChatAnalysis(selectedHistory);
-                  }}
-                >
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Abrir Chat
-                </Button>
-                <Button variant="outline">
-                  <Download className="mr-2 h-4 w-4" />
-                  Exportar
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-primaryGreen hover:bg-lightGreen text-white hover:text-white"
-                  disabled={
-                    generatingReportId === selectedHistory.id ||
-                    !canGenerateReport
-                  }
-                  onClick={() => handleGenerateReport(selectedHistory)}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  {generatingReportId === selectedHistory.id
-                    ? "Gerando..."
-                    : "Gerar Relatório PDF"}
-                </Button>
-              </DialogFooter>
-              {!canGenerateReport && (
-                <p className="text-xs text-red-500 text-center">
-                  Relatórios em PDF disponíveis nos planos pagos. Faça
-                  upgrade do seu plano para gerar relatórios.
-                </p>
-              )}
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
 
       <ChatPanel
         open={chatAnalysis !== null}

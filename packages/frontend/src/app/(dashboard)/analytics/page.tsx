@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, type ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   Card,
@@ -51,6 +52,7 @@ import {
 } from '../../../lib/plan-features';
 
 export default function AnalyticsPage() {
+  const router = useRouter();
   const [file, setFile] = useState<File | undefined>();
   const [result, setResult] = useState<HistoryModel | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -490,6 +492,9 @@ export default function AnalyticsPage() {
                               variant="link"
                               size="sm"
                               className="text-primaryGreen ml-auto p-0 h-auto"
+                              onClick={() =>
+                                router.push(`/history/${analysis.id}`)
+                              }
                             >
                               Ver detalhes
                             </Button>

@@ -1,164 +1,81 @@
 # Torch
 import torch
-import torchvision.transforms as transforms
-import torch.nn as nn
-import torch.nn.functional as F
+
+from utils.model import NeuralNetwork
+from torchvision import models
+
+from typing import NamedTuple, Optional
 
 
-## Corn
-def CornSetter():
+"""
+Podemos usar diretamente a biblioteca logging
+"""
+class Colors:
+    def __init__(self):
+        self.RED = "\033[1;31m"
+        self.GREEN = "\033[1;32m"
+        self.YELLOW = "\033[1;33m"
+        self.BLUE = "\033[1;34m"
+        self.DEFAULT = "\033[0m"
 
-    class NeuralNetwork(nn.Module):
-        def __init__(self):
-            super().__init__()
+    def INFO(self, text:str) -> str:
+        return f"[{self.GREEN}INFO{self.DEFAULT}]: {text}"
 
-            # Construção das hidden layers
-            self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1) # 128
-            self.bn1 = nn.BatchNorm2d(32)
-            self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1) # 64
-            self.bn2 = nn.BatchNorm2d(64)
-            self.conv3 = nn.Conv2d(64, 128, kernel_size=3) # 30
-            self.bn3 = nn.BatchNorm2d(128)
+    def ERROR(self, text:str) -> str:
+        return f"[{self.RED}ERROR{self.DEFAULT}]: {text}"
 
-            self.pool = nn.MaxPool2d(2, 2) # 15
 
-            # Flatten
-            self.fc1 = nn.Linear(128 * 15 * 15, 120)
-            self.bn4 = nn.BatchNorm1d(120)
-            self.fc2 = nn.Linear(120, 84)
-            self.fc3 = nn.Linear(84, 4)
+class Response(NamedTuple):
+    """
+        Modelo e checkpoint
 
-            # Ativação GeLU
-            self.gelu = nn.GELU()
+        return:
+            Model: Modelo no qual o treinamento foi feito.
+            Checkpoint: Estrutura de modelo e informações sobre o mesmo.
+    """
+    Net: models.ConvNeXt
+    Checkpoint: Optional[dict] = None
+
+
+# LoadModel
+def loadModel(model_path: str, device: str = "cpu") -> Response:
+    """
+        Função para carregamento de modelos treinados.
+        Habilitada a opção de carregar os metadados.
+
+        params:
+            model_path: Caminho do arquivo .pth do modelo
+
+        Caso existam registros no checkpoint, o primeiro retorno da tupla será o modelo.eval() e o segundo será o checkpoint.
+        Senão, somente será retornada uma tupla contendo o modelo.eval()
+    """
+
+    colors = Colors()
+
+    try:
+
+        NET = models.convnext_tiny(weights=None)
+        in_features = NET.classifier[2].in_features
+
+        LOADED_CHECKPOINT = torch.load(
+            model_path,
+            map_location=device,
+            )
+
+        if LOADED_CHECKPOINT["model_state_dict"] != None:
+            NET.classifier[2] = torch.nn.Linear(in_features, LOADED_CHECKPOINT["num_classes"])
+
+            NET.load_state_dict(LOADED_CHECKPOINT["model_state_dict"])
+
+            print(colors.INFO("Modelo c/ checkpoint carregado com sucesso."))
+            return Response(NET.eval().to(device), LOADED_CHECKPOINT)
         
-        def forward(self, x):
-            x = self.pool(F.gelu(self.bn1(self.conv1(x))))
-            x = self.pool(F.gelu(self.bn2(self.conv2(x))))
-            x = self.pool(F.gelu(self.bn3(self.conv3(x))))
+        else:
+            NET.load_state_dict(torch.load(model_path))
 
-            x = torch.flatten(x, 1)
-
-            x = F.gelu(self.bn4(self.fc1(x)))
-            x = F.gelu(self.fc2(x))
-            x = self.fc3(x)
-
-            return x
+            print(colors.INFO("Modelo s/ checkpoint carregado com sucesso."))
+            return Response(NET.eval().to(device), None)
 
 
-    ## Transform ##
-
-    transform = transforms.Compose([
-        transforms.Resize((128, 128)),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ])
-
-    ## Retorno das Instâncias
-    return NeuralNetwork, transform
-
-
-## Soybean
-def SoybeanSetter():
-
-    class NeuralNetwork(nn.Module):
-        def __init__(self):
-            super().__init__()
-
-            # Construção das hidden layers
-            self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
-            self.bn1 = nn.BatchNorm2d(32)
-            self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-            self.bn2 = nn.BatchNorm2d(64)
-            self.conv3 = nn.Conv2d(64, 128, kernel_size=3) 
-            self.bn3 = nn.BatchNorm2d(128)
-
-            self.pool = nn.MaxPool2d(2, 2)
-
-            # Flatten
-            self.fc1 = nn.Linear(128 * 15 * 15, 120)
-            self.bn4 = nn.BatchNorm1d(120)
-            self.fc2 = nn.Linear(120, 84)
-            self.fc3 = nn.Linear(84, 10)
-
-            # Ativação GeLU
-            self.gelu = nn.GELU()
-        
-        def forward(self, x):
-            x = self.pool(F.gelu(self.bn1(self.conv1(x))))
-            x = self.pool(F.gelu(self.bn2(self.conv2(x))))
-            x = self.pool(F.gelu(self.bn3(self.conv3(x))))
-
-            x = torch.flatten(x, 1)
-
-            x = F.gelu(self.bn4(self.fc1(x)))
-            x = F.gelu(self.fc2(x))
-            x = self.fc3(x)
-
-            return x
-
-
-    ## Transform ##
-
-    transform = transforms.Compose([
-        transforms.Resize((128, 128)),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ])
-
-    ## Retorno das Instâncias
-    return NeuralNetwork, transform
-
-
-## Wheat
-def WheatSetter():
-
-    class NeuralNetwork(nn.Module):
-        def __init__(self):
-            super().__init__()
-
-            # Construção das hidden layers
-            self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
-            self.bn1 = nn.BatchNorm2d(32)
-            self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-            self.bn2 = nn.BatchNorm2d(64)
-            self.conv3 = nn.Conv2d(64, 128, kernel_size=3)
-            self.bn3 = nn.BatchNorm2d(128)
-
-            self.pool = nn.MaxPool2d(2, 2) # 15
-
-            # Flatten
-            self.fc1 = nn.Linear(128 * 15 * 15, 120)
-            self.bn4 = nn.BatchNorm1d(120)
-            self.fc2 = nn.Linear(120, 84)
-            self.fc3 = nn.Linear(84, 7)
-
-            # Ativação GeLU
-            self.gelu = nn.GELU()
-        
-        def forward(self, x):
-            x = self.pool(F.gelu(self.bn1(self.conv1(x))))
-            x = self.pool(F.gelu(self.bn2(self.conv2(x))))
-            x = self.pool(F.gelu(self.bn3(self.conv3(x))))
-
-            x = torch.flatten(x, 1)
-
-            x = F.gelu(self.bn4(self.fc1(x)))
-            x = F.gelu(self.fc2(x))
-            x = self.fc3(x)
-
-            return x
-        
-
-    ## Transform ##
-    
-    transform = transforms.Compose([
-        transforms.Resize((128, 128)),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ])
-
-    ## Retorno das Instâncias
-    return NeuralNetwork, transform
+    except Exception as exc:
+        print(colors.ERROR(exc))

@@ -16,6 +16,14 @@ describe('Authentication', () => {
         );
     });
 
+    it('should restore incorrectPasswordAttempts when loading from persistence', () => {
+        const auth = Authentication.load(
+            { ...validProps, incorrectPasswordAttempts: 3 },
+            'auth-1',
+        );
+        expect(auth.incorrectPasswordAttempts).toBe(3);
+    });
+
     it('should fail to create without email', () => {
         const result = Authentication.create({ ...validProps, email: '' });
         expect(result.isFailure()).toBe(true);
@@ -133,13 +141,14 @@ describe('Authentication', () => {
     });
 
     it('should not change password if token expired', () => {
-        const result = Authentication.create(validProps);
-        let auth: Authentication;
-        if (result.isSuccess()) {
-            auth = result.value;
-        }
-        auth.setRecoveryToken('token123');
-        (auth as any)['#recoveryCodeExpiration'] = new Date(Date.now() - 10000);
+        const auth = Authentication.load(
+            {
+                ...validProps,
+                recoveryCode: 'token123',
+                recoveryCodeExpiration: new Date(Date.now() - 10000),
+            },
+            'auth-1',
+        );
         const change = auth.applyPasswordChange('token123', 'newPassword');
         expect(change.isFailure()).toBe(true);
         expect(change.isFailure() && change.error).toBeInstanceOf(

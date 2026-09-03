@@ -1,3 +1,4 @@
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Sickness } from '../Sickness';
 
 describe('Sickness Domain', () => {
@@ -16,10 +17,34 @@ describe('Sickness Domain', () => {
         expect(sickness.isSuccess() && sickness.value.symptoms).toEqual(validProps.symptoms);
     });
 
+    it('should fail without a name', () => {
+        const result = Sickness.create({ ...validProps, name: '' });
+        expect(result.isFailure()).toBe(true);
+        expect(result.isFailure() && result.error).toBeInstanceOf(
+            BusinessException,
+        );
+    });
+
+    it('should fail without symptoms', () => {
+        const result = Sickness.create({ ...validProps, symptoms: [] });
+        expect(result.isFailure()).toBe(true);
+        expect(result.isFailure() && result.error).toBeInstanceOf(
+            BusinessException,
+        );
+    });
+
     it('should load a sickness with given id', () => {
         const sickness = Sickness.load(validProps, 'custom-id');
         expect(sickness).toBeInstanceOf(Sickness);
         expect(sickness.id).toBe('custom-id');
+    });
+
+    describe('isSickness', () => {
+        it('should identify a Sickness instance', () => {
+            const sickness = Sickness.load(validProps, 'id-1');
+            expect(Sickness.isSickness(sickness)).toBe(true);
+            expect(Sickness.isSickness({})).toBe(false);
+        });
     });
 
     describe('ClimateConditions', () => {
@@ -108,6 +133,12 @@ describe('Sickness Domain', () => {
         it('should return false when humidity is below minimum', () => {
             expect(
                 sickness.isCompatibleWithWeather({ temperature: 25, humidity: 30 }),
+            ).toBe(false);
+        });
+
+        it('should return false when humidity exceeds maximum', () => {
+            expect(
+                sickness.isCompatibleWithWeather({ temperature: 25, humidity: 95 }),
             ).toBe(false);
         });
 

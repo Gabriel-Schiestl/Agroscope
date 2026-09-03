@@ -32,6 +32,7 @@ export class Authentication implements AuthenticationProps {
         this.#lastLogin = props.lastLogin;
         this.#recoveryCode = props.recoveryCode;
         this.#recoveryCodeExpiration = props.recoveryCodeExpiration;
+        this.#incorrectPasswordAttempts = props.incorrectPasswordAttempts;
         this.#incorrectRecoveryAttempts = props.incorrectRecoveryAttempts;
     }
 

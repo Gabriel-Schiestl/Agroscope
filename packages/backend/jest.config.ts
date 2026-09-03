@@ -5,6 +5,10 @@ module.exports = {
     transform: {
         '^.+\\.(t|j)s$': 'ts-jest',
     },
+    moduleNameMapper: {
+        '^src/(.*)$': '<rootDir>/$1',
+        '^PublicRoutes$': '<rootDir>/../PublicRoutes',
+    },
     collectCoverageFrom: [
         '**/*.(t|j)s',
         '!**/*.module.ts',

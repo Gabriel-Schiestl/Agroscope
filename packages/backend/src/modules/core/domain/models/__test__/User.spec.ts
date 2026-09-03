@@ -75,4 +75,28 @@ describe('User Domain', () => {
         expect(user.name).toBe('Jane');
         expect(user.email).toBe('jane@example.com');
     });
+
+    describe('changePlan', () => {
+        it('should change the plan id', () => {
+            const user = User.load(
+                { name: 'Jane', email: 'jane@example.com', limit: Limit.create() },
+                'custom-id',
+            );
+            const result = user.changePlan('plan-2');
+            expect(result.isSuccess()).toBe(true);
+            expect(user.planId).toBe('plan-2');
+        });
+
+        it('should fail without a plan id', () => {
+            const user = User.load(
+                { name: 'Jane', email: 'jane@example.com', limit: Limit.create() },
+                'custom-id',
+            );
+            const result = user.changePlan('');
+            expect(result.isFailure()).toBe(true);
+            expect(result.isFailure() && result.error).toBeInstanceOf(
+                BusinessException,
+            );
+        });
+    });
 });

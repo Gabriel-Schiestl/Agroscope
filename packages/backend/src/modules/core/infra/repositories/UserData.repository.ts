@@ -8,6 +8,8 @@ import { User } from '../../domain/models/User';
 import { UserMapper } from '../mappers/User.mapper';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { UserModel } from '../models/User.model';
+import { LimitModel } from '../models/Limit.model';
+import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 
 @Injectable()
 export class UserDataRepository implements UserRepository {
@@ -18,13 +20,24 @@ export class UserDataRepository implements UserRepository {
 
             return Res.success();
         } catch (e) {
-            return Res.failure(new TechnicalException(e));
+            if (e.code === '23505' || e.driverError?.code === '23505') {
+                return Res.failure(
+                    new TechnicalException('O e-mail e senha não conferem'),
+                );
+            }
+            return Res.failure(
+                new TechnicalException(
+                    e.message ?? 'Erro ao salvar usuário.',
+                ),
+            );
         }
     }
 
     async getAll(): Promise<Result<UserRepositoryExceptions, User[]>> {
         try {
-            const models = await UserModel.find();
+            const models = await UserModel.find({
+                relations: { limit: true },
+            });
 
             return Res.success(
                 models.map((model) => UserMapper.modelToDomain(model)),
@@ -36,7 +49,15 @@ export class UserDataRepository implements UserRepository {
 
     async getById(id: string): Promise<Result<UserRepositoryExceptions, User>> {
         try {
-            const model = await UserModel.findOneBy({ id });
+            const model = await UserModel.findOne({
+                where: { id },
+                relations: { limit: true },
+            });
+            if (!model) {
+                return Res.failure(
+                    new RepositoryNoDataFound('User not found'),
+                );
+            }
 
             return Res.success(UserMapper.modelToDomain(model));
         } catch (e) {
@@ -48,9 +69,30 @@ export class UserDataRepository implements UserRepository {
         email: string,
     ): Promise<Result<UserRepositoryExceptions, User>> {
         try {
-            const model = await UserModel.findOneBy({ email });
+            const model = await UserModel.findOne({
+                where: { email },
+                relations: { limit: true },
+            });
+            if (!model) {
+                return Res.failure(
+                    new RepositoryNoDataFound('User not found'),
+                );
+            }
 
             return Res.success(UserMapper.modelToDomain(model));
+        } catch (e) {
+            return Res.failure(new TechnicalException(e));
+        }
+    }
+
+    async resetAllLimits(): Promise<Result<UserRepositoryExceptions, void>> {
+        try {
+            await LimitModel.createQueryBuilder()
+                .update(LimitModel)
+                .set({ imageRequests: 0, chatRequests: 0 })
+                .execute();
+
+            return Res.success();
         } catch (e) {
             return Res.failure(new TechnicalException(e));
         }

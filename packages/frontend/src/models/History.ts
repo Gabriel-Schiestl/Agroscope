@@ -1,14 +1,14 @@
-import { Sickness } from "./Sickness";
-
 export interface History {
   id: string;
   createdAt: Date;
-  sickness: Sickness;
-  sicknessConfidence: number;
+  sicknessId?: string;
+  sicknessConfidence?: number;
   crop: string;
   cropConfidence: number;
   handling: string;
   image: string;
-  clientId?: string;
+  explanation?: string;
+  causes?: string;
+  precautions?: string;
   userId?: string;
 }

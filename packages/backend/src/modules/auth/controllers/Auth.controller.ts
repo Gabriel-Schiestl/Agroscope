@@ -1,17 +1,18 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { Body, Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
 import { minutes, Throttle } from '@nestjs/throttler';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Public } from 'PublicRoutes';
 import { ChangePasswordUseCase } from '../application/usecases/ChangePassword.usecase';
-import { CreateAuthenticationUseCase } from '../application/usecases/CreateAuthentication.usecase';
 import {
     LoginUseCase,
     LoginUseCaseProps,
 } from '../application/usecases/Login.usecase';
 import { PasswordRecoveryUseCase } from '../application/usecases/PasswordRecovery.usecase';
 import { ValidateRecoveryTokenUseCase } from '../application/usecases/ValidateRecoveryToken.usecase';
-import { UserDto } from '../application/dto/User.dto';
+import { PasswordRecoveryDto } from '../application/dto/PasswordRecovery.dto';
+import { ValidateRecoveryTokenDto } from '../application/dto/ValidateRecoveryToken.dto';
+import { ChangePasswordDto } from '../application/dto/ChangePassword.dto';
+import { AuthUserRepository } from '../domain/repositories/AuthUser.repository';
 
 @Controller('auth')
 export class AuthController {
@@ -20,7 +21,8 @@ export class AuthController {
         private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
         private readonly validateRecoveryTokenUseCase: ValidateRecoveryTokenUseCase,
         private readonly changePasswordUseCase: ChangePasswordUseCase,
-        private readonly createAuthenticationUseCase: CreateAuthenticationUseCase,
+        @Inject('AuthUserRepository')
+        private readonly authUserRepository: AuthUserRepository,
     ) {}
 
     @Public()
@@ -43,26 +45,35 @@ export class AuthController {
             .json(result.isFailure() ? result.error : { token: result.value });
     }
 
+    @Public()
+    @Post('logout')
+    async logout(@Res() res: Response) {
+        res.clearCookie('agroscope-authentication', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+        });
+
+        return res.status(200).json({ success: true });
+    }
+
     @Get('validate')
     async validate(@Req() req: any, @Res() res: Response) {
+        const user = await this.authUserRepository.getById(req.user.sub);
+
         return res.status(200).json({
             isEngineer: req.user.engineer,
             isAdmin: req.user.admin,
             email: req.user.email,
             name: req.user.name,
+            planId: user.isSuccess() ? user.value.planId : undefined,
         });
     }
 
     @Public()
-    @Get('csrf/token')
-    getCsrfToken(@Req() req: Request, @Res() res: Response) {
-        const csrfToken = req.csrfToken();
-        res.json({ csrfToken });
-    }
-
-    @Public()
+    @Throttle({ medium: { limit: 10, ttl: minutes(1) } })
     @Post('recovery-token')
-    async passwordRecovery(@Body() body: { email: string }) {
+    async passwordRecovery(@Body() body: PasswordRecoveryDto) {
         const result = await this.passwordRecoveryUseCase.execute({
             email: body.email,
         });
@@ -72,9 +83,7 @@ export class AuthController {
 
     @Public()
     @Post('validate-recovery-token')
-    async validateRecoveryToken(
-        @Body() body: { email: string; token: string },
-    ) {
+    async validateRecoveryToken(@Body() body: ValidateRecoveryTokenDto) {
         const result = await this.validateRecoveryTokenUseCase.execute({
             email: body.email,
             token: body.token,
@@ -85,9 +94,7 @@ export class AuthController {
 
     @Public()
     @Post('change-password')
-    async changePassword(
-        @Body() body: { email: string; newPassword: string; token: string },
-    ) {
+    async changePassword(@Body() body: ChangePasswordDto) {
         const result = await this.changePasswordUseCase.execute({
             email: body.email,
             token: body.token,
@@ -95,13 +102,5 @@ export class AuthController {
         });
 
         return result;
-    }
-
-    @OnEvent('user.created')
-    async createCalendar(user: UserDto) {
-        this.createAuthenticationUseCase.execute({
-            email: user.email,
-            password: user.password,
-        });
     }
 }

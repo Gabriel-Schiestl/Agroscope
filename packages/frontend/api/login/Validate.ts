@@ -1,10 +1,11 @@
-import api, { ensureCsrfToken } from "../../shared/http/http.config";
+import api from "../../shared/http/http.config";
 
 export interface ValidateResponse {
   isEngineer: boolean;
   isAdmin: boolean;
   name: string;
   email: string;
+  planId?: string;
 }
 
 export default async function Validate(

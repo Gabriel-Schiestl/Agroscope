@@ -4,8 +4,9 @@ import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFou
 import { Res, Result } from 'src/shared/Result';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import generateRandomNumber from 'src/shared/RandomNumberGenerator';
-import { UserRepository } from 'src/modules/core/domain/repositories/User.repository';
+import { AuthUserRepository } from '../../domain/repositories/AuthUser.repository';
 import { ProducerService } from 'src/shared/domain/services/Producer.service';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export interface PasswordRecoveryUseCaseProps {
     email: string;
@@ -16,17 +17,23 @@ export type PasswordRecoveryUseCaseExceptions =
     | UnauthorizedException;
 
 @Injectable()
-export class PasswordRecoveryUseCase {
+export class PasswordRecoveryUseCase extends AbstractUseCase<
+    PasswordRecoveryUseCaseProps,
+    PasswordRecoveryUseCaseExceptions,
+    void
+> {
     constructor(
         @Inject('AuthenticationRepository')
         private readonly authenticationRepository: AuthenticationRepository,
         @Inject('EmailProducerService')
         private readonly emailService: ProducerService,
-        @Inject('UserRepository')
-        private readonly userRepository: UserRepository,
-    ) {}
+        @Inject('AuthUserRepository')
+        private readonly userRepository: AuthUserRepository,
+    ) {
+        super();
+    }
 
-    async execute(
+    protected async onExecute(
         props: PasswordRecoveryUseCaseProps,
     ): Promise<Result<PasswordRecoveryUseCaseExceptions, void>> {
         const authentication = await this.authenticationRepository.findByEmail(

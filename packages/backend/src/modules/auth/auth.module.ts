@@ -8,6 +8,7 @@ import { CoreModule } from '../core/core.module';
 import { AuthGuard } from './infra/services/Auth.guard';
 import { AuthController } from './controllers/Auth.controller';
 import { SharedModule } from 'src/shared/shared.module';
+import { AuthEventListener } from './application/listeners/AuthEvent.listener';
 
 @Module({
     imports: [
@@ -26,6 +27,11 @@ import { SharedModule } from 'src/shared/shared.module';
         ...repositories,
         ...mappers,
         AuthGuard,
+        {
+            provide: 'AuthUserRepository',
+            useExisting: 'UserRepository',
+        },
+        AuthEventListener,
         {
             provide: 'AES_KEY',
             useValue: process.env.AES_KEY,

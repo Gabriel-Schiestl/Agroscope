@@ -3,6 +3,8 @@ import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/A
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
+import { AbstractUseCase } from 'src/shared/AbstractUseCase';
+import { EncryptionService } from '../../domain/services/Encryption.service';
 
 export interface ChangePasswordUseCaseProps {
     email: string;
@@ -15,13 +17,21 @@ export type ChangePasswordUseCaseExceptions =
     | UnauthorizedException;
 
 @Injectable()
-export class ChangePasswordUseCase {
+export class ChangePasswordUseCase extends AbstractUseCase<
+    ChangePasswordUseCaseProps,
+    ChangePasswordUseCaseExceptions,
+    void
+> {
     constructor(
         @Inject('AuthenticationRepository')
         private readonly authenticationRepository: AuthenticationRepository,
-    ) {}
+        @Inject('EncryptionService')
+        private readonly encryptionService: EncryptionService,
+    ) {
+        super();
+    }
 
-    async execute(
+    protected async onExecute(
         props: ChangePasswordUseCaseProps,
     ): Promise<Result<ChangePasswordUseCaseExceptions, void>> {
         const authentication = await this.authenticationRepository.findByEmail(
@@ -34,9 +44,11 @@ export class ChangePasswordUseCase {
                 ),
             );
 
+        const hash = await this.encryptionService.encrypt(props.newPassword);
+
         const passwordChange = authentication.value.applyPasswordChange(
             props.token,
-            props.newPassword,
+            hash,
         );
         if (passwordChange.isFailure())
             return Res.failure(passwordChange.error);

@@ -1,24 +1,43 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
+import { Limit } from './Limit';
 
 export interface UserProps {
     name: string;
     email: string;
+    limit: Limit;
+    planId?: string;
+    termsAcceptedAt?: Date;
+    termsVersion?: string;
 }
 
-export interface CreateUserProps extends UserProps {}
+export interface CreateUserProps {
+    name: string;
+    email: string;
+    planId?: string;
+    acceptedTerms: boolean;
+    termsVersion: string;
+}
 export interface LoadUserProps extends UserProps {}
 
 export class User implements UserProps {
     #id: string;
     #name: string;
     #email: string;
+    #limit: Limit;
+    #planId?: string;
+    #termsAcceptedAt?: Date;
+    #termsVersion?: string;
 
     private constructor(props: UserProps, id?: string) {
         this.#id = id || uuid();
         this.#name = props.name;
         this.#email = props.email;
+        this.#limit = props.limit;
+        this.#planId = props.planId;
+        this.#termsAcceptedAt = props.termsAcceptedAt;
+        this.#termsVersion = props.termsVersion;
     }
 
     static create(props: CreateUserProps): Result<BusinessException, User> {
@@ -28,8 +47,22 @@ export class User implements UserProps {
         if (!props.email) {
             return Res.failure(new BusinessException('Email is required'));
         }
+        if (!props.acceptedTerms) {
+            return Res.failure(
+                new BusinessException(
+                    'A aceitação dos termos de uso e da política de privacidade é obrigatória',
+                ),
+            );
+        }
+        const limit = Limit.create();
 
-        return Res.success(new User(props));
+        return Res.success(
+            new User({
+                ...props,
+                limit,
+                termsAcceptedAt: new Date(),
+            }),
+        );
     }
 
     static load(props: LoadUserProps, id: string): User {
@@ -46,5 +79,30 @@ export class User implements UserProps {
 
     get email() {
         return this.#email;
+    }
+
+    get planId() {
+        return this.#planId;
+    }
+
+    get limit() {
+        return this.#limit;
+    }
+
+    get termsAcceptedAt() {
+        return this.#termsAcceptedAt;
+    }
+
+    get termsVersion() {
+        return this.#termsVersion;
+    }
+
+    changePlan(planId: string): Result<BusinessException, void> {
+        if (!planId) {
+            return Res.failure(new BusinessException('Plan is required'));
+        }
+        this.#planId = planId;
+
+        return Res.success();
     }
 }

@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import { Menu } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
-import { useAuthModal } from "../contexts/auth-modal-context";
-import LandingSidebar from "./landing-sidebar";
-import Link from "next/link";
+import { Menu } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '../components/ui/sheet';
+import { useAuthModal } from '../contexts/auth-modal-context';
+import LandingSidebar from './landing-sidebar';
+import { ThemeToggle } from './theme-toggle';
+import Link from 'next/link';
 
 export default function LandingHeader() {
   const { openLogin, openSignup } = useAuthModal();
 
   return (
-    <header className="bg-white border-b border-mediumGray/20 py-3 px-4 md:px-6">
+    <header className="bg-[#19241b] border-b border-mediumGray/20 py-3 px-4 md:px-6 fixed top-0 left-0 z-50 w-full">
       <div className="flex items-center justify-between max-w-[1400px] mx-auto w-full">
         <div className="flex items-center gap-2">
           <Sheet>
@@ -27,12 +28,14 @@ export default function LandingHeader() {
 
           <Link href="/">
             <div>
-              <h2 className="text-primaryGreen font-bold text-xl">AgroScope</h2>
+              <h2 className="text-[#4dae50] font-bold text-xl">AgroScope</h2>
             </div>
           </Link>
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle className="text-[#f4fff4] hover:bg-white/10" />
+
           <Button
             variant="outline"
             size="sm"
@@ -43,7 +46,7 @@ export default function LandingHeader() {
           </Button>
 
           <Button
-            className="bg-primaryGreen hover:bg-lightGreen"
+            className="bg-[#4dae50] hover:bg-[#334f36]"
             size="sm"
             onClick={openSignup}
           >

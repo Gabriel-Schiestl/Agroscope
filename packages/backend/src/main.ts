@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import * as cookieParser from 'cookie-parser';
-import { doubleCsrf } from 'csrf-csrf';
 import { config } from 'dotenv';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -10,25 +9,12 @@ import { ResponseInterceptor } from './shared/Response.interceptor';
 
 config();
 
-const { doubleCsrfProtection } = doubleCsrf({
-    getSecret: () => process.env.CSRF_SECRET,
-    cookieName: 'csrf-token',
-    cookieOptions: {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        path: '/',
-    },
-    ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
-});
-
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
         logger: ['error', 'warn', 'log', 'debug', 'verbose'],
     });
 
     app.use(cookieParser());
-    app.use(doubleCsrfProtection);
 
     app.use(
         helmet({
@@ -54,7 +40,7 @@ async function bootstrap() {
     app.enableCors({
         origin: process.env.CORS_ORIGINS.split(','),
         credentials: true,
-        exposedHeaders: ['Authorization', 'X-CSRF-TOKEN'],
+        exposedHeaders: ['Authorization'],
     });
 
     app.connectMicroservice({

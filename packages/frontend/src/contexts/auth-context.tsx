@@ -11,12 +11,14 @@ import {
 import api from "../../shared/http/http.config";
 import { useRouter } from "next/navigation";
 import Validate from "../../api/login/Validate";
+import LogoutAPI from "../../api/login/Logout";
 
 interface AuthState {
   isEngineer: boolean;
   isAdmin: boolean;
   name: string;
   email: string;
+  planId?: string;
 }
 
 interface AuthContextType {
@@ -49,15 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const validateAuth = useCallback(async () => {
     try {
-      // Mock de usuário autenticado - comentar para usar backend real
-      setAuth({
-        isEngineer: true,
-        isAdmin: true,
-        name: "Usuário Teste",
-        email: "teste@agroscope.com",
-      });
-
-      /* Descomentar quando o backend estiver funcionando
       const response = await Validate();
 
       if (response && typeof response === "object") {
@@ -66,9 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isAdmin: response.isAdmin || false,
           name: response.name,
           email: response.email,
+          planId: response.planId,
         });
+      } else {
+        setAuth(null);
       }
-      */
     } catch (error) {
       console.error("Erro ao validar autenticação:", error);
       setAuth(null);
@@ -83,11 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      //TODO: implementar logout no backend
+      await LogoutAPI();
+    } finally {
       setAuth(null);
-      router.push("/login");
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
+      router.push("/");
     }
   };
 

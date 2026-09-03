@@ -4,7 +4,7 @@ import { BusinessException } from 'src/shared/exceptions/Business.exception';
 describe('Authentication', () => {
     const validProps = {
         email: 'test@example.com',
-        password: 'securePassword123',
+        password: 'SecurePass@123',
     };
 
     it('should create a valid Authentication instance', () => {
@@ -14,6 +14,14 @@ describe('Authentication', () => {
         expect(result.isSuccess() && result.value.password).toBe(
             validProps.password,
         );
+    });
+
+    it('should restore incorrectPasswordAttempts when loading from persistence', () => {
+        const auth = Authentication.load(
+            { ...validProps, incorrectPasswordAttempts: 3 },
+            'auth-1',
+        );
+        expect(auth.incorrectPasswordAttempts).toBe(3);
     });
 
     it('should fail to create without email', () => {
@@ -110,9 +118,9 @@ describe('Authentication', () => {
             auth = result.value;
         }
         auth.setRecoveryToken('token123');
-        const change = auth.applyPasswordChange('token123', 'newPassword');
+        const change = auth.applyPasswordChange('token123', 'NewPass@456');
         expect(change.isSuccess()).toBe(true);
-        expect(auth.password).toBe('newPassword');
+        expect(auth.password).toBe('NewPass@456');
         expect(auth.recoveryCode).toBeNull();
         expect(auth.recoveryCodeExpiration).toBeNull();
         expect(auth.incorrectRecoveryAttempts).toBe(0);
@@ -125,7 +133,7 @@ describe('Authentication', () => {
             auth = result.value;
         }
         auth.setRecoveryToken('token123');
-        const change = auth.applyPasswordChange('wrong', 'newPassword');
+        const change = auth.applyPasswordChange('wrong', 'NewPass@456');
         expect(change.isFailure()).toBe(true);
         expect(change.isFailure() && change.error).toBeInstanceOf(
             BusinessException,
@@ -133,13 +141,14 @@ describe('Authentication', () => {
     });
 
     it('should not change password if token expired', () => {
-        const result = Authentication.create(validProps);
-        let auth: Authentication;
-        if (result.isSuccess()) {
-            auth = result.value;
-        }
-        auth.setRecoveryToken('token123');
-        (auth as any)['#recoveryCodeExpiration'] = new Date(Date.now() - 10000);
+        const auth = Authentication.load(
+            {
+                ...validProps,
+                recoveryCode: 'token123',
+                recoveryCodeExpiration: new Date(Date.now() - 10000),
+            },
+            'auth-1',
+        );
         const change = auth.applyPasswordChange('token123', 'newPassword');
         expect(change.isFailure()).toBe(true);
         expect(change.isFailure() && change.error).toBeInstanceOf(

@@ -1,0 +1,22 @@
+{
+  "name": "@agroscope/e2e-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Testes de sistema (system tests) do Agroscope Web, com Playwright, rodando contra a stack completa (nginx + Next.js + NestJS + Postgres + RabbitMQ) via docker-compose.test.yml.",
+  "scripts": {
+    "install-browsers": "playwright install --with-deps chromium",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^20.14.0",
+    "@types/pg": "^8.11.10",
+    "dotenv": "^16.4.5",
+    "pg": "^8.13.0",
+    "socket.io-client": "^4.8.3",
+    "typescript": "^5.6.3"
+  }
+}

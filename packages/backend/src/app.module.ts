@@ -12,6 +12,7 @@ import { OrmConfig } from 'ormconfig';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { CoreModule } from './modules/core/core.module';
 import { ResponseInterceptor } from './shared/Response.interceptor';
 import { SharedModule } from './shared/shared.module';
@@ -22,6 +23,7 @@ import { SharedModule } from './shared/shared.module';
         ScheduleModule.forRoot(),
         CoreModule,
         AuthModule,
+        ChatModule,
         SharedModule,
         EventEmitterModule.forRoot(),
         ThrottlerModule.forRoot([

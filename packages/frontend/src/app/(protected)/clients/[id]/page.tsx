@@ -262,10 +262,10 @@ export default function ClientPage({ params }: { params: { id: string } }) {
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${
                             report.status === ReportStatus.SENT
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300"
                               : report.status === ReportStatus.DRAFT
-                              ? "bg-gray-200 text-gray-800"
-                              : "bg-yellow-100 text-yellow-800"
+                              ? "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300"
                           }`}
                         >
                           {report.status

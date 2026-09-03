@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useRef, type ChangeEvent } from "react";
-import Image from "next/image";
+import { useState, useRef, type ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -9,21 +10,21 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
+} from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "../../../components/ui/tabs";
+} from '../../../components/ui/tabs';
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "../../../components/ui/alert";
-import { Badge } from "../../../components/ui/badge";
-import { Separator } from "../../../components/ui/separator";
+} from '../../../components/ui/alert';
+import { Badge } from '../../../components/ui/badge';
+import { Separator } from '../../../components/ui/separator';
 import {
   Upload,
   Search,
@@ -32,106 +33,99 @@ import {
   Leaf,
   History,
   BarChart2,
-} from "lucide-react";
-import api from "../../../../shared/http/http.config";
-import { toast } from "react-toastify";
-import { Sickness } from "../../../models/Sickness";
-
-// Mock history data
-const ANALYSIS_HISTORY = [
-  {
-    id: "1",
-    date: "15/04/2024",
-    crop: "Soja",
-    prediction: "Ferrugem Asiática",
-    confidence: 92.5,
-    imageUrl: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: "2",
-    date: "10/04/2024",
-    crop: "Milho",
-    prediction: "Mancha de Cercospora",
-    confidence: 88.7,
-    imageUrl: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: "3",
-    date: "05/04/2024",
-    crop: "Café",
-    prediction: "Ferrugem do Cafeeiro",
-    confidence: 95.2,
-    imageUrl: "/placeholder.svg?height=100&width=100",
-  },
-];
-
-export interface PredicResponse {
-  sickness: Sickness;
-  handling: string;
-  sicknessConfidence: number;
-  crop: string;
-  cropConfidence: number;
-}
+  MessageCircle,
+  FileText,
+} from 'lucide-react';
+import api from '../../../../shared/http/http.config';
+import { toast } from 'react-toastify';
+import type { History as HistoryModel } from '../../../models/History';
+import { ChatPanel } from '../../../components/chat-panel';
+import { AnalyticsDashboard } from '../../../components/analytics-dashboard';
+import { useLimit } from '../../../hooks/use-limit';
+import { useHistory } from '../../../hooks/use-history';
+import { toImageSrc } from '../../../lib/utils';
+import { generateAnalysisReportPdf } from '../../../lib/pdf/generate-analysis-report';
+import {
+  hasPlanFeature,
+  PLAN_FEATURE_REPORT_GENERATION,
+} from '../../../lib/plan-features';
 
 export default function AnalyticsPage() {
+  const router = useRouter();
   const [file, setFile] = useState<File | undefined>();
-  const [result, setResult] = useState<PredicResponse>({
-    crop: "",
-    handling: "",
-    sickness: { name: "", description: "", symptoms: [] },
-    cropConfidence: 0,
-    sicknessConfidence: 0,
-  });
-  const [url, setUrl] = useState("");
+  const [result, setResult] = useState<HistoryModel | null>(null);
+  const [previewUrl, setPreviewUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [chatAnalysis, setChatAnalysis] = useState<HistoryModel | null>(null);
+  const [generatingReportId, setGeneratingReportId] = useState<string | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const { limit, refetch: refetchLimit } = useLimit();
+  const canGenerateReport = hasPlanFeature(
+    limit?.featureFlags,
+    PLAN_FEATURE_REPORT_GENERATION
+  );
+  const {
+    history: analysisHistory,
+    isLoading: historyLoading,
+    refetch: refetchHistory,
+  } = useHistory();
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setUrl(URL.createObjectURL(selectedFile));
-      setResult({
-        crop: "",
-        handling: "",
-        sickness: { name: "", description: "", symptoms: [] },
-        cropConfidence: 0,
-        sicknessConfidence: 0,
-      });
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+      setResult(null);
     }
   };
 
   const handleAnalyzeClick = async () => {
     if (!file) return;
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append('image', file);
     setLoading(true);
 
     try {
-      const response = await api.post<PredicResponse>(
+      const response = await api.post<HistoryModel>(
         `${apiUrl}/predict`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { 'Content-Type': 'multipart/form-data' },
         }
       );
 
       if (response.status === 201) {
-        setResult({
-          sickness: response.data.sickness || "Não identificado",
-          handling: response.data.handling || "Sem orientação",
-          crop: response.data.crop || "Não identificado",
-          cropConfidence: response.data.cropConfidence || 0,
-          sicknessConfidence: response.data.sicknessConfidence || 0,
-        });
+        setResult(response.data);
+        refetchLimit();
+        refetchHistory();
       } else {
-        toast.error("Falha na análise. Tente novamente.");
+        toast.error('Falha na análise. Tente novamente.');
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Erro inesperado.");
+      toast.error(error?.response?.data?.message || 'Erro inesperado.');
+      refetchLimit();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async (analysis: HistoryModel) => {
+    if (!canGenerateReport) {
+      toast.error(
+        'Relatórios em PDF disponíveis apenas nos planos pagos. Faça upgrade do seu plano.'
+      );
+      return;
+    }
+    setGeneratingReportId(analysis.id);
+    try {
+      await generateAnalysisReportPdf(analysis);
+    } catch (error) {
+      toast.error('Não foi possível gerar o relatório em PDF.');
+    } finally {
+      setGeneratingReportId(null);
     }
   };
 
@@ -192,10 +186,10 @@ export default function AnalyticsPage() {
                   </p>
                 )}
 
-                {url && (
+                {previewUrl && (
                   <div className="relative w-full h-64 mt-4 rounded-md overflow-hidden border">
                     <Image
-                      src={url || "/placeholder.svg"}
+                      src={previewUrl}
                       alt="Imagem para análise"
                       fill
                       className="object-contain"
@@ -203,10 +197,21 @@ export default function AnalyticsPage() {
                   </div>
                 )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col gap-2 items-stretch">
+                {limit && (
+                  <p
+                    className={`text-xs text-right ${limit.imageRequests >= limit.imageLimit ? 'text-red-500' : 'text-muted-foreground'}`}
+                  >
+                    Análises: {limit.imageRequests}/{limit.imageLimit}
+                  </p>
+                )}
                 <Button
                   onClick={handleAnalyzeClick}
-                  disabled={!file || loading}
+                  disabled={
+                    !file ||
+                    loading ||
+                    (limit !== null && limit.imageRequests >= limit.imageLimit)
+                  }
                   className="w-full bg-primaryGreen hover:bg-lightGreen"
                 >
                   {loading ? (
@@ -221,6 +226,12 @@ export default function AnalyticsPage() {
                     </>
                   )}
                 </Button>
+                {limit !== null && limit.imageRequests >= limit.imageLimit && (
+                  <p className="text-xs text-red-500 text-center">
+                    Limite de {limit.imageLimit} análises atingido. Faça upgrade
+                    do seu plano para continuar analisando imagens.
+                  </p>
+                )}
               </CardFooter>
             </Card>
 
@@ -233,7 +244,7 @@ export default function AnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="min-h-[300px]">
-                {!result.sickness && !loading && (
+                {!result && !loading && (
                   <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                     <Leaf className="h-12 w-12 mb-4 text-primaryGreen/30" />
                     <p>
@@ -257,22 +268,60 @@ export default function AnalyticsPage() {
 
                 {result && (
                   <div className="space-y-4">
+                    {/* Cultura */}
                     <div>
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium">Diagnóstico</h3>
-                        {/* {result.confidence && (
+                      <h3 className="font-medium mb-2">Cultura Identificada</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-lg font-semibold text-primaryGreen">
+                          {result.crop}
+                        </p>
+                        {result.cropConfidence > 0 && (
                           <Badge className="bg-primaryGreen">
-                            Confiança: {result.confidence.toFixed(1)}%
+                            {(result.cropConfidence * 100).toFixed(1)}%
+                            confiança
                           </Badge>
-                        )} */}
+                        )}
                       </div>
-                      <p className="mt-1 text-lg font-semibold text-primaryGreen">
-                        {result.sickness.name}
-                      </p>
                     </div>
+
+                    {/* Diagnóstico */}
+                    {result.explanation && (
+                      <>
+                        <Separator />
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <h3 className="font-medium">Diagnóstico</h3>
+                            {result.sicknessConfidence &&
+                              result.sicknessConfidence > 0 && (
+                                <Badge variant="outline">
+                                  {(result.sicknessConfidence * 100).toFixed(1)}
+                                  % confiança
+                                </Badge>
+                              )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {result.explanation}
+                          </p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Causas */}
+                    {result.causes && (
+                      <>
+                        <Separator />
+                        <div>
+                          <h3 className="font-medium mb-1">Causas</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {result.causes}
+                          </p>
+                        </div>
+                      </>
+                    )}
 
                     <Separator />
 
+                    {/* Manejo */}
                     <div>
                       <h3 className="font-medium">Recomendações de Manejo</h3>
                       <p className="mt-1 text-muted-foreground">
@@ -290,13 +339,42 @@ export default function AnalyticsPage() {
                         obter recomendações específicas para sua lavoura.
                       </AlertDescription>
                     </Alert>
+
+                    <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                      <Button
+                        className="w-full bg-primaryGreen hover:bg-lightGreen"
+                        onClick={() => setChatAnalysis(result)}
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Tirar dúvidas
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full text-primaryGreen border-primaryGreen/30"
+                        disabled={
+                          generatingReportId === result.id || !canGenerateReport
+                        }
+                        onClick={() => handleGenerateReport(result)}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        {generatingReportId === result.id
+                          ? 'Gerando...'
+                          : 'Gerar Relatório PDF'}
+                      </Button>
+                    </div>
+                    {!canGenerateReport && (
+                      <p className="text-xs text-red-500 text-center">
+                        Relatórios em PDF disponíveis nos planos pagos. Faça
+                        upgrade do seu plano para gerar relatórios.
+                      </p>
+                    )}
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Additional Information */}
+          {/* Tips Card */}
           <Card>
             <CardHeader>
               <CardTitle>Dicas para Melhores Resultados</CardTitle>
@@ -338,166 +416,130 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {ANALYSIS_HISTORY.map((analysis) => (
-                  <div
-                    key={analysis.id}
-                    className="flex items-start gap-4 p-4 rounded-lg border"
-                  >
-                    <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                      <Image
-                        src={analysis.imageUrl || "/placeholder.svg"}
-                        alt={analysis.crop}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium">{analysis.prediction}</h3>
-                        <span className="text-sm text-muted-foreground">
-                          {analysis.date}
-                        </span>
+              {historyLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="animate-spin h-8 w-8 border-4 border-primaryGreen border-t-transparent rounded-full mb-4"></div>
+                  <p className="text-muted-foreground">
+                    Carregando histórico...
+                  </p>
+                </div>
+              ) : analysisHistory.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                  <Leaf className="h-12 w-12 mb-4 text-primaryGreen/30" />
+                  <p className="font-medium">
+                    Nenhuma análise realizada ainda.
+                  </p>
+                  <p className="text-sm mt-1">
+                    Faça sua primeira análise na aba &quot;Nova Análise&quot;.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {analysisHistory.map((analysis) => (
+                    <div
+                      key={analysis.id}
+                      className="flex items-start gap-4 p-4 rounded-lg border"
+                    >
+                      <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0 bg-muted">
+                        <Image
+                          src={toImageSrc(analysis.image)}
+                          alt={analysis.crop || 'Análise'}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Cultura: {analysis.crop}
-                      </p>
-                      <div className="flex items-center mt-1">
-                        <Badge className="bg-primaryGreen text-xs">
-                          Confiança: {analysis.confidence.toFixed(1)}%
-                        </Badge>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="text-primaryGreen ml-auto"
-                        >
-                          Ver detalhes
-                        </Button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="font-medium">
+                              {analysis.crop || 'Planta saudável'}
+                            </h3>
+                            {analysis.explanation && (
+                              <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                                {analysis.explanation}
+                              </p>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(analysis.createdAt).toLocaleDateString(
+                              'pt-BR'
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          {analysis.cropConfidence > 0 && (
+                            <Badge className="bg-primaryGreen text-xs">
+                              Cultura:{' '}
+                              {(analysis.cropConfidence * 100).toFixed(1)}%
+                            </Badge>
+                          )}
+                          {analysis.sicknessConfidence &&
+                            analysis.sicknessConfidence > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                Doença:{' '}
+                                {(analysis.sicknessConfidence * 100).toFixed(1)}
+                                %
+                              </Badge>
+                            )}
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="text-primaryGreen ml-auto p-0 h-auto"
+                            onClick={() =>
+                              router.push(`/history/${analysis.id}`)
+                            }
+                          >
+                            Ver detalhes
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-primaryGreen border-primaryGreen/30 h-7 px-2 text-xs"
+                            onClick={() => setChatAnalysis(analysis)}
+                          >
+                            <MessageCircle className="mr-1 h-3 w-3" />
+                            Chat
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-primaryGreen border-primaryGreen/30 h-7 px-2 text-xs"
+                            disabled={
+                              generatingReportId === analysis.id ||
+                              !canGenerateReport
+                            }
+                            title={
+                              !canGenerateReport
+                                ? 'Disponível nos planos pagos'
+                                : undefined
+                            }
+                            onClick={() => handleGenerateReport(analysis)}
+                          >
+                            <FileText className="mr-1 h-3 w-3" />
+                            {generatingReportId === analysis.id
+                              ? 'Gerando...'
+                              : 'Relatório PDF'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="statistics">
-          <Card>
-            <CardHeader>
-              <CardTitle>Estatísticas de Análises</CardTitle>
-              <CardDescription>
-                Visão geral das análises realizadas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Total de Análises</CardDescription>
-                    <CardTitle className="text-2xl">24</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xs text-primaryGreen">+8 este mês</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Culturas Analisadas</CardDescription>
-                    <CardTitle className="text-2xl">5</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xs text-primaryGreen">
-                      Soja, Milho, Café, Algodão, Trigo
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Confiança Média</CardDescription>
-                    <CardTitle className="text-2xl">89.4%</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xs text-primaryGreen">
-                      +2.1% desde o último mês
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <h3 className="font-medium mb-4">Doenças Mais Frequentes</h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Ferrugem Asiática
-                    </span>
-                    <span className="text-sm text-muted-foreground">38%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primaryGreen h-2 rounded-full"
-                      style={{ width: "38%" }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Mancha de Cercospora
-                    </span>
-                    <span className="text-sm text-muted-foreground">24%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primaryGreen h-2 rounded-full"
-                      style={{ width: "24%" }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Ferrugem do Cafeeiro
-                    </span>
-                    <span className="text-sm text-muted-foreground">18%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primaryGreen h-2 rounded-full"
-                      style={{ width: "18%" }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Antracnose</span>
-                    <span className="text-sm text-muted-foreground">12%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primaryGreen h-2 rounded-full"
-                      style={{ width: "12%" }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Outras</span>
-                    <span className="text-sm text-muted-foreground">8%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primaryGreen h-2 rounded-full"
-                      style={{ width: "8%" }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <AnalyticsDashboard />
         </TabsContent>
       </Tabs>
+
+      <ChatPanel
+        open={chatAnalysis !== null}
+        analysis={chatAnalysis}
+        onClose={() => setChatAnalysis(null)}
+      />
     </div>
   );
 }

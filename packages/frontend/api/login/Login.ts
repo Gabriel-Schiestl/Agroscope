@@ -1,15 +1,26 @@
-import api, { ensureCsrfToken } from "../../shared/http/http.config";
+import api from "../../shared/http/http.config";
 
-export default async function LoginAPI(email: string, password: string) {
+export interface LoginResult {
+  success: boolean;
+  blocked?: boolean;
+}
+
+export default async function LoginAPI(
+  email: string,
+  password: string
+): Promise<LoginResult> {
   try {
-    const response = await api.post("/auth/login", {
+    await api.post("/auth/login", {
       email,
       password,
     });
 
-    return true;
-  } catch (error) {
+    return { success: true };
+  } catch (error: any) {
     console.error("Erro ao fazer login:", error);
-    return false;
+    const message = error?.response?.data?.message;
+    const blocked =
+      typeof message === "string" && message.toLowerCase().includes("blocked");
+    return { success: false, blocked };
   }
 }

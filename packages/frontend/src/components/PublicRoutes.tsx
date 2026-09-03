@@ -15,10 +15,11 @@ export default function PublicRoutes({
   useEffect(() => {
     if (!isLoading) {
       if (
-        (isAuthenticated && window.location.pathname === "/login") ||
-        window.location.pathname === "/signin"
+        isAuthenticated &&
+        (window.location.pathname === "/login" ||
+          window.location.pathname === "/signin")
       ) {
-        router.push("/");
+        router.push("/analytics");
       }
     }
   }, [isAuthenticated, isLoading, router]);

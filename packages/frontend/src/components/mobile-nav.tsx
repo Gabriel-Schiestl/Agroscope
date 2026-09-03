@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Settings } from "lucide-react";
-import { useAuth } from "../contexts/auth-context";
+import { BarChart2, Settings } from "lucide-react";
 
 export default function MobileNav() {
-  const { logout } = useAuth();
   const pathname = usePathname();
 
   const isActive = (path: string) => {
@@ -15,24 +13,15 @@ export default function MobileNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border py-2 px-4 z-10">
-      <div className="flex justify-between items-center">
-        <Link href="/dashboard" className="flex flex-col items-center">
-          <Home
+      <div className="flex justify-around items-center">
+        <Link href="/analytics" className="flex flex-col items-center">
+          <BarChart2
             size={20}
             className={
-              isActive("/dashboard") ? "text-primaryGreen" : "text-foreground"
+              isActive("/analytics") ? "text-primaryGreen" : "text-foreground"
             }
           />
-          <span className="text-xs mt-1">Dashboard</span>
-        </Link>
-        <Link href="/clients" className="flex flex-col items-center">
-          <Users
-            size={20}
-            className={
-              isActive("/clients") ? "text-primaryGreen" : "text-foreground"
-            }
-          />
-          <span className="text-xs mt-1">Clientes</span>
+          <span className="text-xs mt-1">Análises</span>
         </Link>
         <Link href="/settings" className="flex flex-col items-center">
           <Settings

@@ -1,4 +1,10 @@
 node_modules
 venv
+
+# Pastas Python
+models
+models/
+__pycache__
+__pycache__/
 .venv
 .env

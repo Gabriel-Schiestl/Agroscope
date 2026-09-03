@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { ArrowLeft, CreditCard, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,27 +13,42 @@ import {
 } from "../components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
 import Sidebar from "./sidebar";
+import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "../contexts/auth-context";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { User, LogOut, Settings } from "lucide-react";
 
 export default function Header() {
   const { auth, logout } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isPlansPage = pathname === "/plans";
 
   return (
     <header className="bg-background border-b border-border py-3 px-4 md:px-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="p-2 md:hidden text-foreground">
-                <Menu size={20} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
-              <Sidebar />
-            </SheetContent>
-          </Sheet>
+          {isPlansPage ? (
+            <button
+              onClick={() => router.push("/analytics")}
+              className="p-2 rounded-full hover:bg-muted transition-colors text-foreground"
+              aria-label="Voltar para Analytics"
+            >
+              <ArrowLeft size={20} />
+            </button>
+          ) : (
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="p-2 md:hidden text-foreground">
+                  <Menu size={20} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <Sidebar />
+              </SheetContent>
+            </Sheet>
+          )}
 
           <div className="md:hidden">
             <h2 className="text-primaryGreen font-bold text-xl">AgroScope</h2>
@@ -40,10 +56,20 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
-            <Bell size={20} className="text-foreground" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primaryGreen rounded-full"></span>
-          </button>
+          {auth && (
+            <Link href="/plans">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-primaryGreen text-primaryGreen hover:bg-primaryGreen/10 hover:text-primaryGreen"
+              >
+                <CreditCard size={16} />
+                <span className="hidden md:inline">Planos</span>
+              </Button>
+            </Link>
+          )}
+
+          <ThemeToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -65,16 +91,17 @@ export default function Header() {
                   <p className="text-sm font-medium text-foreground">
                     {auth?.name || "Usuário"}
                   </p>
-                  <p className="text-xs text-muted-foreground">{"Agrônomo"}</p>
                 </div>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
+              <DropdownMenuItem asChild>
+                <Link href="/settings#account">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/settings">

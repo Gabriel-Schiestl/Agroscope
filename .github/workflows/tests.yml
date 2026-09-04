@@ -33,14 +33,6 @@ jobs:
         working-directory: packages/backend
         run: npm run build
 
-      - name: Upload node_modules
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-node-modules
-          path: packages/backend/node_modules
-          retention-days: 1
-          if-no-files-found: error
-
   unit-tests:
     name: Unit tests (backend)
     needs: build
@@ -53,12 +45,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: packages/backend/package-lock.json
 
-      - name: Download node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-node-modules
-          path: packages/backend/node_modules
+      - name: Install dependencies
+        working-directory: packages/backend
+        run: npm ci
 
       - name: Run unit tests
         working-directory: packages/backend
@@ -76,12 +68,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: packages/backend/package-lock.json
 
-      - name: Download node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-node-modules
-          path: packages/backend/node_modules
+      - name: Install dependencies
+        working-directory: packages/backend
+        run: npm ci
 
       - name: Run integration tests (Testcontainers + Postgres)
         working-directory: packages/backend

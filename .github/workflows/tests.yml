@@ -52,9 +52,17 @@ jobs:
         working-directory: packages/backend
         run: npm ci
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         working-directory: packages/backend
-        run: npm test -- --ci
+        run: npm run test:cov -- --ci
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: packages/backend/coverage/
+          retention-days: 7
 
   integration-tests:
     name: Integration tests (backend)

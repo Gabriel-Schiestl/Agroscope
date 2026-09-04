@@ -25,6 +25,7 @@ interface AuthContextType {
   auth: AuthState | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isLoggingOut: boolean;
   refreshAuth: () => Promise<void>;
   logout: () => void;
 }
@@ -40,6 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   auth: null,
   isLoading: true,
   isAuthenticated: false,
+  isLoggingOut: false,
   refreshAuth: async () => {},
   logout: () => {},
 });
@@ -47,6 +49,7 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
 
   const validateAuth = useCallback(async () => {
@@ -61,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: response.email,
           planId: response.planId,
         });
+        setIsLoggingOut(false);
       } else {
         setAuth(null);
       }
@@ -77,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [validateAuth]);
 
   const logout = async () => {
+    setIsLoggingOut(true);
     try {
       await LogoutAPI();
     } finally {
@@ -96,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         auth,
         isLoading,
         isAuthenticated: !!auth,
+        isLoggingOut,
         logout,
         refreshAuth,
       }}

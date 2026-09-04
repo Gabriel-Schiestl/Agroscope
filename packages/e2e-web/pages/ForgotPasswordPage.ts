@@ -10,7 +10,10 @@ export class ForgotPasswordPage {
     this.page = page;
     this.emailInput = page.locator('#email');
     this.submitButton = page.getByRole('button', { name: /Enviar código|Enviando/ });
-    this.errorAlert = page.getByRole('alert');
+    // Next.js injeta seu próprio elemento com role="alert" (route announcer,
+    // sempre vazio) para acessibilidade de navegação — filtra por texto para
+    // pegar só o alerta de erro real do formulário.
+    this.errorAlert = page.getByRole('alert').filter({ hasText: /\S/ });
   }
 
   async goto(): Promise<void> {

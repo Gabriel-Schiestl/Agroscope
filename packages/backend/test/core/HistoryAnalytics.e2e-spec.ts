@@ -7,8 +7,8 @@ import { loginAndGetCookie } from '../setup/auth-helper';
 import { History } from 'src/modules/core/domain/models/History';
 import { HistoryRepository } from 'src/modules/core/domain/repositories/History.repository';
 
-// Seeded by the `SeedMockSicknesses` migration.
-const REQUEIMA_SICKNESS_ID = '00000000-0000-0000-0000-000000000101';
+// Seeded by the `SeedRealSicknesses` migration.
+const TARGET_SPOT_SICKNESS_ID = '11111111-0000-0000-0000-000000000006';
 
 describe('Core - history analytics (e2e)', () => {
     let app: INestApplication;
@@ -59,7 +59,7 @@ describe('Core - history analytics (e2e)', () => {
             History.create({
                 crop: 'Milho',
                 cropConfidence: 0.88,
-                sicknessId: REQUEIMA_SICKNESS_ID,
+                sicknessId: TARGET_SPOT_SICKNESS_ID,
                 sicknessConfidence: 0.9,
                 image: 'doente-1.jpg',
                 causes: 'Excesso de umidade',
@@ -81,8 +81,8 @@ describe('Core - history analytics (e2e)', () => {
 
         expect(response.body.byDisease).toEqual([
             expect.objectContaining({
-                sicknessId: REQUEIMA_SICKNESS_ID,
-                sicknessName: 'Requeima',
+                sicknessId: TARGET_SPOT_SICKNESS_ID,
+                sicknessName: 'Target_Spot',
                 count: 1,
             }),
         ]);

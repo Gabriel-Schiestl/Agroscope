@@ -18,27 +18,45 @@ describe('MockPredictService', () => {
 
     describe('predict', () => {
         it('should return a mocked disease prediction after the simulated delay', async () => {
+            randomSpy
+                .mockReturnValueOnce(0) // simulateDelay
+                .mockReturnValueOnce(0.9) // isHealthy check
+                .mockReturnValueOnce(0); // scenario index
+
             const promise = service.predict('/tmp/some-image.jpg');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Tomate');
+            expect(result.isSuccess() && result.value.plant).toBe('Milho');
             expect(result.isSuccess() && result.value.prediction).toBe(
-                'Requeima',
+                'Rust_Common',
+            );
+        });
+
+        it('should occasionally return a mocked healthy prediction', async () => {
+            randomSpy.mockReturnValueOnce(0).mockReturnValueOnce(0);
+
+            const promise = service.predict('/tmp/some-image.jpg');
+            await jest.advanceTimersByTimeAsync(1000);
+            const result = await promise;
+
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Healthy',
             );
         });
     });
 
     describe('getHandling', () => {
         it('should return the catalogued handling for a known prediction', async () => {
-            const promise = service.getHandling('Requeima', 'Tomate');
+            const promise = service.getHandling('Rust_Common', 'Milho');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
             expect(result.isSuccess() && result.value.diagnostico).toContain(
-                'Requeima',
+                'Ferrugem comum',
             );
         });
 

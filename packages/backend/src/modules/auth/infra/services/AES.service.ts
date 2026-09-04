@@ -24,15 +24,23 @@ export class AESServiceImpl implements AESService {
     }
 
     async decrypt(data: string): Promise<Result<BusinessException, string>> {
-        const [ivBase64, encrypted] = data.split(':');
+        try {
+            const [ivBase64, encrypted] = data.split(':');
 
-        const iv = Buffer.from(ivBase64, 'base64');
-        const decipher = crypto.createDecipheriv('aes-256-cbc', this.key, iv);
+            const iv = Buffer.from(ivBase64, 'base64');
+            const decipher = crypto.createDecipheriv(
+                'aes-256-cbc',
+                this.key,
+                iv,
+            );
 
-        let decrypted = decipher.update(encrypted, 'base64', 'utf8');
-        decrypted += decipher.final('utf8');
+            let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+            decrypted += decipher.final('utf8');
 
-        return Res.success(decrypted);
+            return Res.success(decrypted);
+        } catch {
+            return Res.failure(new BusinessException('Invalid token'));
+        }
     }
 
     private generateIV(): Buffer {

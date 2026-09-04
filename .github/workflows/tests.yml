@@ -75,6 +75,10 @@ jobs:
         working-directory: packages/backend
         run: npm ci
 
+      - name: Build
+        working-directory: packages/backend
+        run: npm run build
+
       - name: Run integration tests (Testcontainers + Postgres)
         working-directory: packages/backend
         env:

@@ -16,7 +16,10 @@ export class LoginPage {
     this.submitButton = page.getByRole('button', { name: 'Entrar', exact: true });
     this.forgotPasswordLink = page.getByRole('link', { name: 'Esqueceu a senha?' });
     this.signupLink = page.getByRole('link', { name: 'Cadastre-se' });
-    this.errorAlert = page.getByRole('alert');
+    // Next.js injeta seu próprio elemento com role="alert" (route announcer,
+    // sempre vazio) para acessibilidade de navegação — filtra por texto para
+    // pegar só o alerta de erro real do formulário.
+    this.errorAlert = page.getByRole('alert').filter({ hasText: /\S/ });
   }
 
   async goto(): Promise<void> {

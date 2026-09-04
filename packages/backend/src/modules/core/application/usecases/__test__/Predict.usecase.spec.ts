@@ -270,7 +270,7 @@ describe('PredictUseCase', () => {
                 Res.success({
                     plant: 'Tomate',
                     plantConfidence: 0.9,
-                    prediction: 'planta_saudavel',
+                    prediction: 'TOMATO___HEALTHY',
                     predictionConfidence: 0.95,
                 }),
             );

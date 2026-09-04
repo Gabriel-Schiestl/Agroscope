@@ -151,7 +151,11 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-    const socket: Socket = io(`${apiUrl}/chat`, {
+    const apiUrlObj = new URL(apiUrl, window.location.origin);
+    const socketPath = `${apiUrlObj.pathname.replace(/\/$/, '')}/socket.io`;
+
+    const socket: Socket = io(`${apiUrlObj.origin}/chat`, {
+      path: socketPath,
       withCredentials: true,
       transports: ['websocket', 'polling'],
     });

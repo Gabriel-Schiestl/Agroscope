@@ -18,7 +18,6 @@ export class HistoryPage {
     this.clearFiltersButton = page.getByRole('button', { name: 'Limpar' });
     this.resultsSummary = page.getByText(/Mostrando \d+ de \d+ análises/);
     this.emptyStateMessage = page.getByText(/Nenhuma análise/);
-    // Cada item da lista tem um botão "Ver detalhes" — usamos isso para contar/iterar itens.
     this.items = page.locator('div.divide-y > div');
   }
 
@@ -40,7 +39,7 @@ export class HistoryPage {
   }
 
   viewDetailsButtonForItem(item: Locator): Locator {
-    return item.getByRole('button', { name: 'Ver detalhes' });
+    return item;
   }
 
   chatButtonForItem(item: Locator): Locator {

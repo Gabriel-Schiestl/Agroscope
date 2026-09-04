@@ -90,7 +90,7 @@ export default function HistoryDetailsPage({
     <div className="space-y-6 pb-16 md:pb-0">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Link href="/history">
+          <Link href="/analytics?tab=history">
             <Button variant="outline" size="icon" className="rounded-full">
               <ArrowLeft className="h-4 w-4" />
             </Button>

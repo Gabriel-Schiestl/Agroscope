@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cropLabel, sicknessLabel } from "../../../lib/agro-labels";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -368,9 +369,11 @@ export default function HistoryPage() {
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-2 mb-2">
                           <div>
                             <h3 className="font-medium text-lg">
-                              {history.explanation ||
-                                history.crop ||
-                                "Planta saudável"}
+                              {history.sicknessName
+                                ? sicknessLabel(history.sicknessName)
+                                : history.sicknessId
+                                ? "Doença identificada"
+                                : "Planta saudável"}
                             </h3>
                             {history.causes && (
                               <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
@@ -401,7 +404,7 @@ export default function HistoryPage() {
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Leaf className="mr-1 h-3 w-3" />
                               <span>
-                                Cultura: {history.crop}
+                                Cultura: {cropLabel(history.crop)}
                                 {history.cropConfidence != null &&
                                   ` (${(history.cropConfidence * 100).toFixed(1)}%)`}
                               </span>
@@ -492,11 +495,15 @@ export default function HistoryPage() {
                 </div>
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="text-base line-clamp-2">
-                    {history.explanation || history.crop || "Planta saudável"}
+                    {history.sicknessName
+                      ? sicknessLabel(history.sicknessName)
+                      : history.sicknessId
+                      ? "Doença identificada"
+                      : "Planta saudável"}
                   </CardTitle>
                   <CardDescription>
                     <div className="flex items-center justify-between">
-                      <span>Cultura: {history.crop || "—"}</span>
+                      <span>Cultura: {cropLabel(history.crop) || "—"}</span>
                       {history.sicknessConfidence != null && (
                         <Badge className="bg-primaryGreen text-xs">
                           {(history.sicknessConfidence * 100).toFixed(1)}%

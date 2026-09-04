@@ -6,6 +6,7 @@ export class HistoryAppMapper {
         return {
             id: history.id,
             sicknessId: history.sicknessId,
+            sicknessName: history.sicknessName,
             handling: history.handling,
             image: history.image,
             crop: history.crop,

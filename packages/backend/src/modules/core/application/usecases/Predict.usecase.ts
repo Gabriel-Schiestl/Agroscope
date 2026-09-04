@@ -105,14 +105,14 @@ export class PredictUseCase extends AbstractUseCase<
         const imageBase64 = await this.predictService.getImageBase64(imagePath);
         if (imageBase64.isFailure()) return Res.failure(imageBase64.error);
 
-        if (result.value.prediction.includes('saudavel')) {
+        if (result.value.prediction.toLowerCase().includes('healthy')) {
             const history = History.create({
                 image: imageBase64.value,
                 userId: userId,
                 handling: 'Nenhuma ação necessária',
-                crop: null,
+                crop: result.value.plant,
                 sicknessId: null,
-                cropConfidence: null,
+                cropConfidence: result.value.plantConfidence,
             });
 
             const saveResult = await this.historyRepository.save(history);
@@ -137,6 +137,8 @@ export class PredictUseCase extends AbstractUseCase<
         if (handling.isFailure()) {
             return Res.failure(handling.error);
         }
+
+        console.log('[PredictUseCase] prediction value para lookup:', JSON.stringify(result.value.prediction));
 
         const sicknessResult = await this.sicknessRepository.getSicknessByName(
             result.value.prediction,
@@ -171,6 +173,7 @@ export class PredictUseCase extends AbstractUseCase<
             handling: handling.value.manejo,
             image: imageBase64.value,
             sicknessId: sickness.id,
+            sicknessName: sickness.name,
             userId: userId,
             crop: result.value.plant,
             cropConfidence: result.value.plantConfidence,

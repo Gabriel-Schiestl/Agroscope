@@ -19,6 +19,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { History } from '@/models/History';
 import api from '../../shared/http/http.config';
+import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
 
 interface ChatMessageDto {
   id: string;
@@ -52,17 +53,21 @@ function dtoToMessage(dto: ChatMessageDto): ChatMessage {
 }
 
 function buildInitialMessage(analysis: History | null): ChatMessage {
-  const disease =
-    analysis?.explanation ?? analysis?.crop ?? 'a cultura analisada';
-  const crop = analysis?.crop ?? '';
+  const cropPT = cropLabel(analysis?.crop);
   const confidence = analysis?.sicknessConfidence
     ? ` (${(analysis.sicknessConfidence * 100).toFixed(1)}% de confiança)`
     : '';
 
+  const isHealthy = !analysis?.sicknessId;
+
+  const content = isHealthy
+    ? `Olá! Sou seu assistente agrícola. A planta ${cropPT} está saudável — nenhuma doença detectada.\n\nPosso ajudá-lo com dúvidas gerais sobre manejo preventivo ou outras questões. O que gostaria de saber?`
+    : `Olá! Sou seu assistente agrícola. Identifiquei ${sicknessLabel(analysis.sicknessName)}${confidence} em ${cropPT}.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
+
   return {
     id: 'init',
     role: 'assistant',
-    content: `Olá! Sou seu assistente agrícola. Identifiquei **${disease}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`,
+    content,
     timestamp: new Date(),
   };
 }
@@ -205,6 +210,14 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
       textareaRef.current.style.height = 'auto';
     }
 
+    const optimisticMsg: ChatMessage = {
+      id: `optimistic-${Date.now()}`,
+      role: 'user',
+      content: text,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
+
     socketRef.current.emit(
       'send_message',
       { content: text, sessionId: analysis.id },
@@ -214,13 +227,14 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
           | { error: string }
       ) => {
         if ('error' in response) {
+          setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
           setLimitError(response.error);
           setIsTyping(false);
           refetchLimit();
           return;
         }
         setMessages((prev) => [
-          ...prev,
+          ...prev.filter((m) => m.id !== optimisticMsg.id),
           dtoToMessage(response.userMessage),
           dtoToMessage(response.aiMessage),
         ]);
@@ -261,7 +275,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
               </SheetTitle>
               <SheetDescription className="text-xs mt-0.5 truncate">
                 {analysis?.crop
-                  ? `${analysis.crop} · ${format(new Date(analysis.createdAt), 'dd/MM/yyyy', { locale: ptBR })}`
+                  ? `${cropLabel(analysis.crop)} · ${format(new Date(analysis.createdAt), 'dd/MM/yyyy', { locale: ptBR })}`
                   : 'Nova análise'}
               </SheetDescription>
             </div>
@@ -272,16 +286,19 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
             <div className="!mt-6 flex flex-wrap gap-1.5">
               {analysis.cropConfidence > 0 && (
                 <Badge className="bg-primaryGreen text-xs">
-                  {analysis.crop} · {(analysis.cropConfidence * 100).toFixed(1)}%
+                  {cropLabel(analysis.crop)} · {(analysis.cropConfidence * 100).toFixed(1)}%
                 </Badge>
               )}
-              {analysis.sicknessConfidence &&
+              {analysis.sicknessId && analysis.sicknessConfidence != null &&
                 analysis.sicknessConfidence > 0 && (
                   <Badge
                     variant="outline"
                     className="text-xs text-primaryGreen border-primaryGreen/40"
                   >
-                    Doença · {(analysis.sicknessConfidence * 100).toFixed(1)}%
+                    {analysis.sicknessName
+                      ? sicknessLabel(analysis.sicknessName)
+                      : 'Doença'}{' '}
+                    · {(analysis.sicknessConfidence * 100).toFixed(1)}%
                   </Badge>
                 )}
               <Badge

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, type ChangeEvent } from 'react';
+import { cropLabel, sicknessLabel } from '../../../lib/agro-labels';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -273,7 +274,7 @@ export default function AnalyticsPage() {
                       <h3 className="font-medium mb-2">Cultura Identificada</h3>
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-lg font-semibold text-primaryGreen">
-                          {result.crop}
+                          {cropLabel(result.crop)}
                         </p>
                         {result.cropConfidence > 0 && (
                           <Badge className="bg-primaryGreen">
@@ -285,13 +286,13 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* Diagnóstico */}
-                    {result.explanation && (
+                    {result.sicknessId ? (
                       <>
                         <Separator />
                         <div>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
                             <h3 className="font-medium">Diagnóstico</h3>
-                            {result.sicknessConfidence &&
+                            {result.sicknessConfidence != null &&
                               result.sicknessConfidence > 0 && (
                                 <Badge variant="outline">
                                   {(result.sicknessConfidence * 100).toFixed(1)}
@@ -299,12 +300,28 @@ export default function AnalyticsPage() {
                                 </Badge>
                               )}
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {result.explanation}
-                          </p>
+                          {result.sicknessName && (
+                            <p className="font-semibold text-base mb-1">
+                              {sicknessLabel(result.sicknessName)}
+                            </p>
+                          )}
+                          {result.explanation && (
+                            <p className="text-sm text-muted-foreground">
+                              {result.explanation}
+                            </p>
+                          )}
                         </div>
                       </>
-                    )}
+                    ) : result.handling === 'Nenhuma ação necessária' ? (
+                      <>
+                        <Separator />
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-primaryGreen text-white text-sm px-3 py-1">
+                            Planta Saudável
+                          </Badge>
+                        </div>
+                      </>
+                    ) : null}
 
                     {/* Causas */}
                     {result.causes && (
@@ -452,8 +469,16 @@ export default function AnalyticsPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <h3 className="font-medium">
-                              {analysis.crop || 'Planta saudável'}
+                              {cropLabel(analysis.crop)}
+                              {analysis.sicknessName && (
+                                <span className="ml-2 text-muted-foreground font-normal text-sm">
+                                  · {sicknessLabel(analysis.sicknessName)}
+                                </span>
+                              )}
                             </h3>
+                            {!analysis.sicknessId && (
+                              <Badge className="bg-primaryGreen text-xs mt-0.5">Saudável</Badge>
+                            )}
                             {analysis.explanation && (
                               <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
                                 {analysis.explanation}

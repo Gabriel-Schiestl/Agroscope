@@ -10,6 +10,10 @@ export class HistoryDto {
     @IsString()
     sicknessId?: string;
 
+    @IsOptional()
+    @IsString()
+    sicknessName?: string;
+
     @IsString()
     handling: string;
 

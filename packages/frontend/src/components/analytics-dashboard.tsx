@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { cropLabel, sicknessLabel } from "@/lib/agro-labels";
 import type { TooltipProps } from "recharts";
 import {
   Area,
@@ -226,7 +227,7 @@ export function AnalyticsDashboard() {
     if (!analytics) return [];
     return foldTopN(
       analytics.byDisease.map((d) => ({
-        name: d.sicknessName,
+        name: sicknessLabel(d.sicknessName),
         count: d.count,
       })),
       BAR_CHART_DISPLAY_LIMIT
@@ -236,7 +237,7 @@ export function AnalyticsDashboard() {
   const cropBars = useMemo<RankedBar[]>(() => {
     if (!analytics) return [];
     return foldTopN(
-      analytics.byCrop.map((c) => ({ name: c.crop, count: c.count })),
+      analytics.byCrop.map((c) => ({ name: cropLabel(c.crop), count: c.count })),
       BAR_CHART_DISPLAY_LIMIT
     );
   }, [analytics]);
@@ -271,7 +272,7 @@ export function AnalyticsDashboard() {
   const seriesNameById = useMemo(() => {
     const map = new Map<string, string>();
     analytics?.diseaseIncidenceByPeriod.forEach((s) =>
-      map.set(s.sicknessId, s.sicknessName)
+      map.set(s.sicknessId, sicknessLabel(s.sicknessName))
     );
     return map;
   }, [analytics]);
@@ -359,7 +360,7 @@ export function AnalyticsDashboard() {
           icon={Sprout}
           label="Culturas Analisadas"
           value={String(analytics.distinctCropsCount)}
-          hint={analytics.byCrop.map((c) => c.crop).slice(0, 4).join(", ")}
+          hint={analytics.byCrop.map((c) => cropLabel(c.crop)).slice(0, 4).join(", ")}
         />
         <StatTile
           icon={Leaf}
@@ -553,7 +554,7 @@ export function AnalyticsDashboard() {
                           key={peak.sicknessId}
                           className="border-b last:border-0"
                         >
-                          <td className="py-2">{peak.sicknessName}</td>
+                          <td className="py-2">{sicknessLabel(peak.sicknessName)}</td>
                           <td className="py-2 text-muted-foreground">
                             {formatPeriodLabel(
                               peak.period,

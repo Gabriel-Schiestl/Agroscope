@@ -21,8 +21,10 @@ export abstract class AbstractUseCase<P, E, R> {
             const executionTime = Date.now() - startTime;
 
             if (result.isFailure()) {
+                const err = result.error as any;
+                const detail = err?.message ?? err?.msg ?? JSON.stringify(err);
                 this.logger.error(
-                    `[FALHA] ${this.constructor.name} falhou após ${executionTime}ms com erro: ${JSON.stringify(result.error)}`,
+                    `[FALHA] ${this.constructor.name} falhou após ${executionTime}ms com erro: ${JSON.stringify(result.error)} | mensagem: ${detail}`,
                 );
             } else {
                 // this.logger.debug(

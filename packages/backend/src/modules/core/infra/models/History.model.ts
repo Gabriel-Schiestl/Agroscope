@@ -12,6 +12,7 @@ export interface HistoryModelProps {
     id: string;
     createdAt: Date;
     sicknessId?: string;
+    sicknessName?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
@@ -36,6 +37,9 @@ export class HistoryModel extends BaseEntity {
 
     @Column({ nullable: true, name: 'sickness_id' })
     sicknessId?: string;
+
+    @Column({ nullable: true, name: 'sickness_name' })
+    sicknessName?: string;
 
     @ManyToOne(() => SicknessModel, (sickness) => sickness.histories, {
         nullable: true,

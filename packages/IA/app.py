@@ -130,7 +130,7 @@ def __generalist_predict(image_tensor):
             for i in range(len(LOADED_GENERALIST["class_names"]))
         }
         
-        return predicted_class, round(confidence * 100, 2), all_probabilities
+        return predicted_class, round(confidence, 4), all_probabilities
 
     except Exception as e:
         print(f"Error trying to predict: {e}")
@@ -156,7 +156,7 @@ def __expert_predict(image_tensor, type: str):
                     for i in range(len(LOADED_CORN["class_names"]))
                 }
                 
-                return predicted_class, round(confidence * 100, 2), all_probabilities
+                return predicted_class, round(confidence, 4), all_probabilities
             
             case "Wheat": 
                 with torch.no_grad():
@@ -174,7 +174,7 @@ def __expert_predict(image_tensor, type: str):
                     for i in range(len(LOADED_WHEAT["class_names"]))
                 }
                 
-                return predicted_class, round(confidence * 100, 2), all_probabilities
+                return predicted_class, round(confidence, 4), all_probabilities
             
             case "Soybean": 
                 with torch.no_grad():
@@ -192,7 +192,7 @@ def __expert_predict(image_tensor, type: str):
                     for i in range(len(LOADED_SOYBEAN["class_names"]))
                 }
                 
-                return predicted_class, round(confidence * 100, 2), all_probabilities
+                return predicted_class, round(confidence, 4), all_probabilities
 
     except Exception as e:
         print(f"Error trying to predict: {e}")
@@ -248,12 +248,10 @@ async def Predict( file: UploadFile = File(...) ):
 
 
     return {
-        "plant_prediction": generalist_prediction[0].upper(), 
-        "plant_confidence": generalist_prediction[1],
-        "expert": {
-            "predict": expert_prediction[0].upper(), 
-            "predict_confidence": expert_prediction[1],
-        }
+        "plant": generalist_prediction[0].upper(),
+        "plantConfidence": generalist_prediction[1],
+        "prediction": expert_prediction[0].upper(),
+        "predictionConfidence": expert_prediction[1],
         }
 
 

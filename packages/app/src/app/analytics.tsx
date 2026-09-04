@@ -29,6 +29,7 @@ import type { History } from '@/models/History';
 import type { AnalyticsGranularity } from '@/models/Analytics';
 import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
 import { hasPlanFeature, PLAN_FEATURE_REPORT_GENERATION } from '@/lib/plan-features';
+import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
 
 const SEQUENTIAL_HUE = '#4CAF50';
 const CATEGORICAL_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
@@ -722,39 +723,18 @@ export default function AnalyticsScreen() {
                                     {/* Cultura */}
                                     <View>
                                         <ThemedText
-                                            style={[
-                                                styles.resultLabel,
-                                                { color: colors.textSecondary },
-                                            ]}
+                                            style={[styles.resultLabel, { color: colors.textSecondary }]}
                                         >
                                             Cultura Identificada
                                         </ThemedText>
                                         <View style={styles.resultRow}>
-                                            <ThemedText
-                                                style={[
-                                                    styles.resultValue,
-                                                    { color: colors.tint },
-                                                ]}
-                                            >
-                                                {result.crop}
+                                            <ThemedText style={[styles.resultValue, { color: colors.tint }]}>
+                                                {cropLabel(result.crop)}
                                             </ThemedText>
                                             {result.cropConfidence > 0 && (
-                                                <View
-                                                    style={[
-                                                        styles.badge,
-                                                        {
-                                                            backgroundColor:
-                                                                colors.tint,
-                                                        },
-                                                    ]}
-                                                >
-                                                    <ThemedText
-                                                        style={styles.badgeText}
-                                                    >
-                                                        {(result.cropConfidence * 100).toFixed(
-                                                            1,
-                                                        )}
-                                                        % confiança
+                                                <View style={[styles.badge, { backgroundColor: colors.tint }]}>
+                                                    <ThemedText style={styles.badgeText}>
+                                                        {(result.cropConfidence * 100).toFixed(1)}% confiança
                                                     </ThemedText>
                                                 </View>
                                             )}
@@ -762,70 +742,39 @@ export default function AnalyticsScreen() {
                                     </View>
 
                                     {/* Diagnóstico */}
-                                    {result.explanation && (
-                                        <>
-                                            <View
-                                                style={[
-                                                    styles.divider,
-                                                    {
-                                                        backgroundColor:
-                                                            colors.backgroundSelected,
-                                                    },
-                                                ]}
-                                            />
-                                            <View>
-                                                <View style={styles.resultRow}>
-                                                    <ThemedText
-                                                        style={[
-                                                            styles.resultLabel,
-                                                            {
-                                                                color: colors.textSecondary,
-                                                            },
-                                                        ]}
-                                                    >
-                                                        Diagnóstico
+                                    <View style={[styles.divider, { backgroundColor: colors.backgroundSelected }]} />
+                                    <View>
+                                        <View style={styles.resultRow}>
+                                            <ThemedText style={[styles.resultLabel, { color: colors.textSecondary }]}>
+                                                Diagnóstico
+                                            </ThemedText>
+                                            {result.sicknessId && result.sicknessConfidence != null && result.sicknessConfidence > 0 && (
+                                                <View style={[styles.badgeOutline, { borderColor: colors.tint }]}>
+                                                    <ThemedText style={[styles.badgeOutlineText, { color: colors.tint }]}>
+                                                        {(result.sicknessConfidence * 100).toFixed(1)}%
                                                     </ThemedText>
-                                                    {result.sicknessConfidence &&
-                                                        result.sicknessConfidence >
-                                                            0 && (
-                                                            <View
-                                                                style={[
-                                                                    styles.badgeOutline,
-                                                                    {
-                                                                        borderColor:
-                                                                            colors.tint,
-                                                                    },
-                                                                ]}
-                                                            >
-                                                                <ThemedText
-                                                                    style={[
-                                                                        styles.badgeOutlineText,
-                                                                        {
-                                                                            color: colors.tint,
-                                                                        },
-                                                                    ]}
-                                                                >
-                                                                    {(result.sicknessConfidence * 100).toFixed(
-                                                                        1,
-                                                                    )}
-                                                                    %
-                                                                </ThemedText>
-                                                            </View>
-                                                        )}
                                                 </View>
-                                                <ThemedText
-                                                    style={[
-                                                        styles.resultBody,
-                                                        {
-                                                            color: colors.textSecondary,
-                                                        },
-                                                    ]}
-                                                >
-                                                    {result.explanation}
-                                                </ThemedText>
+                                            )}
+                                        </View>
+                                        {!result.sicknessId ? (
+                                            <View style={[styles.badge, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
+                                                <ThemedText style={styles.badgeText}>🌿 Planta Saudável</ThemedText>
                                             </View>
-                                        </>
-                                    )}
+                                        ) : (
+                                            <>
+                                                {result.sicknessName && (
+                                                    <ThemedText style={[styles.resultBody, { fontWeight: '600' }]}>
+                                                        {sicknessLabel(result.sicknessName)}
+                                                    </ThemedText>
+                                                )}
+                                                {result.explanation && (
+                                                    <ThemedText style={[styles.resultBody, { color: colors.textSecondary }]}>
+                                                        {result.explanation}
+                                                    </ThemedText>
+                                                )}
+                                            </>
+                                        )}
+                                    </View>
 
                                     {/* Causas */}
                                     {result.causes && (
@@ -1113,7 +1062,7 @@ export default function AnalyticsScreen() {
                             ) : (
                                 <View style={styles.historyList}>
                                     {historyItems.map((item, idx) => (
-                                        <View
+                                        <TouchableOpacity
                                             key={item.id}
                                             style={[
                                                 styles.historyItem,
@@ -1122,13 +1071,19 @@ export default function AnalyticsScreen() {
                                                     borderBottomColor: colors.backgroundSelected,
                                                 },
                                             ]}
+                                            onPress={() => setDetailAnalysis(item)}
+                                            activeOpacity={0.7}
                                         >
                                             <View style={styles.historyMain}>
                                                 <ThemedText style={styles.historyTitle} numberOfLines={2}>
-                                                    {item.explanation || item.crop}
+                                                    {item.sicknessName
+                                                        ? sicknessLabel(item.sicknessName)
+                                                        : item.sicknessId
+                                                        ? 'Doença identificada'
+                                                        : 'Planta saudável'}
                                                 </ThemedText>
                                                 <ThemedText style={[styles.historyCrop, { color: colors.textSecondary }]}>
-                                                    Cultura: {item.crop}
+                                                    Cultura: {cropLabel(item.crop)}
                                                 </ThemedText>
                                                 <ThemedText style={[styles.historyDate, { color: colors.textSecondary }]}>
                                                     {new Date(item.createdAt).toLocaleDateString('pt-BR')}
@@ -1151,15 +1106,7 @@ export default function AnalyticsScreen() {
                                                 )}
                                                 <TouchableOpacity
                                                     style={[styles.historyChatBtn, { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' }]}
-                                                    onPress={() => setDetailAnalysis(item)}
-                                                >
-                                                    <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
-                                                        👁️ Detalhes
-                                                    </ThemedText>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    style={[styles.historyChatBtn, { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' }]}
-                                                    onPress={() => setChatAnalysis(item)}
+                                                    onPress={(e) => { e.stopPropagation?.(); setChatAnalysis(item); }}
                                                 >
                                                     <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
                                                         💬 Chat
@@ -1171,7 +1118,7 @@ export default function AnalyticsScreen() {
                                                         { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' },
                                                         (generatingReportId === item.id || !canGenerateReport) && { opacity: 0.6 },
                                                     ]}
-                                                    onPress={() => handleGenerateReport(item)}
+                                                    onPress={(e) => { e.stopPropagation?.(); handleGenerateReport(item); }}
                                                     disabled={generatingReportId === item.id}
                                                 >
                                                     {generatingReportId === item.id ? (
@@ -1183,7 +1130,7 @@ export default function AnalyticsScreen() {
                                                     )}
                                                 </TouchableOpacity>
                                             </View>
-                                        </View>
+                                        </TouchableOpacity>
                                     ))}
                                 </View>
                             )}

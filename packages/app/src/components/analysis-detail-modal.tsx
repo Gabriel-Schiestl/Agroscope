@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import { imageToDataUri } from '@/lib/utils';
+import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
 import type { History } from '@/models/History';
 
 interface AnalysisDetailModalProps {
@@ -73,29 +74,44 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
 
                             <View style={styles.section}>
                                 <ThemedText style={[styles.label, { color: colors.textSecondary }]}>
-                                    Diagnóstico
+                                    Cultura Identificada
                                 </ThemedText>
-                                <ThemedText style={styles.value}>
-                                    {analysis.explanation || 'Não identificado'}
+                                <ThemedText style={[styles.value, { color: colors.tint }]}>
+                                    {cropLabel(analysis.crop)}
+                                    {analysis.cropConfidence != null &&
+                                        ` · ${(analysis.cropConfidence * 100).toFixed(1)}% confiança`}
                                 </ThemedText>
-                                {analysis.sicknessConfidence != null && (
-                                    <View style={[styles.badge, { backgroundColor: colors.tint }]}>
-                                        <ThemedText style={styles.badgeText}>
-                                            Confiança: {(analysis.sicknessConfidence * 100).toFixed(1)}%
-                                        </ThemedText>
-                                    </View>
-                                )}
                             </View>
 
                             <View style={styles.section}>
                                 <ThemedText style={[styles.label, { color: colors.textSecondary }]}>
-                                    Cultura
+                                    Diagnóstico
                                 </ThemedText>
-                                <ThemedText style={styles.value}>
-                                    {analysis.crop || 'Não identificada'}
-                                    {analysis.cropConfidence != null &&
-                                        ` (Confiança: ${(analysis.cropConfidence * 100).toFixed(1)}%)`}
-                                </ThemedText>
+                                {!analysis.sicknessId ? (
+                                    <View style={[styles.badge, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
+                                        <ThemedText style={styles.badgeText}>🌿 Planta Saudável</ThemedText>
+                                    </View>
+                                ) : (
+                                    <>
+                                        <ThemedText style={[styles.value, { fontWeight: '600' }]}>
+                                            {analysis.sicknessName
+                                                ? sicknessLabel(analysis.sicknessName)
+                                                : analysis.explanation || 'Doença identificada'}
+                                        </ThemedText>
+                                        {analysis.sicknessConfidence != null && (
+                                            <View style={[styles.badge, { backgroundColor: colors.tint }]}>
+                                                <ThemedText style={styles.badgeText}>
+                                                    Confiança: {(analysis.sicknessConfidence * 100).toFixed(1)}%
+                                                </ThemedText>
+                                            </View>
+                                        )}
+                                        {analysis.explanation && (
+                                            <ThemedText style={[styles.value, { color: colors.textSecondary, marginTop: 6 }]}>
+                                                {analysis.explanation}
+                                            </ThemedText>
+                                        )}
+                                    </>
+                                )}
                             </View>
 
                             {analysis.causes && (

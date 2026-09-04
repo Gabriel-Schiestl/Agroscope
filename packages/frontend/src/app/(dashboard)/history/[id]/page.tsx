@@ -27,6 +27,7 @@ import { ChatPanel } from "../../../../components/chat-panel";
 import { useHistory } from "../../../../hooks/use-history";
 import { useLimit } from "../../../../hooks/use-limit";
 import { toImageSrc } from "../../../../lib/utils";
+import { cropLabel, sicknessLabel } from "../../../../lib/agro-labels";
 import { generateAnalysisReportPdf } from "../../../../lib/pdf/generate-analysis-report";
 import {
   hasPlanFeature,
@@ -89,7 +90,7 @@ export default function HistoryDetailsPage({
     <div className="space-y-6 pb-16 md:pb-0">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Link href="/history">
+          <Link href="/analytics?tab=history">
             <Button variant="outline" size="icon" className="rounded-full">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -145,29 +146,49 @@ export default function HistoryDetailsPage({
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Diagnóstico
+                  Cultura Identificada
                 </h3>
-                <p className="font-medium text-lg">
-                  {history.explanation || "Não identificado"}
-                </p>
-                {history.sicknessConfidence != null && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className="bg-primaryGreen">
-                      Confiança: {(history.sicknessConfidence * 100).toFixed(1)}%
+                <p className="font-medium text-lg text-primaryGreen">
+                  {cropLabel(history.crop)}
+                  {history.cropConfidence != null && (
+                    <Badge className="ml-2 bg-primaryGreen">
+                      {(history.cropConfidence * 100).toFixed(1)}% confiança
                     </Badge>
-                  </div>
-                )}
+                  )}
+                </p>
               </div>
 
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Cultura
+                  Diagnóstico
                 </h3>
-                <p>
-                  {history.crop || "Não identificada"}
-                  {history.cropConfidence != null &&
-                    ` (Confiança: ${(history.cropConfidence * 100).toFixed(1)}%)`}
-                </p>
+                {!history.sicknessId ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className="bg-primaryGreen text-white text-base px-3 py-1">
+                      Planta Saudável
+                    </Badge>
+                  </div>
+                ) : (
+                  <>
+                    <p className="font-semibold text-lg">
+                      {history.sicknessName
+                        ? sicknessLabel(history.sicknessName)
+                        : "Doença identificada"}
+                    </p>
+                    {history.sicknessConfidence != null && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className="bg-primaryGreen">
+                          {(history.sicknessConfidence * 100).toFixed(1)}% confiança
+                        </Badge>
+                      </div>
+                    )}
+                    {history.explanation && (
+                      <p className="text-muted-foreground text-sm mt-1">
+                        {history.explanation}
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 export interface HistoryProps {
     createdAt: Date;
     sicknessId?: string;
+    sicknessName?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
@@ -16,6 +17,7 @@ export interface HistoryProps {
 
 export interface CreateHistoryProps {
     sicknessId?: string;
+    sicknessName?: string;
     handling?: string;
     sicknessConfidence?: number;
     crop: string;
@@ -30,6 +32,7 @@ export interface CreateHistoryProps {
 export interface LoadHistoryProps {
     createdAt: Date;
     sicknessId?: string;
+    sicknessName?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;
@@ -45,6 +48,7 @@ export class History {
     #id: string;
     #createdAt: Date;
     #sicknessId?: string;
+    #sicknessName?: string;
     #sicknessConfidence?: number;
     #crop: string;
     #cropConfidence: number;
@@ -59,6 +63,7 @@ export class History {
         this.#id = id || uuid();
         this.#createdAt = props.createdAt;
         this.#sicknessId = props.sicknessId;
+        this.#sicknessName = props.sicknessName;
         this.#sicknessConfidence = props.sicknessConfidence;
         this.#crop = props.crop;
         this.#cropConfidence = props.cropConfidence;
@@ -88,6 +93,10 @@ export class History {
 
     get sicknessId(): string {
         return this.#sicknessId;
+    }
+
+    get sicknessName(): string {
+        return this.#sicknessName;
     }
 
     get sicknessConfidence(): number {

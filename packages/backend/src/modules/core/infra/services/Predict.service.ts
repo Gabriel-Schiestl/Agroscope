@@ -23,7 +23,7 @@ export class PredictServiceImpl implements PredictService {
 
         const image = fs.createReadStream(imagePath);
 
-        formData.append('image', image, {
+        formData.append('file', image, {
             filename: path.basename(imagePath),
             contentType: 'image/*',
         });

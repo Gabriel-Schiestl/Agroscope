@@ -8,6 +8,7 @@ export class HistoryMapper {
             id: domain.id,
             createdAt: domain.createdAt,
             sicknessId: domain.sicknessId,
+            sicknessName: domain.sicknessName,
             sicknessConfidence: domain.sicknessConfidence,
             crop: domain.crop,
             cropConfidence: domain.cropConfidence,
@@ -25,6 +26,7 @@ export class HistoryMapper {
             {
                 createdAt: model.createdAt,
                 sicknessId: model.sicknessId,
+                sicknessName: model.sicknessName,
                 sicknessConfidence: model.sicknessConfidence,
                 crop: model.crop,
                 cropConfidence: model.cropConfidence,

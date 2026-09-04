@@ -2,6 +2,7 @@ export interface History {
     id: string;
     createdAt: Date;
     sicknessId?: string;
+    sicknessName?: string;
     sicknessConfidence?: number;
     crop: string;
     cropConfidence: number;

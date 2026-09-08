@@ -7,27 +7,19 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "../../../../components/ui/button";
-import { Badge } from "../../../../components/ui/badge";
-import { Separator } from "../../../../components/ui/separator";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../../../components/ui/card";
+import { Card, CardContent } from "../../../../components/ui/card";
 import {
   ArrowLeft,
   CalendarIcon,
-  Download,
   FileText,
   MessageCircle,
 } from "lucide-react";
 import type { History } from "../../../../models/History";
 import { ChatPanel } from "../../../../components/chat-panel";
+import { DiagnosisResult } from "../../../../components/diagnosis-result";
 import { useHistory } from "../../../../hooks/use-history";
 import { useLimit } from "../../../../hooks/use-limit";
 import { toImageSrc } from "../../../../lib/utils";
-import { cropLabel, sicknessLabel } from "../../../../lib/agro-labels";
 import { generateAnalysisReportPdf } from "../../../../lib/pdf/generate-analysis-report";
 import {
   hasPlanFeature,
@@ -114,11 +106,7 @@ export default function HistoryDetailsPage({
             onClick={() => setChatOpen(true)}
           >
             <MessageCircle className="mr-2 h-4 w-4" />
-            Chat
-          </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
+            Perguntar à Íris
           </Button>
           <Button
             className="bg-primaryGreen hover:bg-lightGreen"
@@ -134,7 +122,11 @@ export default function HistoryDetailsPage({
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="relative w-full h-64 rounded-md overflow-hidden bg-muted">
+            <div
+              className={`relative w-full h-64 rounded-md overflow-hidden bg-muted ring-2 ring-offset-2 ring-offset-background ${
+                history.sicknessId ? "ring-warning/60" : "ring-primaryGreen/60"
+              }`}
+            >
               <Image
                 src={toImageSrc(history.image)}
                 alt={history.crop || "Análise"}
@@ -143,97 +135,20 @@ export default function HistoryDetailsPage({
               />
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Cultura Identificada
-                </h3>
-                <p className="font-medium text-lg text-primaryGreen">
-                  {cropLabel(history.crop)}
-                  {history.cropConfidence != null && (
-                    <Badge className="ml-2 bg-primaryGreen">
-                      {(history.cropConfidence * 100).toFixed(1)}% confiança
-                    </Badge>
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Diagnóstico
-                </h3>
-                {!history.sicknessId ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className="bg-primaryGreen text-white text-base px-3 py-1">
-                      Planta Saudável
-                    </Badge>
-                  </div>
-                ) : (
-                  <>
-                    <p className="font-semibold text-lg">
-                      {history.sicknessName
-                        ? sicknessLabel(history.sicknessName)
-                        : "Doença identificada"}
-                    </p>
-                    {history.sicknessConfidence != null && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className="bg-primaryGreen">
-                          {(history.sicknessConfidence * 100).toFixed(1)}% confiança
-                        </Badge>
-                      </div>
-                    )}
-                    {history.explanation && (
-                      <p className="text-muted-foreground text-sm mt-1">
-                        {history.explanation}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
+            <DiagnosisResult
+              crop={history.crop}
+              cropConfidence={history.cropConfidence}
+              sicknessId={history.sicknessId}
+              sicknessName={history.sicknessName}
+              sicknessConfidence={history.sicknessConfidence}
+              explanation={history.explanation}
+              causes={history.causes}
+              handling={history.handling}
+              precautions={history.precautions}
+            />
           </div>
         </CardContent>
       </Card>
-
-      {(history.causes || history.handling || history.precautions) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Detalhadas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {history.causes && (
-              <div>
-                <h3 className="font-medium">Causas / Sintomas</h3>
-                <p className="text-muted-foreground mt-1">{history.causes}</p>
-              </div>
-            )}
-
-            {history.handling && (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="font-medium">Recomendações de Manejo</h3>
-                  <p className="text-muted-foreground mt-1">
-                    {history.handling}
-                  </p>
-                </div>
-              </>
-            )}
-
-            {history.precautions && (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="font-medium">Precauções</h3>
-                  <p className="text-muted-foreground mt-1">
-                    {history.precautions}
-                  </p>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {!canGenerateReport && (
         <p className="text-xs text-red-500 text-center">

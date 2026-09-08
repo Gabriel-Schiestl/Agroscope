@@ -133,80 +133,64 @@ export default function ClientPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Documento</CardDescription>
-            <CardTitle className="text-base md:text-lg">
-              {client.document}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Área Total</CardDescription>
-            <CardTitle className="text-base md:text-lg">
-              {client.totalArea.toLocaleString()} ha
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Área Plantada</CardDescription>
-            <CardTitle className="text-base md:text-lg">
-              {client.totalAreaPlanted.toLocaleString()} ha
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Status</CardDescription>
-            <CardTitle className="text-base md:text-lg">
-              {client.active ? "Ativo" : "Inativo"}
-            </CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 rounded-xl border divide-y divide-border md:divide-y-0 md:divide-x">
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Documento</div>
+          <div className="text-base md:text-lg font-semibold mt-1">
+            {client.document}
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Área Total</div>
+          <div className="text-base md:text-lg font-semibold mt-1">
+            {client.totalArea.toLocaleString()} ha
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Área Plantada</div>
+          <div className="text-base md:text-lg font-semibold mt-1">
+            {client.totalAreaPlanted.toLocaleString()} ha
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Status</div>
+          <div className="text-base md:text-lg font-semibold mt-1">
+            {client.active ? "Ativo" : "Inativo"}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Último Evento</CardDescription>
-            <CardTitle className="text-base md:text-lg">
-              {lastEventDate}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Próximo Evento</CardDescription>
-            <CardTitle className="text-base md:text-lg">{nextEvent}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Tipo de Pessoa</CardDescription>
-            <CardTitle className="text-base md:text-lg">
-              {client.person === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Cultura Atual</CardDescription>
-            <CardTitle className="text-base md:text-lg">
-              {client.actualCrop
-                ? client.actualCrop === Crop.SOYBEAN
-                  ? "Soja"
-                  : client.actualCrop === Crop.CORN
-                  ? "Milho"
-                  : client.actualCrop === Crop.WHEAT
-                  ? "Trigo"
-                  : client.actualCrop
-                : "Não definida"}
-            </CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 rounded-xl border divide-y divide-border md:divide-y-0 md:divide-x">
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Último Evento</div>
+          <div className="text-base md:text-lg font-semibold mt-1">
+            {lastEventDate}
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Próximo Evento</div>
+          <div className="text-base md:text-lg font-semibold mt-1">{nextEvent}</div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Tipo de Pessoa</div>
+          <div className="text-base md:text-lg font-semibold mt-1">
+            {client.person === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Cultura Atual</div>
+          <div className="text-base md:text-lg font-semibold mt-1">
+            {client.actualCrop
+              ? client.actualCrop === Crop.SOYBEAN
+                ? "Soja"
+                : client.actualCrop === Crop.CORN
+                ? "Milho"
+                : client.actualCrop === Crop.WHEAT
+                ? "Trigo"
+                : client.actualCrop
+              : "Não definida"}
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="overview">

@@ -165,66 +165,50 @@ export default function DashboardPage() {
         <p className="text-mediumGray">Painel de controle do agrônomo</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total de Clientes</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">
-              {clients.length}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-primaryGreen">
-              +
-              {
-                clients.filter(
-                  (c) =>
-                    new Date(c.createdAt!).getMonth() === new Date().getMonth()
-                ).length
-              }{" "}
-              novos este mês
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Área Monitorada</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">
-              {areaMonitored} ha
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-primaryGreen">
-              +{newTotalArea} ha desde o último mês
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Eventos Pendentes</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">
-              {pendingEvents}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-primaryGreen">
-              Próximo: {nextEventDate}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Relatórios</CardDescription>
-            <CardTitle className="text-xl md:text-2xl">
-              {reports.length}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-primaryGreen">
-              {lastReportsCount} novos este mês
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 rounded-xl border divide-y divide-border md:divide-y-0 md:divide-x">
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Total de Clientes</div>
+          <div className="text-xl md:text-2xl font-semibold mt-1">
+            {clients.length}
+          </div>
+          <div className="text-xs text-primaryGreen mt-1">
+            +
+            {
+              clients.filter(
+                (c) =>
+                  new Date(c.createdAt!).getMonth() === new Date().getMonth()
+              ).length
+            }{" "}
+            novos este mês
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Área Monitorada</div>
+          <div className="text-xl md:text-2xl font-semibold mt-1">
+            {areaMonitored} ha
+          </div>
+          <div className="text-xs text-primaryGreen mt-1">
+            +{newTotalArea} ha desde o último mês
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Eventos Pendentes</div>
+          <div className="text-xl md:text-2xl font-semibold mt-1">
+            {pendingEvents}
+          </div>
+          <div className="text-xs text-primaryGreen mt-1">
+            Próximo: {nextEventDate}
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-sm text-mediumGray">Relatórios</div>
+          <div className="text-xl md:text-2xl font-semibold mt-1">
+            {reports.length}
+          </div>
+          <div className="text-xs text-primaryGreen mt-1">
+            {lastReportsCount} novos este mês
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

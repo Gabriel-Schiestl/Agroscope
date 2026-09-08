@@ -45,7 +45,7 @@ export default function Header() {
                 </button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64">
-                <Sidebar />
+                <Sidebar forceExpanded />
               </SheetContent>
             </Sheet>
           )}

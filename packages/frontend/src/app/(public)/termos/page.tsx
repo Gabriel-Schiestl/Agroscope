@@ -41,7 +41,7 @@ export default function TermosPage() {
               1. Controlador dos dados
             </h3>
             <p>
-              O AgroScope ("nós", "nosso sistema") é o controlador dos dados
+              O AgroScope (&quot;nós&quot;, &quot;nosso sistema&quot;) é o controlador dos dados
               pessoais tratados por meio da plataforma, nos termos do art. 5º,
               VI, da LGPD, sendo responsável pelas decisões referentes ao
               tratamento dos dados pessoais dos usuários.

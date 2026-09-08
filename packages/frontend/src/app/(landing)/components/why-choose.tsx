@@ -17,7 +17,7 @@ export default function WhyChoose() {
           </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className="group rounded-xl border border-primary/20 bg-[#09200b]/70 p-6 hover:bg-[#09200b] transition-all duration-300">
+            <Card className="group rounded-xl border border-primary/20 bg-[#09200b]/70 p-6 shadow hover:bg-[#09200b] transition-all duration-300">
               <CardContent className="pt-6">
                 <div className="w-12 h-12 rounded-full bg-primaryGreen/10 flex items-center justify-center text-primaryGreen mb-4">
                   <Leaf size={24} />
@@ -32,7 +32,7 @@ export default function WhyChoose() {
               </CardContent>
             </Card>
 
-            <Card className="group rounded-xl border border-primary/20 bg-[#09200b]/70 p-6 hover:bg-[#09200b] transition-all duration-300">
+            <Card className="group rounded-xl border border-primary/20 bg-[#09200b]/70 p-6 shadow hover:bg-[#09200b] transition-all duration-300">
               <CardContent className="pt-6">
                 <div className="w-12 h-12 rounded-full bg-primaryGreen/10 flex items-center justify-center text-primaryGreen mb-4">
                   <Check size={24} />
@@ -47,7 +47,7 @@ export default function WhyChoose() {
               </CardContent>
             </Card>
 
-            <Card className="group rounded-xl border border-primary/20 bg-[#09200b]/70 p-6 hover:bg-[#09200b] transition-all duration-300">
+            <Card className="group rounded-xl border border-primary/20 bg-[#09200b]/70 p-6 shadow hover:bg-[#09200b] transition-all duration-300">
               <CardContent className="pt-6">
                 <div className="w-12 h-12 rounded-full bg-primaryGreen/10 flex items-center justify-center text-primaryGreen mb-4">
                   <ArrowRight size={24} />

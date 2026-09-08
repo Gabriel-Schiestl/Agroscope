@@ -13,7 +13,8 @@ import {
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { Leaf, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
+import { IrisIcon } from './iris-icon';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -43,6 +44,18 @@ interface ChatPanelProps {
   onClose: () => void;
 }
 
+const SUGGESTED_QUESTIONS_DISEASE = [
+  'Como faço o tratamento?',
+  'É contagioso para outras plantas?',
+  'Posso colher normalmente?',
+];
+
+const SUGGESTED_QUESTIONS_HEALTHY = [
+  'Como faço manutenção preventiva?',
+  'Quais cuidados devo ter agora?',
+  'Com que frequência devo monitorar?',
+];
+
 function dtoToMessage(dto: ChatMessageDto): ChatMessage {
   return {
     id: dto.id,
@@ -61,8 +74,8 @@ function buildInitialMessage(analysis: History | null): ChatMessage {
   const isHealthy = !analysis?.sicknessId;
 
   const content = isHealthy
-    ? `Olá! Sou seu assistente agrícola. A planta ${cropPT} está saudável — nenhuma doença detectada.\n\nPosso ajudá-lo com dúvidas gerais sobre manejo preventivo ou outras questões. O que gostaria de saber?`
-    : `Olá! Sou seu assistente agrícola. Identifiquei ${sicknessLabel(analysis.sicknessName)}${confidence} em ${cropPT}.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
+    ? `Olá! Sou a Íris, sua assistente de análise da AgroScope. A planta ${cropPT} está saudável — nenhuma doença detectada.\n\nPosso ajudá-lo com dúvidas gerais sobre manejo preventivo ou outras questões. O que gostaria de saber?`
+    : `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei ${sicknessLabel(analysis.sicknessName)}${confidence} em ${cropPT}.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
 
   return {
     id: 'init',
@@ -84,7 +97,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     >
       {!isUser && (
         <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primaryGreen/15 flex items-center justify-center">
-          <Leaf className="h-3.5 w-3.5 text-primaryGreen" />
+          <IrisIcon className="h-3.5 w-3.5 text-primaryGreen" />
         </div>
       )}
       <div
@@ -113,7 +126,7 @@ function TypingIndicator() {
   return (
     <div className="flex gap-2 items-end">
       <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primaryGreen/15 flex items-center justify-center">
-        <Leaf className="h-3.5 w-3.5 text-primaryGreen" />
+        <IrisIcon className="h-3.5 w-3.5 text-primaryGreen" />
       </div>
       <div className="bg-muted border rounded-2xl rounded-bl-sm px-4 py-3">
         <div className="flex gap-1 items-center">
@@ -197,8 +210,15 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
     }
   }, [messages, isTyping]);
 
-  const sendMessage = () => {
-    const text = inputText.trim();
+  // Return focus to the input once it's enabled again (chat opens, or a reply just arrived)
+  useEffect(() => {
+    if (open && !isTyping) {
+      textareaRef.current?.focus();
+    }
+  }, [isTyping, open]);
+
+  const sendMessage = (overrideText?: string) => {
+    const text = (overrideText ?? inputText).trim();
     if (!text || isTyping || !socketRef.current || !analysis) return;
     if (chatLimitReached) return;
 
@@ -267,11 +287,11 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
         <SheetHeader className="px-5 py-4 border-b space-y-0">
           <div className="flex items-center gap-3 pr-6">
             <div className="w-9 h-9 rounded-full bg-primaryGreen/15 flex items-center justify-center flex-shrink-0">
-              <Leaf className="h-4 w-4 text-primaryGreen" />
+              <IrisIcon className="h-4 w-4 text-primaryGreen" />
             </div>
             <div className="min-w-0">
               <SheetTitle className="text-base leading-tight">
-                Assistente AgroScope
+                Íris
               </SheetTitle>
               <SheetDescription className="text-xs mt-0.5 truncate">
                 {analysis?.crop
@@ -325,6 +345,24 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
             <MessageBubble key={msg.id} message={msg} />
           ))}
           {isTyping && <TypingIndicator />}
+
+          {messages.length === 1 && messages[0].id === 'init' && !isTyping && (
+            <div className="flex flex-wrap gap-1.5 pl-9">
+              {(analysis?.sicknessId
+                ? SUGGESTED_QUESTIONS_DISEASE
+                : SUGGESTED_QUESTIONS_HEALTHY
+              ).map((question) => (
+                <button
+                  key={question}
+                  onClick={() => sendMessage(question)}
+                  disabled={!isConnected || chatLimitReached}
+                  className="text-xs px-3 py-1.5 rounded-full border border-primaryGreen/30 text-primaryGreen hover:bg-primaryGreen/10 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <Separator />
@@ -365,7 +403,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
             />
             <Button
               size="icon"
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
               disabled={
                 !inputText.trim() ||
                 isTyping ||

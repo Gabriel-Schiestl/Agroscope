@@ -38,7 +38,7 @@ describe('Auth - password recovery (e2e)', () => {
         const response = await request(app.getHttpServer())
             .post('/auth/recovery-token')
             .send({ email });
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(201);
 
         const authentication = await authenticationRepository.findByEmail(email);
         if (authentication.isFailure()) throw authentication.error;
@@ -67,7 +67,7 @@ describe('Auth - password recovery (e2e)', () => {
         const validAttempt = await request(app.getHttpServer())
             .post('/auth/validate-recovery-token')
             .send({ email, token });
-        expect(validAttempt.status).toBe(200);
+        expect(validAttempt.status).toBe(201);
     });
 
     it('troca a senha com o token correto e a nova senha passa a funcionar no login', async () => {
@@ -77,7 +77,7 @@ describe('Auth - password recovery (e2e)', () => {
         const changeResponse = await request(app.getHttpServer())
             .post('/auth/change-password')
             .send({ email, token, newPassword });
-        expect(changeResponse.status).toBe(200);
+        expect(changeResponse.status).toBe(201);
 
         const oldPasswordLogin = await request(app.getHttpServer())
             .post('/auth/login')

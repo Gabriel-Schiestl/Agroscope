@@ -46,6 +46,9 @@ lerna-debug.log*
 .temp
 .tmp
 
+# uploaded files (multer)
+/src/modules/core/infra/uploads
+
 # Runtime data
 pids
 *.pid

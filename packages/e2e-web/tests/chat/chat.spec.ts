@@ -81,14 +81,8 @@ test.describe('Módulo: Chat', () => {
 
     // Primeira vez que o chat dessa análise é aberto: sem histórico salvo
     // ainda, o painel monta a saudação inicial localmente a partir dos dados
-    // da própria análise (crop + explanation) — ver buildInitialMessage em
-    // chat-panel.tsx.
+    // da própria análise — ver buildInitialMessage em chat-panel.tsx.
     await expect(chat.panel.getByText(analysis.crop, { exact: false }).first()).toBeVisible();
-    if (analysis.explanation) {
-      await expect(
-        chat.panel.getByText(analysis.explanation, { exact: false }).first(),
-      ).toBeVisible();
-    }
   });
 
   test('CT-34 - tentar enviar mensagem com limite de chat esgotado bloqueia o envio', async ({

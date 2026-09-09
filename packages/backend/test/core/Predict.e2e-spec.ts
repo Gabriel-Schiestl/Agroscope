@@ -14,9 +14,9 @@ import {
 import { Res, Result } from 'src/shared/Result';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 
-// Seeded by the `SeedMockSicknesses` migration.
-const REQUEIMA_SICKNESS_ID = '00000000-0000-0000-0000-000000000101';
-const REQUEIMA_SICKNESS_NAME = 'Requeima';
+// Seeded by the `SeedRealSicknesses` migration.
+const TARGET_SPOT_SICKNESS_ID = '11111111-0000-0000-0000-000000000006';
+const TARGET_SPOT_SICKNESS_NAME = 'Target_Spot';
 
 const FAKE_IMAGE_BASE64 = 'ZmFrZS1pbWFnZS1jb250ZW50';
 
@@ -24,7 +24,7 @@ class FakePredictService implements PredictService {
     predictResponse: PredictServiceResponse = {
         plant: 'tomate',
         plantConfidence: 0.95,
-        prediction: 'saudavel',
+        prediction: 'Healthy',
         predictionConfidence: 0.97,
     };
     handlingResponse: HandlingServiceResponse = {
@@ -79,7 +79,7 @@ describe('Core - predict (e2e)', () => {
         fakePredictService.predictResponse = {
             plant: 'tomate',
             plantConfidence: 0.95,
-            prediction: 'saudavel',
+            prediction: 'Healthy',
             predictionConfidence: 0.97,
         };
         await clearTables(app, ['history', 'authentication', 'user']);
@@ -108,7 +108,7 @@ describe('Core - predict (e2e)', () => {
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
 
         expect(response.status).toBe(201);
-        expect(response.body.crop).toBeNull();
+        expect(response.body.crop).toBe('tomate');
         expect(response.body.sicknessId).toBeNull();
         expect(response.body.handling).toBe('Nenhuma ação necessária');
 
@@ -128,7 +128,7 @@ describe('Core - predict (e2e)', () => {
         fakePredictService.predictResponse = {
             plant: 'tomate',
             plantConfidence: 0.93,
-            prediction: REQUEIMA_SICKNESS_NAME,
+            prediction: TARGET_SPOT_SICKNESS_NAME,
             predictionConfidence: 0.9,
         };
         fakePredictService.handlingResponse = {
@@ -145,7 +145,7 @@ describe('Core - predict (e2e)', () => {
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
 
         expect(response.status).toBe(201);
-        expect(response.body.sicknessId).toBe(REQUEIMA_SICKNESS_ID);
+        expect(response.body.sicknessId).toBe(TARGET_SPOT_SICKNESS_ID);
         expect(response.body.crop).toBe('tomate');
         expect(response.body.handling).toBe('Aplicar fungicida');
         expect(response.body.causes).toBe('Excesso de umidade');
@@ -153,7 +153,7 @@ describe('Core - predict (e2e)', () => {
         const histories = await historyRepository.getByUserId(user.id);
         if (histories.isFailure()) throw histories.error;
         expect(histories.value).toHaveLength(1);
-        expect(histories.value[0].sicknessId).toBe(REQUEIMA_SICKNESS_ID);
+        expect(histories.value[0].sicknessId).toBe(TARGET_SPOT_SICKNESS_ID);
     });
 
     it('recusa a análise quando a confiança da predição é baixa e não cria histórico', async () => {

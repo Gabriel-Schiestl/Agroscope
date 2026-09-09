@@ -6,6 +6,10 @@
 #     então o fluxo de análise de imagem e o chat funcionam sem Flask/N8N reais.
 #   - Segredos (JWT_SECRET, AES_KEY) são valores fixos só para teste — nunca reutilize
 #     em produção.
+#   - COOKIE_SECURE=false permite o cookie de sessão funcionar em HTTP puro
+#     (nginx sem TLS); produção mantém o default (secure=true, exige HTTPS).
+#   - THROTTLE_LOGIN_LIMIT alto evita 429 nos testes de login/recuperação de
+#     senha, que fazem várias tentativas em sequência; produção mantém 10/min.
 #
 # Uso:
 #   docker compose -f docker-compose.test.yml up -d --build
@@ -66,7 +70,9 @@ services:
       DB_URL: postgres://agroscope:agroscope@postgres:5432/agroscope_e2e
       DB_SSL: "false"
       JWT_SECRET: e2e-test-jwt-secret-do-not-use-in-production
-      AES_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd"
+      AES_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      COOKIE_SECURE: "false"
+      THROTTLE_LOGIN_LIMIT: "1000"
       CORS_ORIGINS: http://localhost,http://localhost:3000,http://127.0.0.1:3000,http://nginx
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       FLASK_API_URL: http://flask.invalid

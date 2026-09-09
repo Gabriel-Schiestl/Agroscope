@@ -18,7 +18,10 @@ export class SignupPage {
     this.confirmPasswordInput = page.locator('#confirmPassword');
     this.acceptedTermsCheckbox = page.locator('#acceptedTerms');
     this.submitButton = page.getByRole('button', { name: 'Criar Conta' });
-    this.errorAlert = page.getByRole('alert');
+    // Next.js injeta seu próprio elemento com role="alert" (route announcer,
+    // sempre vazio) para acessibilidade de navegação — filtra por texto para
+    // pegar só o alerta de erro real do formulário.
+    this.errorAlert = page.getByRole('alert').filter({ hasText: /\S/ });
   }
 
   async goto(): Promise<void> {

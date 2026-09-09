@@ -14,28 +14,15 @@ interface MockScenario {
     handling: HandlingServiceResponse;
 }
 
-const HEALTHY_PLANTS = ['Tomate', 'Milho', 'Soja'];
+const HEALTHY_PLANTS = ['Milho', 'Trigo', 'Soja'];
 
+// Nomes de `prediction` precisam bater (case-insensitive) com "name" na
+// tabela sickness — ver migration SeedRealSicknesses. Os antigos nomes mock
+// (Requeima/Ferrugem/Mancha Alvo) foram removidos por essa migration.
 const SCENARIOS: MockScenario[] = [
     {
-        plant: 'Tomate',
-        prediction: 'Requeima',
-        handling: {
-            diagnostico:
-                'Requeima (Phytophthora infestans) identificada nas folhas do tomateiro.',
-            explicacao:
-                'A requeima é uma doença fúngica que ataca folhas, caules e frutos do tomateiro, provocando manchas encharcadas que evoluem para necrose em poucos dias.',
-            causas:
-                'Causada pelo oomiceto Phytophthora infestans, favorecida por umidade alta, temperaturas amenas (15-24°C) e chuvas frequentes. Dissemina-se rapidamente por respingos de água e vento.',
-            manejo:
-                'Remova e destrua as folhas e frutos afetados. Aplique fungicida à base de cobre ou clorotalonil, evite molhar as folhas na irrigação e garanta espaçamento adequado entre as plantas para melhorar a ventilação.',
-            precautions:
-                'Evite irrigação por aspersão, faça rotação de culturas e monitore a lavoura após períodos chuvosos.',
-        },
-    },
-    {
         plant: 'Milho',
-        prediction: 'Ferrugem',
+        prediction: 'Rust_Common',
         handling: {
             diagnostico:
                 'Ferrugem comum do milho (Puccinia sorghi) identificada nas folhas.',
@@ -50,8 +37,24 @@ const SCENARIOS: MockScenario[] = [
         },
     },
     {
+        plant: 'Trigo',
+        prediction: 'Brown_Rust',
+        handling: {
+            diagnostico:
+                'Ferrugem da folha do trigo (Puccinia triticina) identificada nas folhas.',
+            explicacao:
+                'Doença fúngica que forma pústulas alaranjadas na face superior das folhas, acelerando o secamento precoce e reduzindo o rendimento de grãos.',
+            causas:
+                'Causada pelo fungo Puccinia triticina, favorecida por temperaturas amenas (15-22°C) e alta umidade relativa.',
+            manejo:
+                'Utilize cultivares resistentes, aplique fungicidas triazóis ou estrobilurinas no início dos sintomas e monitore a lavoura em condições de umidade elevada.',
+            precautions:
+                'Evite plantio muito adensado e monitore a lavoura semanalmente durante o outono e a primavera.',
+        },
+    },
+    {
         plant: 'Soja',
-        prediction: 'Mancha Alvo',
+        prediction: 'Target_Spot',
         handling: {
             diagnostico:
                 'Mancha-alvo (Corynespora cassiicola) identificada nas folhas da soja.',
@@ -76,10 +79,7 @@ export class MockPredictService implements PredictService {
     ): Promise<Result<TechnicalException, PredictServiceResponse>> {
         await this.simulateDelay();
 
-        // Desativado: o fluxo de planta saudável em PredictUseCase salva crop/cropConfidence
-        // como null, o que viola a constraint NOT NULL da coluna "crop" em "history".
-        // Reative quando esse bug pré-existente (fora do escopo do mock) for corrigido.
-        const isHealthy = false;
+        const isHealthy = Math.random() < 0.4;
 
         if (isHealthy) {
             const plant =
@@ -92,7 +92,7 @@ export class MockPredictService implements PredictService {
             return Res.success({
                 plant,
                 plantConfidence: 0.95,
-                prediction: 'planta_saudavel',
+                prediction: 'Healthy',
                 predictionConfidence: 0.97,
             });
         }

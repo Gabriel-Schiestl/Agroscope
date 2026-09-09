@@ -664,60 +664,56 @@ export default function CalendarPage() {
                   "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
 
                 return (
-                  <Card
+                  <div
                     key={`upcoming-${index}`}
-                    className="border border-mediumGray/20"
+                    className="rounded-lg border p-4"
                   >
-                    <CardHeader className="p-4 pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-base">
-                          {event.title}
-                        </CardTitle>
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            eventColor.split(" ")[0]
-                          }`}
-                        >
-                          <EventIcon className="h-4 w-4" />
-                        </div>
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-semibold leading-none tracking-tight text-base">
+                        {event.title}
+                      </h4>
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          eventColor.split(" ")[0]
+                        }`}
+                      >
+                        <EventIcon className="h-4 w-4" />
                       </div>
-                      <CardDescription>
-                        {event.clientId
-                          ? `Cliente: ${
-                              clients.find((c) => c.id === event.clientId)
-                                ?.name || event.clientId
-                            }`
-                          : "Sem cliente"}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <div className="flex items-center text-xs text-primaryGreen mt-1">
-                        <CalendarIcon className="h-3 w-3 mr-1" />
-                        <span>{format(event.date, "dd/MM/yyyy")}</span>
-                        <span className="mx-1">•</span>
-                        <span>{event.time}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1.5">
+                      {event.clientId
+                        ? `Cliente: ${
+                            clients.find((c) => c.id === event.clientId)
+                              ?.name || event.clientId
+                          }`
+                        : "Sem cliente"}
+                    </p>
+                    <div className="flex items-center text-xs text-primaryGreen mt-3">
+                      <CalendarIcon className="h-3 w-3 mr-1" />
+                      <span>{format(event.date, "dd/MM/yyyy")}</span>
+                      <span className="mx-1">•</span>
+                      <span>{event.time}</span>
+                    </div>
+                    {event.location && (
+                      <div className="flex items-center text-xs text-muted-foreground mt-1">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{event.location}</span>
                       </div>
-                      {event.location && (
-                        <div className="flex items-center text-xs text-muted-foreground mt-1">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          <span>{event.location}</span>
-                        </div>
-                      )}
-                      {event.status && (
-                        <Badge
-                          className={`mt-2 ${
-                            event.status === EventStatus.COMPLETED
-                              ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300"
-                              : event.status === EventStatus.CANCELLED
-                              ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300"
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300"
-                          }`}
-                        >
-                          {event.status}
-                        </Badge>
-                      )}
-                    </CardContent>
-                  </Card>
+                    )}
+                    {event.status && (
+                      <Badge
+                        className={`mt-2 ${
+                          event.status === EventStatus.COMPLETED
+                            ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300"
+                            : event.status === EventStatus.CANCELLED
+                            ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300"
+                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300"
+                        }`}
+                      >
+                        {event.status}
+                      </Badge>
+                    )}
+                  </div>
                 );
               })}
           </div>

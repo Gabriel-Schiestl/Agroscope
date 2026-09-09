@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import { cropLabel, sicknessLabel } from "@/lib/agro-labels";
 import type { TooltipProps } from "recharts";
 import {
@@ -24,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import { Button } from "./ui/button";
 import {
   Select,
   SelectContent,
@@ -31,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { BarChart2, Leaf, Sprout, TrendingUp } from "lucide-react";
+import { BarChart2, Leaf, Sprout, TrendingUp, Upload } from "lucide-react";
 import {
   useAnalytics,
   type AnalyticsRangePreset,
@@ -48,9 +50,11 @@ const CATEGORICAL_PALETTE = [
   "#e87ba4",
 ];
 const OTHER_HUE = "#898781";
-const GRID_STROKE = "#e1e0d9";
-const AXIS_STROKE = "#c3c2b7";
-const AXIS_TICK = { fill: "#52514e", fontSize: 12 };
+
+const CHART_THEME = {
+  light: { grid: "#e4e4e7", axis: "#d4d4d8", tick: "#71717a" },
+  dark: { grid: "#292524", axis: "#3a3532", tick: "#a39d97" },
+};
 
 const BAR_CHART_DISPLAY_LIMIT = 7;
 const OTHER_BUCKET_LABEL = "Outras";
@@ -96,29 +100,27 @@ function StatTile({
   hint?: string;
 }) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardDescription>{label}</CardDescription>
-          <Icon className="h-4 w-4 text-primaryGreen/60" />
-        </div>
-        <CardTitle className="text-2xl">{value}</CardTitle>
-      </CardHeader>
+    <div className="p-4">
+      <div className="flex items-center justify-between text-sm text-mediumGray">
+        <span>{label}</span>
+        <Icon className="h-4 w-4 text-primaryGreen/60" />
+      </div>
+      <div className="mt-1 text-2xl font-semibold">{value}</div>
       {hint && (
-        <CardContent className="pt-0">
-          <div className="text-xs text-mediumGray">{hint}</div>
-        </CardContent>
+        <div className="mt-1 text-xs text-mediumGray truncate">{hint}</div>
       )}
-    </Card>
+    </div>
   );
 }
 
 function RankedBarChart({
   data,
   emptyLabel,
+  colors,
 }: {
   data: RankedBar[];
   emptyLabel: string;
+  colors: { grid: string; axis: string; tick: string };
 }) {
   if (data.length === 0) {
     return (
@@ -129,6 +131,7 @@ function RankedBarChart({
   }
 
   const chartHeight = Math.max(160, data.length * 40);
+  const axisTick = { fill: colors.tick, fontSize: 12 };
 
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>
@@ -140,22 +143,22 @@ function RankedBarChart({
       >
         <CartesianGrid
           horizontal={false}
-          stroke={GRID_STROKE}
+          stroke={colors.grid}
           strokeWidth={1}
         />
         <XAxis
           type="number"
           allowDecimals={false}
-          tick={AXIS_TICK}
-          axisLine={{ stroke: AXIS_STROKE }}
+          tick={axisTick}
+          axisLine={{ stroke: colors.axis }}
           tickLine={false}
         />
         <YAxis
           type="category"
           dataKey="name"
           width={140}
-          tick={AXIS_TICK}
-          axisLine={{ stroke: AXIS_STROKE }}
+          tick={axisTick}
+          axisLine={{ stroke: colors.axis }}
           tickLine={false}
         />
         <RechartsTooltip content={<BarTooltip />} cursor={{ fill: "rgba(76,175,80,0.06)" }} />
@@ -217,11 +220,20 @@ function PeriodTooltip({
   );
 }
 
-export function AnalyticsDashboard() {
+export function AnalyticsDashboard({
+  onStartAnalysis,
+}: {
+  onStartAnalysis?: () => void;
+}) {
   const [range, setRange] = useState<AnalyticsRangePreset>("90d");
   const [granularity, setGranularity] =
     useState<AnalyticsGranularity>("month");
   const { analytics, isLoading } = useAnalytics(range, granularity);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const chartColors =
+    mounted && resolvedTheme === "dark" ? CHART_THEME.dark : CHART_THEME.light;
 
   const diseaseBars = useMemo<RankedBar[]>(() => {
     if (!analytics) return [];
@@ -277,6 +289,22 @@ export function AnalyticsDashboard() {
     return map;
   }, [analytics]);
 
+  const trendInsight = useMemo(() => {
+    const points = analytics?.byPeriod ?? [];
+    if (points.length < 2) return null;
+    const last = points[points.length - 1];
+    const prev = points[points.length - 2];
+    const diff = last.count - prev.count;
+    if (diff === 0) {
+      return `${last.count} análises no último período, estável em relação ao anterior.`;
+    }
+    const pct = prev.count > 0 ? Math.round((Math.abs(diff) / prev.count) * 100) : null;
+    const direction = diff > 0 ? 'a mais' : 'a menos';
+    return `${last.count} análises no último período — ${Math.abs(diff)}${
+      pct !== null ? ` (${pct}%)` : ''
+    } ${direction} que no período anterior.`;
+  }, [analytics]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -292,9 +320,17 @@ export function AnalyticsDashboard() {
         <BarChart2 className="h-12 w-12 mb-4 text-primaryGreen/30" />
         <p className="font-medium">Ainda não há dados suficientes.</p>
         <p className="text-sm mt-1">
-          Faça sua primeira análise na aba &quot;Nova Análise&quot; para ver
-          suas estatísticas aqui.
+          Faça sua primeira análise para ver suas estatísticas aqui.
         </p>
+        {onStartAnalysis && (
+          <Button
+            className="mt-4 bg-primaryGreen hover:bg-lightGreen"
+            onClick={onStartAnalysis}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Fazer minha primeira análise
+          </Button>
+        )}
       </div>
     );
   }
@@ -342,7 +378,7 @@ export function AnalyticsDashboard() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 divide-y divide-border rounded-xl border lg:divide-y-0 lg:divide-x">
         <StatTile
           icon={BarChart2}
           label="Total de Análises"
@@ -384,7 +420,7 @@ export function AnalyticsDashboard() {
         <CardHeader>
           <CardTitle>Análises ao Longo do Tempo</CardTitle>
           <CardDescription>
-            Volume de análises por período selecionado
+            {trendInsight ?? 'Volume de análises por período selecionado'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -395,7 +431,7 @@ export function AnalyticsDashboard() {
             >
               <CartesianGrid
                 vertical={false}
-                stroke={GRID_STROKE}
+                stroke={chartColors.grid}
                 strokeWidth={1}
               />
               <XAxis
@@ -403,14 +439,14 @@ export function AnalyticsDashboard() {
                 tickFormatter={(value) =>
                   formatPeriodLabel(value, analytics.granularity)
                 }
-                tick={AXIS_TICK}
-                axisLine={{ stroke: AXIS_STROKE }}
+                tick={{ fill: chartColors.tick, fontSize: 12 }}
+                axisLine={{ stroke: chartColors.axis }}
                 tickLine={false}
               />
               <YAxis
                 allowDecimals={false}
-                tick={AXIS_TICK}
-                axisLine={{ stroke: AXIS_STROKE }}
+                tick={{ fill: chartColors.tick, fontSize: 12 }}
+                axisLine={{ stroke: chartColors.axis }}
                 tickLine={false}
                 width={32}
               />
@@ -443,6 +479,7 @@ export function AnalyticsDashboard() {
             <RankedBarChart
               data={diseaseBars}
               emptyLabel="Nenhuma doença identificada no período."
+              colors={chartColors}
             />
           </CardContent>
         </Card>
@@ -456,6 +493,7 @@ export function AnalyticsDashboard() {
             <RankedBarChart
               data={cropBars}
               emptyLabel="Nenhuma cultura registrada no período."
+              colors={chartColors}
             />
           </CardContent>
         </Card>
@@ -483,7 +521,7 @@ export function AnalyticsDashboard() {
                 >
                   <CartesianGrid
                     vertical={false}
-                    stroke={GRID_STROKE}
+                    stroke={chartColors.grid}
                     strokeWidth={1}
                   />
                   <XAxis
@@ -491,14 +529,14 @@ export function AnalyticsDashboard() {
                     tickFormatter={(value) =>
                       formatPeriodLabel(value, analytics.granularity)
                     }
-                    tick={AXIS_TICK}
-                    axisLine={{ stroke: AXIS_STROKE }}
+                    tick={{ fill: chartColors.tick, fontSize: 12 }}
+                    axisLine={{ stroke: chartColors.axis }}
                     tickLine={false}
                   />
                   <YAxis
                     allowDecimals={false}
-                    tick={AXIS_TICK}
-                    axisLine={{ stroke: AXIS_STROKE }}
+                    tick={{ fill: chartColors.tick, fontSize: 12 }}
+                    axisLine={{ stroke: chartColors.axis }}
                     tickLine={false}
                     width={32}
                   />
@@ -510,7 +548,7 @@ export function AnalyticsDashboard() {
                   <Legend
                     verticalAlign="bottom"
                     iconType="line"
-                    wrapperStyle={{ fontSize: 12, color: "#52514e" }}
+                    wrapperStyle={{ fontSize: 12, color: chartColors.tick }}
                     formatter={(value) => seriesNameById.get(value) ?? value}
                   />
                   {incidenceSeries.keys.map((key, index) => (

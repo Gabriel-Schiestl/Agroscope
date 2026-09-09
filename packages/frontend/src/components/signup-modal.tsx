@@ -90,15 +90,15 @@ export default function SignupModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-[#3C493B]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <h2 className="text-[#4DAE50] font-bold text-2xl">AgroScope</h2>
+            <h2 className="text-primaryGreen font-bold text-2xl">AgroScope</h2>
           </div>
-          <DialogTitle className="text-2xl text-center text-[#F4FFF4]">
+          <DialogTitle className="text-2xl text-center">
             Criar Conta
           </DialogTitle>
-          <DialogDescription className="text-center text-gray-400">
+          <DialogDescription className="text-center">
             Preencha os dados abaixo para criar sua conta
           </DialogDescription>
         </DialogHeader>
@@ -112,7 +112,7 @@ export default function SignupModal({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2 text-[#F4FFF4]">
+            <div className="space-y-2">
               <Label htmlFor="name">Nome Completo</Label>
               <Input
                 id="name"
@@ -123,7 +123,7 @@ export default function SignupModal({
               />
             </div>
 
-            <div className="space-y-2 text-[#F4FFF4]">
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -135,7 +135,7 @@ export default function SignupModal({
               />
             </div>
 
-            <div className="space-y-2 text-[#F4FFF4]">
+            <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <div className="relative">
                 <Input
@@ -148,7 +148,7 @@ export default function SignupModal({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#F4FFF4] hover:text-[#F4FFF4]/50"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -156,7 +156,7 @@ export default function SignupModal({
               </div>
             </div>
 
-            <div className="space-y-2 text-[#F4FFF4]">
+            <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmar Senha</Label>
               <div className="relative">
                 <Input
@@ -169,7 +169,7 @@ export default function SignupModal({
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#F4FFF4] hover:text-[#F4FFF4]/50"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label={
                     showConfirmPassword ? "Esconder senha" : "Mostrar senha"
                   }
@@ -183,7 +183,7 @@ export default function SignupModal({
               </div>
             </div>
 
-            <div className="flex items-start gap-2 text-[#F4FFF4]">
+            <div className="flex items-start gap-2">
               <Checkbox
                 id="acceptedTerms"
                 checked={acceptedTerms}
@@ -195,7 +195,7 @@ export default function SignupModal({
                 <Link
                   href="/termos"
                   target="_blank"
-                  className="text-[#4dae50] hover:underline"
+                  className="text-primaryGreen hover:underline"
                 >
                   termos de uso e a política de privacidade
                 </Link>
@@ -204,7 +204,7 @@ export default function SignupModal({
 
             <Button
               type="submit"
-              className="w-full bg-[#4dae50] hover:bg-[#4dae50]/60"
+              className="w-full bg-primaryGreen hover:bg-lightGreen"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Criando conta..." : "Criar Conta"}
@@ -212,10 +212,10 @@ export default function SignupModal({
           </form>
         </div>
 
-        <div className="text-sm text-center text-[#F4FFF4] mt-4">
+        <div className="text-sm text-center text-muted-foreground mt-4">
           Já tem uma conta?{" "}
           <button
-            className="text-[#4dae50] hover:underline"
+            className="text-primaryGreen hover:underline"
             onClick={handleOpenLogin}
           >
             Entrar

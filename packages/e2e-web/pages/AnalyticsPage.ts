@@ -28,13 +28,20 @@ export class AnalyticsPage {
     this.selectedFileLabel = page.getByText(/Arquivo selecionado:/);
     this.usageCounter = page.getByText(/Análises: \d+\/\d+/);
     this.limitReachedMessage = page.getByText(/Limite de \d+ análises atingido/);
-    this.resultCropTitle = page.getByRole('heading', { name: 'Cultura Identificada' });
-    this.resultDiagnosisTitle = page.getByRole('heading', { name: 'Diagnóstico' });
-    this.resultCausesTitle = page.getByRole('heading', { name: 'Causas' });
-    this.resultManagementTitle = page.getByRole('heading', {
-      name: 'Recomendações de Manejo',
+    // DiagnosisResult (components/diagnosis-result.tsx): o <h2> do
+    // diagnóstico não é único na página (o logotipo "AgroScope" no
+    // header/sidebar também é um <h2>), por isso usa data-testid; cultura
+    // virou texto simples ao lado dele, e causas/manejo são seções com
+    // <h3> de rótulo amigável em vez dos títulos antigos.
+    this.resultCropTitle = page.getByTestId('diagnosis-crop');
+    this.resultDiagnosisTitle = page.getByTestId('diagnosis-headline');
+    this.resultCausesTitle = page.getByRole('heading', {
+      name: 'Por que a IA acredita nisso',
     });
-    this.askQuestionsButton = page.getByRole('button', { name: 'Tirar dúvidas' });
+    this.resultManagementTitle = page.getByRole('heading', {
+      name: 'O que fazer agora',
+    });
+    this.askQuestionsButton = page.getByRole('button', { name: 'Perguntar à Íris' });
   }
 
   async goto(): Promise<void> {

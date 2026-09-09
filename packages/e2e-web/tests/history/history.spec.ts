@@ -72,8 +72,10 @@ test.describe('Módulo: Histórico', () => {
     await expect(detailPage.title).toBeVisible();
     await expect(detailPage.diagnosisHeading).toBeVisible();
     await expect(detailPage.cropHeading).toBeVisible();
-    // CardTitle (components/ui/card.tsx) renderiza uma <div>, não uma heading semântica.
-    await expect(authedPage.getByText('Informações Detalhadas')).toBeVisible();
+    // "O que fazer agora" é a única seção do DiagnosisResult garantida em
+    // ambos os cenários (saudável e doente) — nos demais (explicação,
+    // causas, precauções) o mock só preenche o texto quando há doença.
+    await expect(authedPage.getByRole('heading', { name: 'O que fazer agora' })).toBeVisible();
   });
 
   test('CT-30 - isolamento de histórico entre usuários', async ({ authedPage, browser }) => {

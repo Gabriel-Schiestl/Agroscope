@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, type ChangeEvent } from 'react';
-import { cropLabel, sicknessLabel } from '../../../lib/agro-labels';
+import { useEffect, useState, useRef, type ChangeEvent } from 'react';
+import { cropLabel, sicknessLabel, confidenceTone } from '../../../lib/agro-labels';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { format } from 'date-fns';
+import { format, isToday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   Card,
@@ -71,7 +71,6 @@ import {
   Filter,
   Grid,
   List,
-  Download,
   Trash2,
   MoreVertical,
   ArrowUpDown,
@@ -82,6 +81,7 @@ import { toast } from 'react-toastify';
 import type { History as HistoryModel } from '../../../models/History';
 import { ChatPanel } from '../../../components/chat-panel';
 import { AnalyticsDashboard } from '../../../components/analytics-dashboard';
+import { DiagnosisResult } from '../../../components/diagnosis-result';
 import { useLimit } from '../../../hooks/use-limit';
 import { useHistory } from '../../../hooks/use-history';
 import { toImageSrc } from '../../../lib/utils';
@@ -99,6 +99,27 @@ const SORT_OPTIONS = [
   { value: 'confidence-asc', label: 'Confiança (menor)' },
 ];
 const ITEMS_PER_PAGE = 5;
+const ANALYSIS_STEPS = [
+  'Identificando a cultura...',
+  'Detectando sintomas...',
+  'Gerando diagnóstico...',
+];
+
+function confidenceBadgeProps(
+  value: number,
+  extraClassName?: string
+): { variant?: 'warning' | 'destructive'; className?: string } {
+  const tone = confidenceTone(value);
+  if (tone === 'medium') return { variant: 'warning', className: extraClassName };
+  if (tone === 'low') return { variant: 'destructive', className: extraClassName };
+  return { className: ['bg-primaryGreen', extraClassName].filter(Boolean).join(' ') };
+}
+
+function groupLabelFor(date: Date): string {
+  if (isToday(date)) return 'Hoje';
+  if (isThisWeek(date, { weekStartsOn: 0 })) return 'Esta semana';
+  return 'Mais antigas';
+}
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -111,6 +132,7 @@ export default function AnalyticsPage() {
   const [result, setResult] = useState<HistoryModel | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [analyzingStep, setAnalyzingStep] = useState(0);
   const [chatAnalysis, setChatAnalysis] = useState<HistoryModel | null>(null);
   const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -144,6 +166,17 @@ export default function AnalyticsPage() {
       setResult(null);
     }
   };
+
+  useEffect(() => {
+    if (!loading) {
+      setAnalyzingStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAnalyzingStep((step) => (step + 1) % ANALYSIS_STEPS.length);
+    }, 1400);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleAnalyzeClick = async () => {
     if (!file) return;
@@ -285,7 +318,15 @@ export default function AnalyticsPage() {
                 )}
 
                 {previewUrl && (
-                  <div className="relative w-full h-64 mt-4 rounded-md overflow-hidden border">
+                  <div
+                    className={`relative w-full h-64 mt-4 rounded-md overflow-hidden border transition-shadow ${
+                      result
+                        ? `ring-2 ring-offset-2 ring-offset-background ${
+                            result.sicknessId ? 'ring-warning/60' : 'ring-primaryGreen/60'
+                          }`
+                        : ''
+                    }`}
+                  >
                     <Image src={previewUrl} alt="Imagem para análise" fill className="object-contain" />
                   </div>
                 )}
@@ -337,79 +378,32 @@ export default function AnalyticsPage() {
 
                 {loading && (
                   <div className="flex flex-col items-center justify-center h-full text-center">
-                    <div className="animate-spin h-12 w-12 border-4 border-primaryGreen border-t-transparent rounded-full mb-4"></div>
-                    <p className="text-muted-foreground">Analisando a imagem...</p>
-                    <p className="text-sm text-muted-foreground mt-2">Isso pode levar alguns segundos.</p>
+                    {previewUrl && (
+                      <div className="relative w-24 h-24 rounded-full overflow-hidden mb-5 animate-pulse">
+                        <Image src={previewUrl} alt="Analisando" fill className="object-cover" />
+                      </div>
+                    )}
+                    <p className="text-muted-foreground transition-all">
+                      {ANALYSIS_STEPS[analyzingStep]}
+                    </p>
                   </div>
                 )}
 
                 {result && (
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium mb-2">Cultura Identificada</h3>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-lg font-semibold text-primaryGreen">
-                          {cropLabel(result.crop)}
-                        </p>
-                        {result.cropConfidence > 0 && (
-                          <Badge className="bg-primaryGreen">
-                            {(result.cropConfidence * 100).toFixed(1)}% confiança
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <DiagnosisResult
+                      crop={result.crop}
+                      cropConfidence={result.cropConfidence}
+                      sicknessId={result.sicknessId}
+                      sicknessName={result.sicknessName}
+                      sicknessConfidence={result.sicknessConfidence}
+                      explanation={result.explanation}
+                      causes={result.causes}
+                      handling={result.handling}
+                      precautions={result.precautions}
+                    />
 
-                    {result.sicknessId ? (
-                      <>
-                        <Separator />
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h3 className="font-medium">Diagnóstico</h3>
-                            {result.sicknessConfidence != null && result.sicknessConfidence > 0 && (
-                              <Badge variant="outline">
-                                {(result.sicknessConfidence * 100).toFixed(1)}% confiança
-                              </Badge>
-                            )}
-                          </div>
-                          {result.sicknessName && (
-                            <p className="font-semibold text-base mb-1">
-                              {sicknessLabel(result.sicknessName)}
-                            </p>
-                          )}
-                          {result.explanation && (
-                            <p className="text-sm text-muted-foreground">{result.explanation}</p>
-                          )}
-                        </div>
-                      </>
-                    ) : result.handling === 'Nenhuma ação necessária' ? (
-                      <>
-                        <Separator />
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-primaryGreen text-white text-sm px-3 py-1">
-                            Planta Saudável
-                          </Badge>
-                        </div>
-                      </>
-                    ) : null}
-
-                    {result.causes && (
-                      <>
-                        <Separator />
-                        <div>
-                          <h3 className="font-medium mb-1">Causas</h3>
-                          <p className="text-sm text-muted-foreground">{result.causes}</p>
-                        </div>
-                      </>
-                    )}
-
-                    <Separator />
-
-                    <div>
-                      <h3 className="font-medium">Recomendações de Manejo</h3>
-                      <p className="mt-1 text-muted-foreground">{result.handling}</p>
-                    </div>
-
-                    <Alert className="mt-4 bg-primaryGreen/10 border-primaryGreen/20">
+                    <Alert className="mt-6 bg-primaryGreen/10 border-primaryGreen/20">
                       <CheckCircle className="h-4 w-4 text-primaryGreen" />
                       <AlertTitle className="text-primaryGreen">Importante</AlertTitle>
                       <AlertDescription className="text-sm">
@@ -417,13 +411,13 @@ export default function AnalyticsPage() {
                       </AlertDescription>
                     </Alert>
 
-                    <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-4">
                       <Button
                         className="w-full bg-primaryGreen hover:bg-lightGreen"
                         onClick={() => setChatAnalysis(result)}
                       >
                         <MessageCircle className="mr-2 h-4 w-4" />
-                        Tirar dúvidas
+                        Perguntar à Íris
                       </Button>
                       <Button
                         variant="outline"
@@ -436,7 +430,7 @@ export default function AnalyticsPage() {
                       </Button>
                     </div>
                     {!canGenerateReport && (
-                      <p className="text-xs text-red-500 text-center">
+                      <p className="text-xs text-red-500 text-center mt-2">
                         Relatórios em PDF disponíveis nos planos pagos. Faça upgrade do seu plano para gerar relatórios.
                       </p>
                     )}
@@ -452,21 +446,21 @@ export default function AnalyticsPage() {
               <CardTitle>Dicas para Melhores Resultados</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg border bg-muted/50">
-                  <h3 className="font-medium mb-2">Qualidade da Imagem</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <h3 className="font-medium mb-1.5">Qualidade da Imagem</h3>
                   <p className="text-sm text-muted-foreground">
                     Utilize imagens nítidas e bem iluminadas. Evite sombras e reflexos excessivos.
                   </p>
                 </div>
-                <div className="p-4 rounded-lg border bg-muted/50">
-                  <h3 className="font-medium mb-2">Foco nos Sintomas</h3>
+                <div>
+                  <h3 className="font-medium mb-1.5">Foco nos Sintomas</h3>
                   <p className="text-sm text-muted-foreground">
                     Capture os sintomas visíveis da doença, como manchas, lesões ou descolorações.
                   </p>
                 </div>
-                <div className="p-4 rounded-lg border bg-muted/50">
-                  <h3 className="font-medium mb-2">Múltiplas Amostras</h3>
+                <div>
+                  <h3 className="font-medium mb-1.5">Múltiplas Amostras</h3>
                   <p className="text-sm text-muted-foreground">
                     Para maior precisão, analise várias imagens da mesma planta em diferentes ângulos.
                   </p>
@@ -588,35 +582,36 @@ export default function AnalyticsPage() {
             )}
 
             {historyLoading && (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin h-8 w-8 border-4 border-primaryGreen border-t-transparent rounded-full mb-4"></div>
-                  <p className="text-muted-foreground">Carregando histórico...</p>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="animate-spin h-8 w-8 border-4 border-primaryGreen border-t-transparent rounded-full mb-4"></div>
+                <p className="text-muted-foreground">Carregando histórico...</p>
+              </div>
             )}
 
             {!historyLoading && analysisHistory.length === 0 && (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Leaf className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                  <p className="text-muted-foreground text-center">Nenhuma análise realizada ainda.</p>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-16">
+                <Leaf className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground text-center">Nenhuma análise realizada ainda.</p>
+                <Button
+                  className="mt-4 bg-primaryGreen hover:bg-lightGreen"
+                  onClick={() => handleTabChange('new-analysis')}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Fazer minha primeira análise
+                </Button>
+              </div>
             )}
 
             {!historyLoading && analysisHistory.length > 0 && filteredHistories.length === 0 && (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Leaf className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    Nenhuma análise encontrada com os filtros atuais.
-                  </p>
-                  <Button variant="link" onClick={clearFilters} className="mt-2">
-                    Limpar todos os filtros
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-16">
+                <Leaf className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground text-center">
+                  Nenhuma análise encontrada com os filtros atuais.
+                </p>
+                <Button variant="link" onClick={clearFilters} className="mt-2">
+                  Limpar todos os filtros
+                </Button>
+              </div>
             )}
 
             {/* List view */}
@@ -624,12 +619,26 @@ export default function AnalyticsPage() {
               <Card>
                 <CardContent className="p-0">
                   <div className="divide-y">
-                    {paginatedHistories.map((h) => (
-                      <div
-                        key={h.id}
-                        className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
-                        onClick={() => router.push(`/history/${h.id}`)}
-                      >
+                    {(() => {
+                      const isDateSort = sortOption === 'date-desc' || sortOption === 'date-asc';
+                      let lastGroup: string | null = null;
+                      return paginatedHistories.map((h) => {
+                        const group = isDateSort ? groupLabelFor(new Date(h.createdAt)) : null;
+                        const showGroupHeader = isDateSort && group !== lastGroup;
+                        lastGroup = group;
+                        return (
+                          <div key={h.id}>
+                            {showGroupHeader && (
+                              <div className="px-4 pt-4 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                {group}
+                              </div>
+                            )}
+                            <div
+                              className={`p-4 border-l-2 hover:bg-muted/50 transition-colors cursor-pointer ${
+                                h.sicknessId ? 'border-l-warning' : 'border-l-primaryGreen'
+                              }`}
+                              onClick={() => router.push(`/history/${h.id}`)}
+                            >
                         <div className="flex flex-col md:flex-row gap-4">
                           <div className="relative w-full md:w-32 h-32 rounded-md overflow-hidden flex-shrink-0 bg-muted">
                             <Image src={toImageSrc(h.image)} alt={h.crop || 'Análise'} fill className="object-cover" />
@@ -650,7 +659,7 @@ export default function AnalyticsPage() {
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 {h.sicknessConfidence != null && (
-                                  <Badge className="bg-primaryGreen">
+                                  <Badge {...confidenceBadgeProps(h.sicknessConfidence)}>
                                     {(h.sicknessConfidence * 100).toFixed(1)}%
                                   </Badge>
                                 )}
@@ -702,10 +711,6 @@ export default function AnalyticsPage() {
                                     <FileText className="mr-2 h-4 w-4" />
                                     {generatingReportId === h.id ? 'Gerando relatório...' : 'Gerar relatório'}
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Exportar
-                                  </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     className="text-red-600"
@@ -719,8 +724,11 @@ export default function AnalyticsPage() {
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -750,7 +758,7 @@ export default function AnalyticsPage() {
                         <div className="flex items-center justify-between">
                           <span>Cultura: {cropLabel(h.crop) || '—'}</span>
                           {h.sicknessConfidence != null && (
-                            <Badge className="bg-primaryGreen text-xs">
+                            <Badge {...confidenceBadgeProps(h.sicknessConfidence, 'text-xs')}>
                               {(h.sicknessConfidence * 100).toFixed(1)}%
                             </Badge>
                           )}
@@ -790,10 +798,6 @@ export default function AnalyticsPage() {
                           >
                             <FileText className="mr-2 h-4 w-4" />
                             {generatingReportId === h.id ? 'Gerando relatório...' : 'Gerar relatório'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Exportar
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -867,7 +871,7 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="statistics">
-          <AnalyticsDashboard />
+          <AnalyticsDashboard onStartAnalysis={() => handleTabChange('new-analysis')} />
         </TabsContent>
       </Tabs>
 

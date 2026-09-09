@@ -57,8 +57,8 @@ export function DiagnosisResult({
             <AlertTriangle className="h-7 w-7 text-warning mt-0.5 flex-shrink-0" />
           )}
           <div>
-            <h2 className="text-2xl font-bold leading-tight">{headline}</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <h2 data-testid="diagnosis-headline" className="text-2xl font-bold leading-tight">{headline}</h2>
+            <p data-testid="diagnosis-crop" className="text-sm text-muted-foreground mt-0.5">
               {cropLabel(crop)}
               {cropConfidence > 0 && ` · ${(cropConfidence * 100).toFixed(1)}% confiança na cultura`}
             </p>

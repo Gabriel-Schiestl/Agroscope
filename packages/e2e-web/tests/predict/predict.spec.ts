@@ -7,33 +7,47 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
   test('CT-17 - análise de imagem de planta doente — fluxo completo', async ({
     authedPage,
   }) => {
+    // O MockPredictService (MOCK_AI=true) sorteia ~40% de chance de devolver
+    // uma planta saudável a cada chamada — tenta algumas vezes até cair num
+    // cenário de doença (mesma estratégia do CT-18 para o caminho saudável).
+    // Plano FREE tem imageLimit = 10 (ver migration SeedFreePlan), então o
+    // número de tentativas fica limitado a isso.
     const analytics = new AnalyticsPage(authedPage);
-    await analytics.goto();
+    const maxAttempts = 10;
+    let body: { sicknessId?: string; crop?: string; handling?: string; causes?: string } | undefined;
 
-    await expect(analytics.analyzeButton).toBeDisabled();
-    await analytics.selectImage(IMAGE_FIXTURE_PATH);
-    await expect(analytics.selectedFileLabel).toBeVisible();
-    await expect(analytics.analyzeButton).toBeEnabled();
+    for (let attempt = 0; attempt < maxAttempts && !body?.sicknessId; attempt++) {
+      await analytics.goto();
+      await expect(analytics.analyzeButton).toBeDisabled();
+      await analytics.selectImage(IMAGE_FIXTURE_PATH);
+      await expect(analytics.selectedFileLabel).toBeVisible();
+      await expect(analytics.analyzeButton).toBeEnabled();
 
-    const [response] = await Promise.all([
-      authedPage.waitForResponse((r) => r.url().includes('/predict') && r.request().method() === 'POST'),
-      analytics.analyze(),
-    ]);
-    expect(response.status()).toBe(201);
+      const [response] = await Promise.all([
+        authedPage.waitForResponse((r) => r.url().includes('/predict') && r.request().method() === 'POST'),
+        analytics.analyze(),
+      ]);
+      expect(response.status()).toBe(201);
+      body = await response.json();
+    }
 
-    // O MockPredictService (MOCK_AI=true) sorteia aleatoriamente entre 3 doenças
-    // (Tomate/Requeima, Milho/Ferrugem, Soja/Mancha Alvo) — por isso as
-    // asserções abaixo checam a ESTRUTURA do resultado, não um cenário específico.
+    test.skip(
+      !body?.sicknessId,
+      `Nenhuma das ${maxAttempts} análises saiu doente por sorte do mock nesta execução.`,
+    );
+
+    // O MockPredictService sorteia aleatoriamente entre 3 doenças (Milho/Ferrugem
+    // Comum, Trigo/Ferrugem Parda, Soja/Mancha Alvo) — por isso as asserções
+    // abaixo checam a ESTRUTURA do resultado, não um cenário específico.
     await expect(analytics.resultCropTitle).toBeVisible();
     await expect(analytics.resultDiagnosisTitle).toBeVisible();
     await expect(analytics.resultCausesTitle).toBeVisible();
     await expect(analytics.resultManagementTitle).toBeVisible();
     await expect(analytics.askQuestionsButton).toBeVisible();
 
-    const body = await response.json();
-    expect(body.crop).toBeTruthy();
-    expect(body.handling).toBeTruthy();
-    expect(body.causes).toBeTruthy();
+    expect(body!.crop).toBeTruthy();
+    expect(body!.handling).toBeTruthy();
+    expect(body!.causes).toBeTruthy();
   });
 
   test('CT-19 - tentar analisar sem selecionar imagem mantém o botão desabilitado', async ({

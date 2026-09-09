@@ -15,20 +15,30 @@ export default function ProtectedRoute({
   requireEngineer = false,
   requireAdmin = false,
 }: ProtectedRouteProps) {
-  const { auth, isLoading, isAuthenticated } = useAuth();
+  const { auth, isLoading, isAuthenticated, isLoggingOut } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        router.push("/login");
+        if (!isLoggingOut) {
+          router.push("/login");
+        }
       } else if (requireEngineer && !auth?.isEngineer) {
         router.push("/");
       } else if (requireAdmin && !auth?.isAdmin) {
         router.push("/");
       }
     }
-  }, [isLoading, isAuthenticated, auth, router, requireEngineer, requireAdmin]);
+  }, [
+    isLoading,
+    isAuthenticated,
+    isLoggingOut,
+    auth,
+    router,
+    requireEngineer,
+    requireAdmin,
+  ]);
 
   if (isLoading) {
     return <div>Carregando...</div>;

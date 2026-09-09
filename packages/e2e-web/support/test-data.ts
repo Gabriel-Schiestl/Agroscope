@@ -8,7 +8,7 @@ export const OTHER_VALID_PASSWORD = 'NovaSenha@456';
 export function uniqueEmail(prefix = 'user'): string {
   const stamp = Date.now();
   const rand = Math.random().toString(36).slice(2, 8);
-  return `e2e.${prefix}.${stamp}.${rand}@agroscope.e2e`;
+  return `e2e.${prefix}.${stamp}.${rand}@agroscope.test`;
 }
 
 export function uniqueName(prefix = 'Usuário Teste'): string {

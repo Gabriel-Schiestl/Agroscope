@@ -6,7 +6,7 @@ import {
   type Page,
 } from '@playwright/test';
 import { BASE_URL } from './support/env';
-import { signup, loginOrThrow } from './support/api-client';
+import { signup, loginOrThrow, waitForAuthenticationReady } from './support/api-client';
 import { uniqueEmail, uniqueName, VALID_PASSWORD } from './support/test-data';
 
 export interface TestUser {
@@ -43,6 +43,12 @@ export const test = base.extend<Fixtures>({
       password: VALID_PASSWORD,
     };
     await signup(apiContext, user);
+    // POST /user dispara a criação da credencial (AuthModule) de forma
+    // assíncrona via evento — aguarda ela existir antes de liberar o usuário
+    // para o teste, para que qualquer login imediato (nosso ou do teste) não
+    // encontre uma janela de inconsistência. Usa um contexto à parte para
+    // não deixar `apiContext` com sessão (ele deve continuar "deslogado").
+    await waitForAuthenticationReady(user.email, user.password);
     await use(user);
   },
 

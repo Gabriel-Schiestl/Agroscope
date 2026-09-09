@@ -14,7 +14,7 @@ describe('User - creation (e2e)', () => {
     let encryptionService: EncryptionService;
 
     const email = 'create.user.integration@agroscope.test';
-    const password = 'Str0ng-Password!';
+    const password = 'Str0ngPassword!';
 
     beforeAll(async () => {
         app = await createTestApp();

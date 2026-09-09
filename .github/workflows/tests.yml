@@ -1,0 +1,158 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  build:
+    name: Build (backend)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: packages/backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/backend
+        run: npm ci
+
+      - name: Build
+        working-directory: packages/backend
+        run: npm run build
+
+  unit-tests:
+    name: Unit tests (backend)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: packages/backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/backend
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        working-directory: packages/backend
+        run: npm run test:cov -- --ci
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: packages/backend/coverage/
+          retention-days: 7
+
+  integration-tests:
+    name: Integration tests (backend)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: packages/backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/backend
+        run: npm ci
+
+      - name: Build
+        working-directory: packages/backend
+        run: npm run build
+
+      - name: Run integration tests (Testcontainers + Postgres)
+        working-directory: packages/backend
+        env:
+          JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
+          AES_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          CORS_ORIGINS: http://localhost
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672
+          FLASK_API_URL: http://flask.invalid
+          HANDLING_API_URL: http://handling.invalid
+          N8N_WEBHOOK_URL: http://n8n.invalid
+          HISTORY_CONTEXT_LIMIT: "10"
+          TERMS_VERSION: "2026-08-01"
+          THROTTLE_SHORT_TTL: "1"
+          THROTTLE_SHORT_LIMIT: "1000"
+          THROTTLE_MEDIUM_TTL: "60"
+          THROTTLE_MEDIUM_LIMIT: "1000"
+          THROTTLE_LONG_TTL: "3600"
+          THROTTLE_LONG_LIMIT: "10000"
+          THROTTLE_LOGIN_LIMIT: "1000"
+        run: npx jest --config ./test/jest.config.json
+
+  system-tests:
+    name: System tests (Playwright)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start full stack (docker-compose.test.yml)
+        run: docker compose -f docker-compose.test.yml up -d --build --wait
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: packages/e2e-web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/e2e-web
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: packages/e2e-web
+        run: npm run install-browsers
+
+      - name: Run system tests
+        working-directory: packages/e2e-web
+        env:
+          BASE_URL: http://localhost
+          DATABASE_URL: postgres://agroscope:agroscope@localhost:5433/agroscope_e2e
+        run: npm test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: packages/e2e-web/playwright-report/
+          retention-days: 7
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.test.yml logs
+
+      - name: Stop stack
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v

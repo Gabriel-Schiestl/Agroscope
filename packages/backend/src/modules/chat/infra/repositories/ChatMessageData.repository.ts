@@ -64,7 +64,7 @@ export class ChatMessageDataRepository implements ChatMessageRepository {
     ): Promise<Result<ChatMessageRepositoryExceptions, string[]>> {
         try {
             const rows = await ChatMessageModel.createQueryBuilder('msg')
-                .select('DISTINCT msg.session_id', 'sessionId')
+                .select('msg.session_id', 'sessionId')
                 .where('msg.user_id = :userId', { userId })
                 .orderBy('MAX(msg.created_at)', 'DESC')
                 .groupBy('msg.session_id')

@@ -14,6 +14,12 @@ import { ValidateRecoveryTokenDto } from '../application/dto/ValidateRecoveryTok
 import { ChangePasswordDto } from '../application/dto/ChangePassword.dto';
 import { AuthUserRepository } from '../domain/repositories/AuthUser.repository';
 
+const COOKIE_SECURE = process.env.COOKIE_SECURE !== 'false';
+
+const AUTH_THROTTLE_LIMIT = process.env.THROTTLE_LOGIN_LIMIT
+    ? Number(process.env.THROTTLE_LOGIN_LIMIT)
+    : 10;
+
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -26,7 +32,7 @@ export class AuthController {
     ) {}
 
     @Public()
-    @Throttle({ medium: { limit: 10, ttl: minutes(1) } })
+    @Throttle({ medium: { limit: AUTH_THROTTLE_LIMIT, ttl: minutes(1) } })
     @Post('login')
     async login(@Body() body: LoginUseCaseProps, @Res() res: Response) {
         const result = await this.loginUseCase.execute(body);
@@ -34,8 +40,8 @@ export class AuthController {
         if (result.isSuccess()) {
             res.cookie('agroscope-authentication', result.value, {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'none',
+                secure: COOKIE_SECURE,
+                sameSite: COOKIE_SECURE ? 'none' : 'lax',
                 maxAge: 1000 * 60 * 60 * 24 * 7,
             });
         }
@@ -50,8 +56,8 @@ export class AuthController {
     async logout(@Res() res: Response) {
         res.clearCookie('agroscope-authentication', {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? 'none' : 'lax',
         });
 
         return res.status(200).json({ success: true });
@@ -71,7 +77,7 @@ export class AuthController {
     }
 
     @Public()
-    @Throttle({ medium: { limit: 10, ttl: minutes(1) } })
+    @Throttle({ medium: { limit: AUTH_THROTTLE_LIMIT, ttl: minutes(1) } })
     @Post('recovery-token')
     async passwordRecovery(@Body() body: PasswordRecoveryDto) {
         const result = await this.passwordRecoveryUseCase.execute({

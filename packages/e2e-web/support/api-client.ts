@@ -1,6 +1,6 @@
-import type { APIRequestContext, APIResponse } from '@playwright/test';
+import { request as pwRequest, type APIRequestContext, type APIResponse } from '@playwright/test';
 import * as fs from 'fs';
-import { API_PREFIX } from './env';
+import { API_PREFIX, BASE_URL } from './env';
 import { IMAGE_FIXTURE_PATH } from './test-data';
 
 /**
@@ -34,6 +34,23 @@ export async function signup(
   }
 }
 
+/**
+ * Aguarda a credencial (AuthModule) de um usuário recém-criado ficar
+ * disponível — ver nota em `loginOrThrow`. Usa um APIRequestContext efêmero
+ * e descartável para não deixar cookie de sessão no `apiContext` do chamador.
+ */
+export async function waitForAuthenticationReady(
+  email: string,
+  password: string,
+): Promise<void> {
+  const probeContext = await pwRequest.newContext({ baseURL: BASE_URL });
+  try {
+    await loginOrThrow(probeContext, email, password);
+  } finally {
+    await probeContext.dispose();
+  }
+}
+
 export async function login(
   request: APIRequestContext,
   email: string,
@@ -44,13 +61,30 @@ export async function login(
   });
 }
 
+/**
+ * `POST /user` dispara a criação da credencial (AuthModule) de forma
+ * assíncrona via evento (`user.created`), sem aguardar sua conclusão — os
+ * módulos são propositalmente desacoplados (ver CLAUDE.md do backend). Logo
+ * após um signup, um login imediato pode momentaneamente encontrar a
+ * autenticação ainda não persistida. Poucas tentativas com espera curta
+ * absorvem essa janela sem mascarar falhas reais de credencial.
+ */
 export async function loginOrThrow(
   request: APIRequestContext,
   email: string,
   password: string,
+  retries = 5,
 ): Promise<void> {
-  const response = await login(request, email, password);
-  if (!response.ok()) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const response = await login(request, email, password);
+    if (response.ok()) return;
+
+    const isLastAttempt = attempt === retries;
+    if (!isLastAttempt && response.status() === 401) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      continue;
+    }
+
     throw new Error(
       `[api-client] login falhou (${response.status()}): ${await response.text()}`,
     );
@@ -125,5 +159,5 @@ export async function extractSessionToken(
       '[api-client] cookie agroscope-authentication não encontrado no storageState — o login foi feito nesse APIRequestContext?',
     );
   }
-  return cookie.value;
+  return decodeURIComponent(cookie.value);
 }

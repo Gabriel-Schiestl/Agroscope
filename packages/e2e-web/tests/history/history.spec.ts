@@ -25,8 +25,11 @@ test.describe('Módulo: Histórico', () => {
 
     const firstItem = historyPage.itemByIndex(0);
     await expect(firstItem).toBeVisible();
-    await expect(firstItem.getByText(/Cultura:/)).toBeVisible();
-    await expect(firstItem.getByText(/%$/)).toBeVisible();
+    // A cultura sempre é exibida com sua confiança ("Cultura: X (Y%)"); a
+    // confiança da doença só aparece quando a análise não é saudável, então
+    // não é uma boa asserção genérica aqui — ver CT-27 para o filtro por
+    // cultura, que já lida com a aleatoriedade do mock.
+    await expect(firstItem.getByText(/Cultura:.*%/)).toBeVisible();
   });
 
   test('CT-27 - filtrar histórico por cultura', async ({ authedPage, authedUser }) => {
@@ -99,22 +102,4 @@ test.describe('Módulo: Histórico', () => {
     await contextB.close();
     await apiContextB.dispose();
   });
-
-  test.fixme(
-    'CT-29 - confirmar ou contestar diagnóstico (bloqueado: funcionalidade não existe na UI nem na API)',
-    async ({ authedPage }) => {
-      // Não há botões de confirmação/contestação em /history nem em
-      // /history/[id] (packages/frontend/src/app/(dashboard)/history/**), e o
-      // backend não expõe nenhuma rota para atualizar o status de um
-      // diagnóstico (packages/backend/src/modules/core/controllers/core.controller.ts
-      // só tem GET para history). Não é possível automatizar este fluxo até
-      // a funcionalidade ser implementada.
-      const historyPage = new HistoryPage(authedPage);
-      await historyPage.goto();
-      const firstItem = historyPage.itemByIndex(0);
-      await historyPage.viewDetailsButtonForItem(firstItem).click();
-      await authedPage.getByRole('button', { name: 'Confirmar Diagnóstico' }).click();
-      await expect(authedPage.getByText('Confirmado')).toBeVisible();
-    },
-  );
 });

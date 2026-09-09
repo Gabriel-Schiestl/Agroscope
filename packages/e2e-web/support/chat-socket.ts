@@ -17,6 +17,7 @@ export async function seedChatMessages(
   count: number,
 ): Promise<void> {
   const socket: Socket = io(`${BASE_URL}/chat`, {
+    path: '/api/socket.io',
     auth: { token },
     transports: ['websocket'],
     reconnection: false,

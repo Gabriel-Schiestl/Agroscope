@@ -2,8 +2,8 @@ node_modules
 venv
 
 # Pastas Python
-models
-models/
+packages/IA/models
+packages/IA/models/
 __pycache__
 __pycache__/
 .venv

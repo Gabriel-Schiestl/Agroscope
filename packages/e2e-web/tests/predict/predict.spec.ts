@@ -19,6 +19,8 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
     for (let attempt = 0; attempt < maxAttempts && !body?.sicknessId; attempt++) {
       await analytics.goto();
       await expect(analytics.analyzeButton).toBeDisabled();
+      await analytics.selectCrop('Soja');
+      await expect(analytics.analyzeButton).toBeDisabled();
       await analytics.selectImage(IMAGE_FIXTURE_PATH);
       await expect(analytics.selectedFileLabel).toBeVisible();
       await expect(analytics.analyzeButton).toBeEnabled();
@@ -59,12 +61,34 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
     await expect(analytics.analyzeButton).toBeDisabled();
   });
 
+  test('CT-19b - cultura selecionada sem imagem mantém o botão desabilitado', async ({
+    authedPage,
+  }) => {
+    const analytics = new AnalyticsPage(authedPage);
+    await analytics.goto();
+
+    await analytics.selectCrop('Soja');
+    await expect(analytics.analyzeButton).toBeDisabled();
+  });
+
+  test('CT-19c - imagem selecionada sem cultura mantém o botão desabilitado', async ({
+    authedPage,
+  }) => {
+    const analytics = new AnalyticsPage(authedPage);
+    await analytics.goto();
+
+    await analytics.selectImage(IMAGE_FIXTURE_PATH);
+    await expect(analytics.selectedFileLabel).toBeVisible();
+    await expect(analytics.analyzeButton).toBeDisabled();
+  });
+
   test('CT-20 - enviar arquivo que não é imagem é rejeitado pelo backend', async ({
     authedPage,
   }) => {
     const analytics = new AnalyticsPage(authedPage);
     await analytics.goto();
 
+    await analytics.selectCrop('Soja');
     await analytics.selectImage(NOT_IMAGE_FIXTURE_PATH);
     await expect(analytics.analyzeButton).toBeEnabled();
 
@@ -89,9 +113,27 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
     await analytics.goto();
 
     await expect(analytics.usageCounter).toHaveText('Análises: 10/10');
+    await analytics.selectCrop('Soja');
     await analytics.selectImage(IMAGE_FIXTURE_PATH);
     await expect(analytics.analyzeButton).toBeDisabled();
     await expect(analytics.limitReachedMessage).toBeVisible();
+  });
+
+  test('CT-25 - selecionar cultura ainda não suportada (Tomate) exibe mensagem de indisponibilidade', async ({
+    authedPage,
+  }) => {
+    // Diferente das doenças/culturas sorteadas pelo MockPredictService, o
+    // bloqueio de Tomate acontece no PredictUseCase antes de chamar o
+    // serviço de IA — é determinístico e não depende de MOCK_AI.
+    const analytics = new AnalyticsPage(authedPage);
+    await analytics.goto();
+
+    await analytics.selectAndAnalyze(IMAGE_FIXTURE_PATH, 'Tomate');
+
+    await expect(
+      authedPage.getByText(/ainda n[ãa]o est[áa] dispon[íi]vel/i),
+    ).toBeVisible();
+    await expect(analytics.resultCropTitle).not.toBeVisible();
   });
 
   test('CT-18 - análise de imagem de planta saudável', async ({

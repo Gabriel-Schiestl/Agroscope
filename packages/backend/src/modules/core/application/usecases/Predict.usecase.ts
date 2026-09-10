@@ -3,6 +3,11 @@ import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { Exception } from 'src/shared/Exception';
 import { Res, Result } from 'src/shared/Result';
 import { History } from '../../domain/models/History';
+import {
+    Crop,
+    CROP_LABELS,
+    CROPS_AVAILABLE_FOR_ANALYSIS,
+} from '../../domain/models/Crop';
 import { HistoryRepository } from '../../domain/repositories/History.repository';
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
 import { PlanRepository } from '../../domain/repositories/Plan.repository';
@@ -21,6 +26,7 @@ import { ProducerService } from 'src/shared/domain/services/Producer.service';
 export interface PredictParams {
     imagePath: string;
     userId: string;
+    crop: Crop;
     location?: UserLocation;
 }
 
@@ -52,8 +58,17 @@ export class PredictUseCase extends AbstractUseCase<
     async onExecute({
         imagePath,
         userId,
+        crop,
         location,
     }: PredictParams): Promise<Result<Exception, HistoryDto>> {
+        if (!CROPS_AVAILABLE_FOR_ANALYSIS.includes(crop)) {
+            return Res.failure(
+                new BusinessException(
+                    `Análise para ${CROP_LABELS[crop]} ainda não está disponível. Em breve!`,
+                ),
+            );
+        }
+
         const userResult = await this.userRepository.getById(userId);
         if (userResult.isFailure()) {
             return Res.failure(userResult.error);
@@ -82,7 +97,7 @@ export class PredictUseCase extends AbstractUseCase<
             );
         }
 
-        const result = await this.predictService.predict(imagePath);
+        const result = await this.predictService.predict(imagePath, crop);
         if (result.isFailure()) {
             console.error('Falha na predição:', result.error);
             return Res.failure(result.error);
@@ -110,7 +125,7 @@ export class PredictUseCase extends AbstractUseCase<
                 image: imageBase64.value,
                 userId: userId,
                 handling: 'Nenhuma ação necessária',
-                crop: result.value.plant,
+                crop,
                 sicknessId: null,
                 cropConfidence: result.value.plantConfidence,
             });
@@ -132,13 +147,16 @@ export class PredictUseCase extends AbstractUseCase<
 
         const handling = await this.predictService.getHandling(
             result.value.prediction,
-            result.value.plant,
+            crop,
         );
         if (handling.isFailure()) {
             return Res.failure(handling.error);
         }
 
-        console.log('[PredictUseCase] prediction value para lookup:', JSON.stringify(result.value.prediction));
+        console.log(
+            '[PredictUseCase] prediction value para lookup:',
+            JSON.stringify(result.value.prediction),
+        );
 
         const sicknessResult = await this.sicknessRepository.getSicknessByName(
             result.value.prediction,
@@ -175,7 +193,7 @@ export class PredictUseCase extends AbstractUseCase<
             sicknessId: sickness.id,
             sicknessName: sickness.name,
             userId: userId,
-            crop: result.value.plant,
+            crop,
             cropConfidence: result.value.plantConfidence,
             explanation: handling.value.explicacao,
             sicknessConfidence: result.value.predictionConfidence,

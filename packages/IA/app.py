@@ -3,7 +3,7 @@ Para rodar a aplicação, você deve estar dentro da pasta /Project/IA
 """
 
 # FastAPI
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 import uvicorn
@@ -88,6 +88,15 @@ if  os.path.isfile(os.getenv("CORN")) and \
 else:
     raise FileNotFoundError("couldn't identify some of the experts in models archive")
 
+
+# Cultura confirmada pelo usuário (enviada pelo backend) -> chave usada pelo
+# match() de __expert_predict. Só cobre culturas com modelo especialista
+# treinado; outras seguem pelo fluxo antigo (classificação via GENERALIST).
+CROP_TO_EXPERT_KEY = {
+    "SOYBEAN": "Soybean",
+    "WHEAT": "Wheat",
+    "CORN": "Corn",
+}
 
 # Transform - Apply models.Get_Transform
 transform = transforms.Compose([
@@ -227,29 +236,39 @@ def ModelInfo():
 
 ## Predict
 @APP.post("/predict")
-async def Predict( file: UploadFile = File(...) ):
-    
+async def Predict( file: UploadFile = File(...), crop: str = Form(None) ):
+
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "Only images are acceptable.")
 
     contents = await file.read()
     if len(contents) > 8 * 1024 * 1024:
         raise HTTPException(400, "File too large.")
-    
+
     await file.seek(0)
 
 
     image_tensor = __preprocess_image(image_file=file)
 
-    # Prediction
-    generalist_prediction = __generalist_predict(image_tensor)
+    # Se o cliente já informou a cultura (confirmada pelo usuário) e ela tem
+    # modelo especialista treinado, pula o GENERALIST e vai direto ao
+    # especialista correspondente. Caso contrário, mantém o fluxo antigo de
+    # auto-detecção via GENERALIST.
+    expert_key = CROP_TO_EXPERT_KEY.get(crop.upper()) if crop else None
 
-    expert_prediction = __expert_predict(image_tensor, type=generalist_prediction[0])
-
+    if expert_key:
+        expert_prediction = __expert_predict(image_tensor, type=expert_key)
+        plant_name = crop.upper()
+        plant_confidence = 1.0
+    else:
+        generalist_prediction = __generalist_predict(image_tensor)
+        expert_prediction = __expert_predict(image_tensor, type=generalist_prediction[0])
+        plant_name = generalist_prediction[0].upper()
+        plant_confidence = generalist_prediction[1]
 
     return {
-        "plant": generalist_prediction[0].upper(),
-        "plantConfidence": generalist_prediction[1],
+        "plant": plant_name,
+        "plantConfidence": plant_confidence,
         "prediction": expert_prediction[0].upper(),
         "predictionConfidence": expert_prediction[1],
         }

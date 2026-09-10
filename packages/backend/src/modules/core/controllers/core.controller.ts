@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
@@ -8,6 +9,7 @@ import {
     Req,
     UploadedFile,
     UseInterceptors,
+    ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { GetHistoryUseCase } from '../application/usecases/GetHistory.usecase';
@@ -17,11 +19,7 @@ import { PredictUseCase } from '../application/usecases/Predict.usecase';
 import { UseFileInterceptor } from '../infra/services/File.interceptor';
 import { GetHistoryAnalyticsQuery } from '../application/query/GetHistoryAnalytics.query';
 import { AnalyticsGranularity } from '../domain/repositories/History.repository';
-
-class PredictBody {
-    latitude?: string;
-    longitude?: string;
-}
+import { PredictDto } from '../application/dto/Predict.dto';
 
 class HistoryQuery {
     crop?: string;
@@ -56,7 +54,23 @@ export class CoreController {
     @UseInterceptors(UseFileInterceptor)
     async predict(
         @UploadedFile() file: Express.Multer.File,
-        @Body() body: PredictBody,
+        @Body(
+            new ValidationPipe({
+                whitelist: true,
+                exceptionFactory: (errors) => {
+                    const message = errors
+                        .flatMap((error) =>
+                            Object.values(error.constraints ?? {}),
+                        )
+                        .join(' ');
+                    return new BadRequestException(
+                        message ||
+                            'Dados inválidos. Verifique os campos preenchidos.',
+                    );
+                },
+            }),
+        )
+        body: PredictDto,
         @Req() req: Request,
     ) {
         const location = this.parseLocation(body);
@@ -64,6 +78,7 @@ export class CoreController {
         return this.predictUseCase.execute({
             imagePath: file.path,
             userId: req['user'].sub,
+            crop: body.crop,
             location,
         });
     }
@@ -118,7 +133,7 @@ export class CoreController {
     }
 
     private parseLocation(
-        body: PredictBody,
+        body: PredictDto,
     ): { latitude: number; longitude: number } | undefined {
         const lat = parseFloat(body.latitude);
         const lon = parseFloat(body.longitude);

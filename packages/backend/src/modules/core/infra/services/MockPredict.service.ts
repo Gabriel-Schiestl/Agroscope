@@ -16,6 +16,13 @@ interface MockScenario {
 
 const HEALTHY_PLANTS = ['Milho', 'Trigo', 'Soja'];
 
+// Traduz os códigos de `Crop` (domain/models/Crop.ts) para os nomes em
+// PT-BR usados nos cenários mockados abaixo.
+const CROP_TO_MOCK_PLANT: Record<string, string> = {
+    SOYBEAN: 'Soja',
+    WHEAT: 'Trigo',
+};
+
 // Nomes de `prediction` precisam bater (case-insensitive) com "name" na
 // tabela sickness — ver migration SeedRealSicknesses. Os antigos nomes mock
 // (Requeima/Ferrugem/Mancha Alvo) foram removidos por essa migration.
@@ -28,10 +35,8 @@ const SCENARIOS: MockScenario[] = [
                 'Ferrugem comum do milho (Puccinia sorghi) identificada nas folhas.',
             explicacao:
                 'Doença fúngica que forma pústulas de coloração ferrugem nas duas faces das folhas, reduzindo a área fotossintética da planta.',
-            causas:
-                'Causada pelo fungo Puccinia sorghi, favorecida por temperaturas amenas (16-23°C), alta umidade relativa e orvalho prolongado nas folhas.',
-            manejo:
-                'Utilize cultivares resistentes, aplique fungicidas triazóis ou estrobilurinas no início dos sintomas e evite adubação nitrogenada excessiva.',
+            causas: 'Causada pelo fungo Puccinia sorghi, favorecida por temperaturas amenas (16-23°C), alta umidade relativa e orvalho prolongado nas folhas.',
+            manejo: 'Utilize cultivares resistentes, aplique fungicidas triazóis ou estrobilurinas no início dos sintomas e evite adubação nitrogenada excessiva.',
             precautions:
                 'Monitore a lavoura semanalmente durante períodos úmidos e evite plantio muito adensado.',
         },
@@ -44,10 +49,8 @@ const SCENARIOS: MockScenario[] = [
                 'Ferrugem da folha do trigo (Puccinia triticina) identificada nas folhas.',
             explicacao:
                 'Doença fúngica que forma pústulas alaranjadas na face superior das folhas, acelerando o secamento precoce e reduzindo o rendimento de grãos.',
-            causas:
-                'Causada pelo fungo Puccinia triticina, favorecida por temperaturas amenas (15-22°C) e alta umidade relativa.',
-            manejo:
-                'Utilize cultivares resistentes, aplique fungicidas triazóis ou estrobilurinas no início dos sintomas e monitore a lavoura em condições de umidade elevada.',
+            causas: 'Causada pelo fungo Puccinia triticina, favorecida por temperaturas amenas (15-22°C) e alta umidade relativa.',
+            manejo: 'Utilize cultivares resistentes, aplique fungicidas triazóis ou estrobilurinas no início dos sintomas e monitore a lavoura em condições de umidade elevada.',
             precautions:
                 'Evite plantio muito adensado e monitore a lavoura semanalmente durante o outono e a primavera.',
         },
@@ -60,10 +63,8 @@ const SCENARIOS: MockScenario[] = [
                 'Mancha-alvo (Corynespora cassiicola) identificada nas folhas da soja.',
             explicacao:
                 'Doença fúngica que causa lesões circulares com anéis concêntricos, semelhantes a um alvo, levando à desfolha precoce.',
-            causas:
-                'Causada pelo fungo Corynespora cassiicola, favorecida por alta umidade, chuvas frequentes e temperaturas entre 25-30°C.',
-            manejo:
-                'Aplique fungicidas específicos assim que os primeiros sintomas forem identificados, realize rotação de culturas e utilize sementes de boa procedência.',
+            causas: 'Causada pelo fungo Corynespora cassiicola, favorecida por alta umidade, chuvas frequentes e temperaturas entre 25-30°C.',
+            manejo: 'Aplique fungicidas específicos assim que os primeiros sintomas forem identificados, realize rotação de culturas e utilize sementes de boa procedência.',
             precautions:
                 'Evite o monocultivo contínuo de soja na mesma área e mantenha boa drenagem do solo.',
         },
@@ -76,13 +77,16 @@ export class MockPredictService implements PredictService {
 
     async predict(
         imagePath: string,
+        crop: string,
     ): Promise<Result<TechnicalException, PredictServiceResponse>> {
         await this.simulateDelay();
 
+        const selectedPlant = CROP_TO_MOCK_PLANT[crop];
         const isHealthy = Math.random() < 0.4;
 
         if (isHealthy) {
             const plant =
+                selectedPlant ??
                 HEALTHY_PLANTS[
                     Math.floor(Math.random() * HEALTHY_PLANTS.length)
                 ];
@@ -98,6 +102,7 @@ export class MockPredictService implements PredictService {
         }
 
         const scenario =
+            SCENARIOS.find((s) => s.plant === selectedPlant) ??
             SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
 
         this.logger.debug(
@@ -143,10 +148,8 @@ export class MockPredictService implements PredictService {
                 diagnostico: `${prediction} identificada em ${crop}.`,
                 explicacao:
                     'Doença identificada pela análise de imagem (dados mockados).',
-                causas:
-                    'Causas não catalogadas para este mock — configure um cenário específico em MockPredict.service.ts.',
-                manejo:
-                    'Consulte um agrônomo para recomendação de manejo específico.',
+                causas: 'Causas não catalogadas para este mock — configure um cenário específico em MockPredict.service.ts.',
+                manejo: 'Consulte um agrônomo para recomendação de manejo específico.',
                 precautions: 'Monitore a lavoura regularmente.',
             });
         }

@@ -2,7 +2,15 @@ export const CROP_LABELS: Record<string, string> = {
   CORN: 'Milho',
   SOYBEAN: 'Soja',
   WHEAT: 'Trigo',
+  TOMATO: 'Tomate',
 };
+
+/** Culturas disponíveis para seleção obrigatória antes do envio da foto para análise. */
+export const ANALYSIS_CROP_OPTIONS: { value: string; label: string }[] = [
+  { value: 'SOYBEAN', label: 'Soja' },
+  { value: 'WHEAT', label: 'Trigo' },
+  { value: 'TOMATO', label: 'Tomate' },
+];
 
 export const SICKNESS_LABELS: Record<string, string> = {
   Rust_Blight:   'Ferrugem Polissora',

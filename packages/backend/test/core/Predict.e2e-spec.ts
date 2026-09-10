@@ -105,10 +105,11 @@ describe('Core - predict (e2e)', () => {
         const response = await request(app.getHttpServer())
             .post('/predict')
             .set('Cookie', cookie)
+            .field('crop', 'SOYBEAN')
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
 
         expect(response.status).toBe(201);
-        expect(response.body.crop).toBe('tomate');
+        expect(response.body.crop).toBe('SOYBEAN');
         expect(response.body.sicknessId).toBeNull();
         expect(response.body.handling).toBe('Nenhuma ação necessária');
 
@@ -142,11 +143,12 @@ describe('Core - predict (e2e)', () => {
         const response = await request(app.getHttpServer())
             .post('/predict')
             .set('Cookie', cookie)
+            .field('crop', 'SOYBEAN')
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
 
         expect(response.status).toBe(201);
         expect(response.body.sicknessId).toBe(TARGET_SPOT_SICKNESS_ID);
-        expect(response.body.crop).toBe('tomate');
+        expect(response.body.crop).toBe('SOYBEAN');
         expect(response.body.handling).toBe('Aplicar fungicida');
         expect(response.body.causes).toBe('Excesso de umidade');
 
@@ -169,6 +171,7 @@ describe('Core - predict (e2e)', () => {
         const response = await request(app.getHttpServer())
             .post('/predict')
             .set('Cookie', cookie)
+            .field('crop', 'SOYBEAN')
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
 
         expect(response.status).toBe(400);
@@ -185,13 +188,44 @@ describe('Core - predict (e2e)', () => {
         const first = await request(app.getHttpServer())
             .post('/predict')
             .set('Cookie', cookie)
+            .field('crop', 'SOYBEAN')
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
         expect(first.status).toBe(201);
 
         const second = await request(app.getHttpServer())
             .post('/predict')
             .set('Cookie', cookie)
+            .field('crop', 'SOYBEAN')
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
         expect(second.status).toBe(400);
+    });
+
+    it('recusa a análise quando a cultura não é informada', async () => {
+        const { cookie } = await seedUserWithPlan(5);
+
+        const response = await request(app.getHttpServer())
+            .post('/predict')
+            .set('Cookie', cookie)
+            .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toContain('cultura');
+    });
+
+    it('recusa a análise quando a cultura informada ainda não está disponível para análise', async () => {
+        const { user, cookie } = await seedUserWithPlan(5);
+
+        const response = await request(app.getHttpServer())
+            .post('/predict')
+            .set('Cookie', cookie)
+            .field('crop', 'TOMATO')
+            .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toContain('Tomate');
+
+        const histories = await historyRepository.getByUserId(user.id);
+        if (histories.isFailure()) throw histories.error;
+        expect(histories.value).toHaveLength(0);
     });
 });

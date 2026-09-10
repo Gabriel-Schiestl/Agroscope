@@ -1,4 +1,5 @@
 import { Res } from 'src/shared/Result';
+import { Crop } from '../../domain/models/Crop';
 import { PredictUseCase } from '../../application/usecases/Predict.usecase';
 import { GetHistoryUseCase } from '../../application/usecases/GetHistory.usecase';
 import { GetHistoryByIdUseCase } from '../../application/usecases/GetHistoryById.usecase';
@@ -35,13 +36,18 @@ describe('CoreController', () => {
         it('should pass a parsed location when latitude and longitude are valid', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                { latitude: '-23.5', longitude: '-46.6' },
+                {
+                    crop: Crop.SOYBEAN,
+                    latitude: '-23.5',
+                    longitude: '-46.6',
+                },
                 req,
             );
 
             expect(predictUseCase.execute).toHaveBeenCalledWith({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
+                crop: Crop.SOYBEAN,
                 location: { latitude: -23.5, longitude: -46.6 },
             });
         });
@@ -49,7 +55,7 @@ describe('CoreController', () => {
         it('should omit the location when latitude/longitude are missing', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                {},
+                { crop: Crop.SOYBEAN } as any,
                 req,
             );
 
@@ -61,7 +67,7 @@ describe('CoreController', () => {
         it('should omit the location when coordinates are out of range', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                { latitude: '999', longitude: '999' },
+                { crop: Crop.SOYBEAN, latitude: '999', longitude: '999' },
                 req,
             );
 
@@ -73,12 +79,24 @@ describe('CoreController', () => {
         it('should omit the location when coordinates are not numeric', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                { latitude: 'abc', longitude: 'def' },
+                { crop: Crop.SOYBEAN, latitude: 'abc', longitude: 'def' },
                 req,
             );
 
             expect(predictUseCase.execute).toHaveBeenCalledWith(
                 expect.objectContaining({ location: undefined }),
+            );
+        });
+
+        it('should forward the selected crop to the use case', async () => {
+            await controller.predict(
+                { path: '/tmp/image.jpg' } as any,
+                { crop: Crop.WHEAT } as any,
+                req,
+            );
+
+            expect(predictUseCase.execute).toHaveBeenCalledWith(
+                expect.objectContaining({ crop: Crop.WHEAT }),
             );
         });
     });

@@ -94,9 +94,11 @@ export async function loginOrThrow(
 export async function predictOnce(
   request: APIRequestContext,
   imagePath: string = IMAGE_FIXTURE_PATH,
+  crop: string = 'SOYBEAN',
 ): Promise<APIResponse> {
   return request.post(`${API_PREFIX}/predict`, {
     multipart: {
+      crop,
       image: {
         name: 'leaf.jpg',
         mimeType: 'image/jpeg',

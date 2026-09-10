@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, type ChangeEvent } from 'react';
-import { cropLabel, sicknessLabel, confidenceTone } from '../../../lib/agro-labels';
+import { cropLabel, sicknessLabel, confidenceTone, ANALYSIS_CROP_OPTIONS } from '../../../lib/agro-labels';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { format, isToday, isThisWeek } from 'date-fns';
@@ -16,6 +16,7 @@ import {
 } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
+import { Label } from '../../../components/ui/label';
 import {
   Tabs,
   TabsContent,
@@ -129,6 +130,7 @@ export default function AnalyticsPage() {
   // analysis tab state
   const [activeTab, setActiveTab] = useState(initialTab);
   const [file, setFile] = useState<File | undefined>();
+  const [crop, setCrop] = useState('');
   const [result, setResult] = useState<HistoryModel | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -179,9 +181,13 @@ export default function AnalyticsPage() {
   }, [loading]);
 
   const handleAnalyzeClick = async () => {
-    if (!file) return;
+    if (!crop || !file) {
+      toast.error('Selecione a cultura e a imagem antes de analisar.');
+      return;
+    }
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('crop', crop);
     setLoading(true);
 
     try {
@@ -296,6 +302,24 @@ export default function AnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center space-y-4">
+                <div className="w-full space-y-1.5">
+                  <Label htmlFor="crop-select">
+                    Cultura <span className="text-red-500">*</span>
+                  </Label>
+                  <Select value={crop} onValueChange={setCrop}>
+                    <SelectTrigger id="crop-select" className="w-full">
+                      <SelectValue placeholder="Selecione a cultura" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ANALYSIS_CROP_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <input
                   type="file"
                   accept="image/*"
@@ -339,7 +363,7 @@ export default function AnalyticsPage() {
                 )}
                 <Button
                   onClick={handleAnalyzeClick}
-                  disabled={!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
+                  disabled={!file || !crop || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
                   className="w-full bg-primaryGreen hover:bg-lightGreen"
                 >
                   {loading ? (

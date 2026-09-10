@@ -34,6 +34,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         'ProducerFactoryService',
         'ProducerService',
         'EmailProducerService',
+        'GeminiClientService',
     ],
 })
 export class SharedModule {}

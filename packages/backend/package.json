@@ -24,6 +24,7 @@
         "test:e2e": "npm run build && jest --config ./test/jest.config.json"
     },
     "dependencies": {
+        "@google/genai": "^2.21.0",
         "@nestjs/axios": "^4.0.0",
         "@nestjs/common": "^11.0.0",
         "@nestjs/core": "^11.0.0",

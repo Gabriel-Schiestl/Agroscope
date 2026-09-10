@@ -2,10 +2,14 @@ import { HttpService } from '@nestjs/axios';
 import * as fs from 'fs';
 import { Readable } from 'stream';
 import { of, throwError } from 'rxjs';
+import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
+import { Res } from 'src/shared/Result';
+import { HandlingLlmService } from '../../../domain/services/HandlingLlm.service';
 import { PredictServiceImpl } from '../Predict.service';
 
 describe('PredictServiceImpl', () => {
     let httpService: jest.Mocked<HttpService>;
+    let handlingLlmService: jest.Mocked<HandlingLlmService>;
     let service: PredictServiceImpl;
     let consoleErrorSpy: jest.SpyInstance;
 
@@ -13,7 +17,14 @@ describe('PredictServiceImpl', () => {
         httpService = {
             post: jest.fn(),
         } as unknown as jest.Mocked<HttpService>;
-        service = new PredictServiceImpl(httpService);
+        handlingLlmService = {
+            getHandling: jest
+                .fn()
+                .mockResolvedValue(
+                    Res.failure(new TechnicalException('gemini indisponível')),
+                ),
+        };
+        service = new PredictServiceImpl(httpService, handlingLlmService);
         jest.spyOn(fs, 'createReadStream').mockReturnValue(
             Readable.from(Buffer.from('fake-image')) as any,
         );
@@ -86,6 +97,48 @@ describe('PredictServiceImpl', () => {
     });
 
     describe('getHandling', () => {
+        it('should return the Gemini result without calling n8n when Gemini succeeds', async () => {
+            handlingLlmService.getHandling.mockResolvedValue(
+                Res.success({
+                    diagnostico: 'diag-gemini',
+                    explicacao: 'exp-gemini',
+                    causas: 'causas-gemini',
+                    manejo: 'manejo-gemini',
+                }),
+            );
+
+            const result = await service.getHandling('Requeima', 'Tomate');
+
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.diagnostico).toBe(
+                'diag-gemini',
+            );
+            expect(httpService.post).not.toHaveBeenCalled();
+        });
+
+        it('should fall back to n8n when Gemini fails', async () => {
+            httpService.post.mockReturnValue(
+                of({
+                    data: {
+                        data: {
+                            diagnostico: 'diag',
+                            explicacao: 'exp',
+                            causas: 'causas',
+                            manejo: 'manejo',
+                        },
+                    },
+                }) as any,
+            );
+
+            const result = await service.getHandling('Requeima', 'Tomate');
+
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.diagnostico).toBe(
+                'diag',
+            );
+            expect(httpService.post).toHaveBeenCalled();
+        });
+
         it('should return the handling data on a complete response', async () => {
             httpService.post.mockReturnValue(
                 of({

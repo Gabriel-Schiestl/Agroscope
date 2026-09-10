@@ -1,10 +1,11 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { catchError, firstValueFrom } from 'rxjs';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
+import { HandlingLlmService } from '../../domain/services/HandlingLlm.service';
 import {
     HandlingServiceResponse,
     PredictService,
@@ -14,7 +15,13 @@ import FormData = require('form-data');
 
 @Injectable()
 export class PredictServiceImpl implements PredictService {
-    constructor(private readonly httpService: HttpService) {}
+    private readonly logger = new Logger(PredictServiceImpl.name);
+
+    constructor(
+        private readonly httpService: HttpService,
+        @Inject('HandlingLlmService')
+        private readonly handlingLlmService: HandlingLlmService,
+    ) {}
 
     async predict(
         imagePath: string,
@@ -96,6 +103,25 @@ export class PredictServiceImpl implements PredictService {
     }
 
     async getHandling(
+        prediction: string,
+        crop: string,
+    ): Promise<Result<TechnicalException, HandlingServiceResponse>> {
+        const geminiResult = await this.handlingLlmService.getHandling(
+            prediction,
+            crop,
+        );
+        if (geminiResult.isSuccess()) {
+            return geminiResult;
+        }
+
+        this.logger.warn(
+            `Gemini indisponível para diagnóstico, usando fallback n8n: ${geminiResult.error.message}`,
+        );
+
+        return this.getHandlingFromN8n(prediction, crop);
+    }
+
+    private async getHandlingFromN8n(
         prediction: string,
         crop: string,
     ): Promise<Result<TechnicalException, HandlingServiceResponse>> {

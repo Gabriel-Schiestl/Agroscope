@@ -2,11 +2,16 @@ import { ProducerFactoryService } from 'src/shared/domain/services/ProducerFacto
 import { ProducerFactoryServiceImpl } from './ProducerFactory.service';
 import { Provider } from '@nestjs/common';
 import { EngineerGuard } from './Engineer.guard';
+import { GeminiClientServiceImpl } from './GeminiClient.service';
 
 export const sharedServices: Provider[] = [
     {
         provide: 'ProducerFactoryService',
         useClass: ProducerFactoryServiceImpl,
+    },
+    {
+        provide: 'GeminiClientService',
+        useClass: GeminiClientServiceImpl,
     },
     {
         provide: 'ProducerService',

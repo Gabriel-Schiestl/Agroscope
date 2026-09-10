@@ -1,5 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
+import { SharedModule } from 'src/shared/shared.module';
 import { AuthModule } from '../auth/auth.module';
 import { CoreModule } from '../core/core.module';
 import { chatUseCases } from './application/usecases';
@@ -8,7 +9,7 @@ import { chatRepositories } from './infra/repositories';
 import { chatServices } from './infra/services';
 
 @Module({
-    imports: [HttpModule, forwardRef(() => AuthModule), CoreModule],
+    imports: [HttpModule, forwardRef(() => AuthModule), CoreModule, SharedModule],
     controllers: [...chatControllers],
     providers: [
         ...chatUseCases,

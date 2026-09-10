@@ -10,8 +10,8 @@ import {
 } from "react";
 import api from "../../shared/http/http.config";
 import { useRouter } from "next/navigation";
-import Validate from "../../api/login/Validate";
-import LogoutAPI from "../../api/login/Logout";
+import Validate from "@/api/login/Validate";
+import LogoutAPI from "@/api/login/Logout";
 
 interface AuthState {
   isEngineer: boolean;

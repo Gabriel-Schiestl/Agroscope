@@ -17,7 +17,7 @@ import { Label } from "../components/ui/label";
 import { Checkbox } from "../components/ui/checkbox";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import CreateUserAPI from "../../api/user/CreateUser";
+import CreateUserAPI from "@/api/user/CreateUser";
 import Link from "next/link";
 
 interface SignupModalProps {

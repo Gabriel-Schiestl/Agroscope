@@ -1,4 +1,4 @@
-import api from "../../shared/http/http.config";
+import api from "../../../shared/http/http.config";
 
 export default async function LogoutAPI(): Promise<boolean> {
   try {

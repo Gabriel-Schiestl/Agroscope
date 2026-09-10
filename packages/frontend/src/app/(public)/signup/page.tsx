@@ -20,7 +20,7 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
-import CreateUserAPI from "../../../../api/user/CreateUser";
+import CreateUserAPI from "@/api/user/CreateUser";
 
 export default function SignupPage() {
   const [name, setName] = useState("");

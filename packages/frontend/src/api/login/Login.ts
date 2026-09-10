@@ -1,4 +1,4 @@
-import api from "../../shared/http/http.config";
+import api from "../../../shared/http/http.config";
 
 export interface LoginResult {
   success: boolean;

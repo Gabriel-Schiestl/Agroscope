@@ -63,8 +63,8 @@ import {
   EventStatus,
   CalendarEvent,
 } from "../../../models/CalendarEvent";
-import GetAllEventsAPI from "../../../../api/engineer/GetAllEvents";
-import GetClientsAPI from "../../../../api/engineer/GetClients";
+import GetAllEventsAPI from "@/api/engineer/GetAllEvents";
+import GetClientsAPI from "@/api/engineer/GetClients";
 import { Client } from "../../../models/Client";
 
 // Event type configuration for styling and icons

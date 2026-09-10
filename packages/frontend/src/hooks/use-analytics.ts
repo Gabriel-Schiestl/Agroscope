@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import GetAnalyticsAPI from "../../api/history/GetAnalytics";
+import GetAnalyticsAPI from "@/api/history/GetAnalytics";
 import type { AnalyticsGranularity, HistoryAnalytics } from "../models/Analytics";
 
 export type AnalyticsRangePreset = "30d" | "90d" | "365d" | "all";

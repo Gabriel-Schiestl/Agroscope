@@ -18,10 +18,10 @@ import {
   BarChart2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import GetClientsAPI from "../../../../api/engineer/GetClients";
+import GetClientsAPI from "@/api/engineer/GetClients";
 import { Client } from "../../../models/Client";
 import { useAuth } from "../../../contexts/auth-context";
-import GetAllReportsAPI from "../../../../api/engineer/GetAllReports";
+import GetAllReportsAPI from "@/api/engineer/GetAllReports";
 import { getStatus, Report } from "../../../models/Report";
 import { EventStatus } from "../../../models/CalendarEvent";
 

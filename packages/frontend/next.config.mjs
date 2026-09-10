@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.BACKEND_ORIGIN || "http://localhost:3001"}/api/:path*`,
+      },
+    ];
+  },
+
   // headers: async () => {
   //   return [
   //     {

@@ -8,7 +8,10 @@ config();
 export const OrmConfig: TypeOrmModuleOptions = {
     type: 'postgres',
     url: process.env.DB_URL,
-    ssl: process.env.DB_SSL === 'true',
+    ssl:
+        process.env.DB_SSL === 'true'
+            ? { rejectUnauthorized: false }
+            : false,
     migrations: ['dist/src/modules/**/infra/migrations/**/*.{ts,js}'],
     entities: [
         path.join(__dirname, 'src/modules/**/infra/models/*.model.{js,ts}'),

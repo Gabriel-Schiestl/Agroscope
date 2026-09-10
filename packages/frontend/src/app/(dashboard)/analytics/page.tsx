@@ -138,7 +138,6 @@ export default function AnalyticsPage() {
   const [chatAnalysis, setChatAnalysis] = useState<HistoryModel | null>(null);
   const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const { limit, refetch: refetchLimit } = useLimit();
   const canGenerateReport = hasPlanFeature(limit?.featureFlags, PLAN_FEATURE_REPORT_GENERATION);
   const {
@@ -191,7 +190,7 @@ export default function AnalyticsPage() {
     setLoading(true);
 
     try {
-      const response = await api.post<HistoryModel>(`${apiUrl}/predict`, formData, {
+      const response = await api.post<HistoryModel>('/predict', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

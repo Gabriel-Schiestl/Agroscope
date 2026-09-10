@@ -58,7 +58,7 @@ export class CreateUserUseCase extends AbstractUseCase<
         const result = await this.userRepository.save(user.value);
         if (result.isFailure()) return Res.failure(result.error);
 
-        this.eventEmitter.emit('user.created', {
+        await this.eventEmitter.emitAsync('user.created', {
             id: user.value.id,
             name: user.value.name,
             email: user.value.email,

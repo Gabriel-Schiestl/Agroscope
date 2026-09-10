@@ -18,6 +18,7 @@ export class PredictServiceImpl implements PredictService {
 
     async predict(
         imagePath: string,
+        crop: string,
     ): Promise<Result<TechnicalException, PredictServiceResponse>> {
         const formData = new FormData();
 
@@ -27,6 +28,7 @@ export class PredictServiceImpl implements PredictService {
             filename: path.basename(imagePath),
             contentType: 'image/*',
         });
+        formData.append('crop', crop);
 
         try {
             const { data } = await firstValueFrom(

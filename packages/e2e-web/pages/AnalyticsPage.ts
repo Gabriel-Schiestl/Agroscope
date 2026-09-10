@@ -7,6 +7,7 @@ export class AnalyticsPage {
   readonly statisticsTab: Locator;
   readonly fileInput: Locator;
   readonly selectImageButton: Locator;
+  readonly cropSelectTrigger: Locator;
   readonly analyzeButton: Locator;
   readonly selectedFileLabel: Locator;
   readonly usageCounter: Locator;
@@ -24,6 +25,7 @@ export class AnalyticsPage {
     this.statisticsTab = page.getByRole('tab', { name: 'Estatísticas' });
     this.fileInput = page.locator('input[type="file"]');
     this.selectImageButton = page.getByRole('button', { name: 'Selecionar Imagem' });
+    this.cropSelectTrigger = page.locator('#crop-select');
     this.analyzeButton = page.getByRole('button', { name: /Analisar Imagem|Analisando/ });
     this.selectedFileLabel = page.getByText(/Arquivo selecionado:/);
     this.usageCounter = page.getByText(/Análises: \d+\/\d+/);
@@ -52,11 +54,18 @@ export class AnalyticsPage {
     await this.fileInput.setInputFiles(filePath);
   }
 
+  /** Cultura exibida na lista (rótulo em PT-BR), ex.: 'Soja', 'Trigo', 'Tomate'. */
+  async selectCrop(cropLabel: string): Promise<void> {
+    await this.cropSelectTrigger.click();
+    await this.page.getByRole('option', { name: cropLabel }).click();
+  }
+
   async analyze(): Promise<void> {
     await this.analyzeButton.click();
   }
 
-  async selectAndAnalyze(filePath: string): Promise<void> {
+  async selectAndAnalyze(filePath: string, cropLabel = 'Soja'): Promise<void> {
+    await this.selectCrop(cropLabel);
     await this.selectImage(filePath);
     await this.analyze();
   }

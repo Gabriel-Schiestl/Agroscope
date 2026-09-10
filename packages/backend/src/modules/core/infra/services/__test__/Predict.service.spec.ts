@@ -37,7 +37,7 @@ describe('PredictServiceImpl', () => {
                 }) as any,
             );
 
-            const result = await service.predict('/tmp/image.jpg');
+            const result = await service.predict('/tmp/image.jpg', 'SOYBEAN');
 
             expect(result.isSuccess()).toBe(true);
             expect(result.isSuccess() && result.value.plant).toBe('Tomate');
@@ -48,7 +48,7 @@ describe('PredictServiceImpl', () => {
                 of({ data: { plant: 'Tomate' } }) as any,
             );
 
-            const result = await service.predict('/tmp/image.jpg');
+            const result = await service.predict('/tmp/image.jpg', 'SOYBEAN');
 
             expect(result.isFailure()).toBe(true);
         });
@@ -58,7 +58,7 @@ describe('PredictServiceImpl', () => {
                 throwError(() => new Error('network error')) as any,
             );
 
-            const result = await service.predict('/tmp/image.jpg');
+            const result = await service.predict('/tmp/image.jpg', 'SOYBEAN');
 
             expect(result.isFailure()).toBe(true);
         });

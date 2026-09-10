@@ -23,7 +23,7 @@ describe('MockPredictService', () => {
                 .mockReturnValueOnce(0.9) // isHealthy check
                 .mockReturnValueOnce(0); // scenario index
 
-            const promise = service.predict('/tmp/some-image.jpg');
+            const promise = service.predict('/tmp/some-image.jpg', 'TOMATO');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 
@@ -37,7 +37,7 @@ describe('MockPredictService', () => {
         it('should occasionally return a mocked healthy prediction', async () => {
             randomSpy.mockReturnValueOnce(0).mockReturnValueOnce(0);
 
-            const promise = service.predict('/tmp/some-image.jpg');
+            const promise = service.predict('/tmp/some-image.jpg', 'TOMATO');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 
@@ -45,6 +45,33 @@ describe('MockPredictService', () => {
             expect(result.isSuccess() && result.value.prediction).toBe(
                 'Healthy',
             );
+        });
+
+        it('should prioritize the user-selected crop over randomness when picking the scenario', async () => {
+            randomSpy
+                .mockReturnValueOnce(0) // simulateDelay
+                .mockReturnValueOnce(0.9); // isHealthy check -> false
+
+            const promise = service.predict('/tmp/some-image.jpg', 'WHEAT');
+            await jest.advanceTimersByTimeAsync(1000);
+            const result = await promise;
+
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.plant).toBe('Trigo');
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Brown_Rust',
+            );
+        });
+
+        it('should use the user-selected crop for a healthy prediction instead of a random plant', async () => {
+            randomSpy.mockReturnValueOnce(0).mockReturnValueOnce(0);
+
+            const promise = service.predict('/tmp/some-image.jpg', 'SOYBEAN');
+            await jest.advanceTimersByTimeAsync(1000);
+            const result = await promise;
+
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.plant).toBe('Soja');
         });
     });
 

@@ -19,6 +19,7 @@ export interface HandlingServiceResponse {
 export interface PredictService {
     predict(
         imagePath: string,
+        crop: string,
     ): Promise<Result<TechnicalException, PredictServiceResponse>>;
     getImageBase64(
         imagePath: string,

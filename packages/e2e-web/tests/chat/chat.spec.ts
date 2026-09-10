@@ -69,7 +69,7 @@ test.describe('Módulo: Chat', () => {
     authedUser,
   }) => {
     const predictResponse = await predictOnce(authedUser.apiContext);
-    const analysis = await predictResponse.json();
+    await predictResponse.json();
 
     const historyPage = new HistoryPage(authedPage);
     await historyPage.goto();
@@ -81,8 +81,11 @@ test.describe('Módulo: Chat', () => {
 
     // Primeira vez que o chat dessa análise é aberto: sem histórico salvo
     // ainda, o painel monta a saudação inicial localmente a partir dos dados
-    // da própria análise — ver buildInitialMessage em chat-panel.tsx.
-    await expect(chat.panel.getByText(analysis.crop, { exact: false }).first()).toBeVisible();
+    // da própria análise — ver buildInitialMessage em chat-panel.tsx. O
+    // painel exibe o rótulo em PT-BR (cropLabel), não o código bruto
+    // devolvido pela API (`analysis.crop`, ex. "SOYBEAN") — predictOnce()
+    // usa a cultura "SOYBEAN" por padrão, exibida como "Soja".
+    await expect(chat.panel.getByText('Soja', { exact: false }).first()).toBeVisible();
   });
 
   test('CT-34 - tentar enviar mensagem com limite de chat esgotado bloqueia o envio', async ({

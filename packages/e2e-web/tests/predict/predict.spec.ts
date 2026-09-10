@@ -38,9 +38,9 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
       `Nenhuma das ${maxAttempts} análises saiu doente por sorte do mock nesta execução.`,
     );
 
-    // O MockPredictService sorteia aleatoriamente entre 3 doenças (Milho/Ferrugem
-    // Comum, Trigo/Ferrugem Parda, Soja/Mancha Alvo) — por isso as asserções
-    // abaixo checam a ESTRUTURA do resultado, não um cenário específico.
+    // A cultura selecionada (Soja) agora fixa qual doença o MockPredictService
+    // devolve (Mancha Alvo) em vez de sortear entre as 3 — mas as asserções
+    // abaixo continuam checando a ESTRUTURA do resultado, não valores fixos.
     await expect(analytics.resultCropTitle).toBeVisible();
     await expect(analytics.resultDiagnosisTitle).toBeVisible();
     await expect(analytics.resultCausesTitle).toBeVisible();

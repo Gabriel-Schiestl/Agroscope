@@ -1,20 +1,25 @@
 import { test, expect } from '../../fixtures';
 import { HistoryPage } from '../../pages/HistoryPage';
 import { HistoryDetailPage } from '../../pages/HistoryDetailPage';
-import { predictNTimes, getHistory, signup, loginOrThrow } from '../../support/api-client';
+import { predictOnce, predictNTimes, getHistory, signup, loginOrThrow } from '../../support/api-client';
 import { request as pwRequest } from '@playwright/test';
 import { BASE_URL } from '../../support/env';
 import { uniqueEmail, uniqueName, VALID_PASSWORD } from '../../support/test-data';
 
 const SEED_COUNT = 9;
 
+// A cultura agora é escolhida por quem chama /predict (ver Crop.ts no
+// backend) em vez de sorteada pelo mock — alterna entre duas culturas
+// suportadas ao seedar para garantir diversidade determinística no
+// histórico, em vez de depender de sorte como antes.
+const SEED_CROPS = ['SOYBEAN', 'WHEAT'];
+const CROP_LABELS: Record<string, string> = { SOYBEAN: 'Soja', WHEAT: 'Trigo' };
+
 test.describe('Módulo: Histórico', () => {
   test.beforeEach(async ({ authedUser }) => {
-    // MockPredictService sorteia entre 3 culturas (Tomate/Milho/Soja) a cada
-    // chamada — seedar várias análises dá uma boa chance de ter mais de uma
-    // cultura representada, o que os testes de filtro exploram dinamicamente
-    // (em vez de assumir qual cultura específica vai sair).
-    await predictNTimes(authedUser.apiContext, SEED_COUNT);
+    for (let i = 0; i < SEED_COUNT; i++) {
+      await predictOnce(authedUser.apiContext, undefined, SEED_CROPS[i % SEED_CROPS.length]);
+    }
   });
 
   test('CT-26 - visualizar histórico de análises', async ({ authedPage }) => {
@@ -28,35 +33,24 @@ test.describe('Módulo: Histórico', () => {
     // A cultura sempre é exibida com sua confiança ("Cultura: X (Y%)"); a
     // confiança da doença só aparece quando a análise não é saudável, então
     // não é uma boa asserção genérica aqui — ver CT-27 para o filtro por
-    // cultura, que já lida com a aleatoriedade do mock.
+    // cultura.
     await expect(firstItem.getByText(/Cultura:.*%/)).toBeVisible();
   });
 
   test('CT-27 - filtrar histórico por cultura', async ({ authedPage, authedUser }) => {
     const seeded = await getHistory(authedUser.apiContext);
-    // O filtro de cultura em /history só lista Soja/Milho/Café/Algodão/Trigo
-    // (CROP_OPTIONS em history/page.tsx) — "Tomate", que o MockPredictService
-    // também sorteia, não é uma opção selecionável. Por isso restringimos às
-    // culturas que de fato aparecem no filtro.
-    const FILTERABLE_CROPS = ['Soja', 'Milho', 'Café', 'Algodão', 'Trigo'];
-    const crops = Array.from(
-      new Set(seeded.map((h: any) => h.crop).filter((c: string) => FILTERABLE_CROPS.includes(c))),
-    );
-    test.skip(
-      crops.length === 0,
-      'Nenhuma das 9 análises seedadas caiu em Soja/Milho (só Tomate, por sorte do mock) — não dá para exercitar o filtro desta vez.',
-    );
-    const targetCrop = crops[0] as string;
-    const expectedCount = seeded.filter((h: any) => h.crop === targetCrop).length;
+    const targetCropCode = SEED_CROPS[0];
+    const targetCropLabel = CROP_LABELS[targetCropCode];
+    const expectedCount = seeded.filter((h: any) => h.crop === targetCropCode).length;
 
     const historyPage = new HistoryPage(authedPage);
     await historyPage.goto();
-    await historyPage.filterByCrop(targetCrop);
+    await historyPage.filterByCrop(targetCropLabel);
 
     await expect(historyPage.resultsSummary).toContainText(`de ${expectedCount} análises`);
     const visibleCount = Math.min(expectedCount, 5);
     for (let i = 0; i < visibleCount; i++) {
-      await expect(historyPage.itemByIndex(i).getByText(`Cultura: ${targetCrop}`)).toBeVisible();
+      await expect(historyPage.itemByIndex(i).getByText(`Cultura: ${targetCropLabel}`)).toBeVisible();
     }
   });
 

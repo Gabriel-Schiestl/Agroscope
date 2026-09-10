@@ -41,7 +41,7 @@ describe('CreateUserUseCase', () => {
             getAll: jest.fn(),
         };
         eventEmitter = {
-            emit: jest.fn(),
+            emitAsync: jest.fn().mockResolvedValue([]),
         } as unknown as jest.Mocked<EventEmitter2>;
         useCase = new CreateUserUseCase(
             userRepository,
@@ -65,7 +65,7 @@ describe('CreateUserUseCase', () => {
         expect(savedUser.planId).toBe(freePlan.id);
         expect(savedUser.termsVersion).toBe('2026-08-01');
 
-        expect(eventEmitter.emit).toHaveBeenCalledWith('user.created', {
+        expect(eventEmitter.emitAsync).toHaveBeenCalledWith('user.created', {
             id: savedUser.id,
             name: 'Gabriel',
             email: 'gabriel@example.com',
@@ -99,7 +99,7 @@ describe('CreateUserUseCase', () => {
             BusinessException,
         );
         expect(userRepository.save).not.toHaveBeenCalled();
-        expect(eventEmitter.emit).not.toHaveBeenCalled();
+        expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
     });
 
     it('should fail when the free plan cannot be found', async () => {
@@ -146,6 +146,6 @@ describe('CreateUserUseCase', () => {
 
         expect(result.isFailure()).toBe(true);
         expect(result.isFailure() && result.error).toBe(saveError);
-        expect(eventEmitter.emit).not.toHaveBeenCalled();
+        expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
     });
 });

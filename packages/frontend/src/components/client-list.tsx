@@ -28,7 +28,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Client, Crop } from "../models/Client";
-import GetClientsAPI from "../../api/engineer/GetClients";
+import GetClientsAPI from "@/api/engineer/GetClients";
 
 export default function ClientList() {
   const [clients, setClients] = useState<Client[]>([]);

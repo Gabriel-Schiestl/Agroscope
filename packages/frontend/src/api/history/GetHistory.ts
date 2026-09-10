@@ -1,5 +1,5 @@
-import api from "../../shared/http/http.config";
-import { History } from "../../src/models/History";
+import api from "../../../shared/http/http.config";
+import { History } from "../../models/History";
 
 export default async function GetHistoryAPI(): Promise<History[] | null> {
   try {

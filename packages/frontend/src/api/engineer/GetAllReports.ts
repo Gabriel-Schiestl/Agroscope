@@ -1,5 +1,5 @@
-import api from "../../shared/http/http.config";
-import { Report } from "../../src/models/Report";
+import api from "../../../shared/http/http.config";
+import { Report } from "../../models/Report";
 
 export default async function GetAllReportsAPI(): Promise<Report[] | null> {
   try {

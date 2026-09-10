@@ -30,7 +30,7 @@ import ClientOverview from "../../../../components/client-overview";
 import ClientMap from "../../../../components/client-map";
 import { Client, Crop } from "../../../../models/Client";
 import { Report, ReportStatus, getStatus } from "../../../../models/Report";
-import GetClientAPI from "../../../../../api/engineer/GetClient";
+import GetClientAPI from "@/api/engineer/GetClient";
 import { EventStatus } from "../../../../models/CalendarEvent";
 
 export default function ClientPage({ params }: { params: { id: string } }) {

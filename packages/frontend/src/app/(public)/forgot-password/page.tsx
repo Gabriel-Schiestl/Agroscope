@@ -18,7 +18,7 @@ import {
 } from "../../../components/ui/card";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import PasswordRecoveryAPI from "../../../../api/login/PasswordRecovery";
+import PasswordRecoveryAPI from "@/api/login/PasswordRecovery";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

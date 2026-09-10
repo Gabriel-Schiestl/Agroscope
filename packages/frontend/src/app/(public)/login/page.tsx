@@ -19,7 +19,7 @@ import {
 } from "../../../components/ui/card";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import LoginAPI from "../../../../api/login/Login";
+import LoginAPI from "@/api/login/Login";
 import { ro } from "date-fns/locale";
 
 export default function LoginPage() {

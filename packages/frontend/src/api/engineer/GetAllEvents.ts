@@ -1,5 +1,5 @@
-import { CalendarEvent } from "../../src/models/CalendarEvent";
-import api from "../../shared/http/http.config";
+import { CalendarEvent } from "../../models/CalendarEvent";
+import api from "../../../shared/http/http.config";
 
 export default async function GetAllEventsAPI(): Promise<
   CalendarEvent[] | null

@@ -1,5 +1,5 @@
-import api from "../../shared/http/http.config";
-import { Plan } from "../../src/models/Plan";
+import api from "../../../shared/http/http.config";
+import { Plan } from "../../models/Plan";
 
 export default async function GetAllPlansAPI(): Promise<Plan[] | null> {
   try {

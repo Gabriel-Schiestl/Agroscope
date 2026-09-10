@@ -1,5 +1,5 @@
-import { Client } from "../../src/models/Client";
-import api from "../../shared/http/http.config";
+import { Client } from "../../models/Client";
+import api from "../../../shared/http/http.config";
 
 export default async function GetClientAPI(
   clientId: string

@@ -23,8 +23,8 @@ import {
 } from "../../../components/ui/dialog";
 import { useAuth } from "../../../contexts/auth-context";
 import { Plan } from "../../../models/Plan";
-import GetAllPlansAPI from "../../../../api/plan/GetAllPlans";
-import ChangePlanAPI from "../../../../api/user/ChangePlan";
+import GetAllPlansAPI from "@/api/plan/GetAllPlans";
+import ChangePlanAPI from "@/api/user/ChangePlan";
 import { cn } from "../../../lib/utils";
 
 function formatPrice(price: number) {

@@ -1,8 +1,8 @@
-import api from "../../shared/http/http.config";
+import api from "../../../shared/http/http.config";
 import type {
   AnalyticsGranularity,
   HistoryAnalytics,
-} from "../../src/models/Analytics";
+} from "../../models/Analytics";
 
 export interface GetAnalyticsParams {
   startDate?: Date;

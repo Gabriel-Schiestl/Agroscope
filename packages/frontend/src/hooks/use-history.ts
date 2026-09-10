@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import GetHistoryAPI from "../../api/history/GetHistory";
+import GetHistoryAPI from "@/api/history/GetHistory";
 import type { History } from "../models/History";
 
 export function useHistory() {

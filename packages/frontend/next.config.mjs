@@ -3,10 +3,18 @@ const nextConfig = {
   skipTrailingSlashRedirect: true,
 
   async rewrites() {
+    const backendOrigin = process.env.BACKEND_ORIGIN || "http://localhost:3001";
     return [
+      // Regra literal (sem wildcard) pro handshake do socket.io: o engine.io só
+      // responde em /socket.io/ (com barra), mas o catch-all /api/:path* abaixo
+      // reconstrói o destino a partir de segmentos e perde a barra final.
+      {
+        source: "/api/socket.io/",
+        destination: `${backendOrigin}/api/socket.io/`,
+      },
       {
         source: "/api/:path*",
-        destination: `${process.env.BACKEND_ORIGIN || "http://localhost:3001"}/api/:path*`,
+        destination: `${backendOrigin}/api/:path*`,
       },
     ];
   },

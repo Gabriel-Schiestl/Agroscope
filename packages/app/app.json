@@ -34,7 +34,20 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O AgroScope precisa de acesso às suas fotos para selecionar imagens de plantas a analisar.",
+          "cameraPermission": "O AgroScope precisa de acesso à câmera para fotografar plantas a analisar."
+        }
+      ],
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

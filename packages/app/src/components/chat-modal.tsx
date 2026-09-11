@@ -110,7 +110,14 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
 
             const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
 
-            const socket = io(`${apiUrl}/chat`, {
+            // Separa origin (usado pra conectar) do prefixo de path (ex: "/api" atrás
+            // do nginx) — sem isso, "/api/chat" viraria o namespace do socket.io em
+            // vez de "/chat", e o servidor rejeitaria a conexão.
+            const apiUrlObj = new URL(apiUrl);
+            const socketPath = `${apiUrlObj.pathname.replace(/\/$/, '')}/socket.io`;
+
+            const socket = io(`${apiUrlObj.origin}/chat`, {
+                path: socketPath,
                 transports: ['websocket', 'polling'],
                 auth: token ? { token } : undefined,
             });
@@ -446,7 +453,7 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
             justifyContent: 'flex-end',
         },
         backdrop: {
-            ...StyleSheet.absoluteFillObject,
+            ...StyleSheet.absoluteFill,
             backgroundColor: 'rgba(0,0,0,0.45)',
         },
         sheet: {

@@ -104,18 +104,19 @@ export class PredictUseCase extends AbstractUseCase<
         }
 
         const MIN_CONFIDENCE = 0.8;
-        const { plantConfidence, predictionConfidence } = result.value;
+        const { predictionConfidence } = result.value;
 
-        if (
-            plantConfidence < MIN_CONFIDENCE ||
-            predictionConfidence < MIN_CONFIDENCE
-        ) {
+        if (predictionConfidence < MIN_CONFIDENCE) {
             return Res.failure(
                 new BusinessException(
-                    'Não foi possível identificar a planta ou doença com confiança suficiente. Por favor, envie uma imagem mais nítida, bem iluminada e focada na folha.',
+                    'Não foi possível identificar a doença com confiança suficiente. Por favor, envie uma imagem mais nítida, bem iluminada e focada na folha.',
                 ),
             );
         }
+
+        // A cultura é informada pelo próprio cliente (não mais inferida por
+        // um modelo generalista), então a confiança de cultura é sempre máxima.
+        const CROP_CONFIDENCE = 1;
 
         const imageBase64 = await this.predictService.getImageBase64(imagePath);
         if (imageBase64.isFailure()) return Res.failure(imageBase64.error);
@@ -127,7 +128,7 @@ export class PredictUseCase extends AbstractUseCase<
                 handling: 'Nenhuma ação necessária',
                 crop,
                 sicknessId: null,
-                cropConfidence: result.value.plantConfidence,
+                cropConfidence: CROP_CONFIDENCE,
             });
 
             const saveResult = await this.historyRepository.save(history);
@@ -194,7 +195,7 @@ export class PredictUseCase extends AbstractUseCase<
             sicknessName: sickness.name,
             userId: userId,
             crop,
-            cropConfidence: result.value.plantConfidence,
+            cropConfidence: CROP_CONFIDENCE,
             explanation: handling.value.explicacao,
             sicknessConfidence: result.value.predictionConfidence,
             causes: handling.value.causas,

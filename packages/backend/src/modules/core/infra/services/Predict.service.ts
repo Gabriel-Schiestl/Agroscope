@@ -13,6 +13,22 @@ import {
 } from '../../domain/services/Predict.service';
 import FormData = require('form-data');
 
+// Nomes que a API de IA (FastAPI) espera no campo `culture` — diferem da
+// grafia em maiúsculas do enum `Crop` usado no restante do backend.
+const CROP_TO_IA_CULTURE: Record<string, string> = {
+    SOYBEAN: 'Soybean',
+    WHEAT: 'Wheat',
+    TOMATO: 'Tomato',
+};
+
+interface IaPredictResponse {
+    culture: string;
+    expert: {
+        predict: string;
+        predict_confidence: number;
+    };
+}
+
 @Injectable()
 export class PredictServiceImpl implements PredictService {
     private readonly logger = new Logger(PredictServiceImpl.name);
@@ -35,12 +51,12 @@ export class PredictServiceImpl implements PredictService {
             filename: path.basename(imagePath),
             contentType: 'image/*',
         });
-        formData.append('crop', crop);
+        formData.append('culture', CROP_TO_IA_CULTURE[crop] ?? crop);
 
         try {
             const { data } = await firstValueFrom(
                 this.httpService
-                    .post<PredictServiceResponse>(
+                    .post<IaPredictResponse>(
                         `${process.env.FLASK_API_URL}/predict`,
                         formData,
                         {
@@ -64,10 +80,8 @@ export class PredictServiceImpl implements PredictService {
             );
 
             if (
-                !data.plant ||
-                !data.prediction ||
-                data.plantConfidence === undefined ||
-                data.predictionConfidence === undefined
+                !data.expert?.predict ||
+                data.expert?.predict_confidence === undefined
             ) {
                 console.error('Resposta incompleta do serviço de IA:', data);
                 return Res.failure(
@@ -75,9 +89,13 @@ export class PredictServiceImpl implements PredictService {
                         'Resposta incompleta do serviço de IA',
                     ),
                 );
-            } else {
-                return Res.success(data);
             }
+
+            return Res.success({
+                prediction: data.expert.predict,
+                // API de IA retorna a confiança em escala 0-100.
+                predictionConfidence: data.expert.predict_confidence / 100,
+            });
         } catch (error) {
             console.error('Erro ao processar predição:', error);
             return Res.failure(

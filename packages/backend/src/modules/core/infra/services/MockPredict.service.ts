@@ -94,8 +94,6 @@ export class MockPredictService implements PredictService {
             this.logger.debug(`[MOCK] Predição gerada: ${plant} saudavel`);
 
             return Res.success({
-                plant,
-                plantConfidence: 0.95,
                 prediction: 'Healthy',
                 predictionConfidence: 0.97,
             });
@@ -110,8 +108,6 @@ export class MockPredictService implements PredictService {
         );
 
         return Res.success({
-            plant: scenario.plant,
-            plantConfidence: 0.96,
             prediction: scenario.prediction,
             predictionConfidence: 0.92,
         });

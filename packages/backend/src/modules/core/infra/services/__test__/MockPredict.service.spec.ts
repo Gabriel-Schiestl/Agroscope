@@ -28,7 +28,6 @@ describe('MockPredictService', () => {
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Milho');
             expect(result.isSuccess() && result.value.prediction).toBe(
                 'Rust_Common',
             );
@@ -57,7 +56,6 @@ describe('MockPredictService', () => {
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Trigo');
             expect(result.isSuccess() && result.value.prediction).toBe(
                 'Brown_Rust',
             );
@@ -71,7 +69,9 @@ describe('MockPredictService', () => {
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Soja');
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Healthy',
+            );
         });
     });
 

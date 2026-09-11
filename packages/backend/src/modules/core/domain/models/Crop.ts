@@ -10,7 +10,8 @@ export const CROP_LABELS: Record<Crop, string> = {
     [Crop.TOMATO]: 'Tomate',
 };
 
-// TOMATO ainda não tem modelo de IA treinado — fica disponível para seleção
-// (preparando o app para quando o modelo entrar), mas bloqueado no
-// PredictUseCase antes de chamar o serviço de predição.
-export const CROPS_AVAILABLE_FOR_ANALYSIS: Crop[] = [Crop.SOYBEAN, Crop.WHEAT];
+export const CROPS_AVAILABLE_FOR_ANALYSIS: Crop[] = [
+    Crop.SOYBEAN,
+    Crop.WHEAT,
+    Crop.TOMATO,
+];

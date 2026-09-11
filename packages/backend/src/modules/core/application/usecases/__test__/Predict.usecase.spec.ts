@@ -93,8 +93,6 @@ describe('PredictUseCase', () => {
         predictService = {
             predict: jest.fn().mockResolvedValue(
                 Res.success({
-                    plant: 'Tomate',
-                    plantConfidence: 0.9,
                     prediction: 'Requeima',
                     predictionConfidence: 0.9,
                 }),
@@ -204,19 +202,18 @@ describe('PredictUseCase', () => {
         expect(predictService.predict).not.toHaveBeenCalled();
     });
 
-    it('should fail with a clear message when the crop has no analysis available yet, without calling the prediction service', async () => {
+    it('should allow analysis for tomato now that its model is available', async () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
             crop: Crop.TOMATO,
         });
 
-        expect(result.isFailure()).toBe(true);
-        expect(
-            result.isFailure() && (result.error as BusinessException).message,
-        ).toContain('Tomate');
-        expect(userRepository.getById).not.toHaveBeenCalled();
-        expect(predictService.predict).not.toHaveBeenCalled();
+        expect(result.isSuccess()).toBe(true);
+        expect(predictService.predict).toHaveBeenCalledWith(
+            '/tmp/image.jpg',
+            Crop.TOMATO,
+        );
     });
 
     it('should forward the user-selected crop to the prediction and handling services', async () => {
@@ -252,33 +249,9 @@ describe('PredictUseCase', () => {
         expect(result.isFailure() && result.error).toBe(error);
     });
 
-    it('should fail when plant confidence is below the minimum threshold', async () => {
-        predictService.predict.mockResolvedValue(
-            Res.success({
-                plant: 'Tomate',
-                plantConfidence: 0.5,
-                prediction: 'Requeima',
-                predictionConfidence: 0.9,
-            }),
-        );
-
-        const result = await useCase.execute({
-            imagePath: '/tmp/image.jpg',
-            userId: 'user-1',
-            crop: Crop.SOYBEAN,
-        });
-
-        expect(result.isFailure()).toBe(true);
-        expect(result.isFailure() && result.error).toBeInstanceOf(
-            BusinessException,
-        );
-    });
-
     it('should fail when prediction confidence is below the minimum threshold', async () => {
         predictService.predict.mockResolvedValue(
             Res.success({
-                plant: 'Tomate',
-                plantConfidence: 0.9,
                 prediction: 'Requeima',
                 predictionConfidence: 0.5,
             }),
@@ -311,8 +284,6 @@ describe('PredictUseCase', () => {
         beforeEach(() => {
             predictService.predict.mockResolvedValue(
                 Res.success({
-                    plant: 'Tomate',
-                    plantConfidence: 0.9,
                     prediction: 'TOMATO___HEALTHY',
                     predictionConfidence: 0.95,
                 }),

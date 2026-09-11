@@ -170,7 +170,8 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
     const socket: Socket = io(`${apiUrlObj.origin}/chat`, {
       path: socketPath,
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['polling'],
+      upgrade: false,
     });
 
     socketRef.current = socket;

@@ -14,13 +14,14 @@ interface MockScenario {
     handling: HandlingServiceResponse;
 }
 
-const HEALTHY_PLANTS = ['Milho', 'Trigo', 'Soja'];
+const HEALTHY_PLANTS = ['Milho', 'Trigo', 'Soja', 'Tomate'];
 
 // Traduz os códigos de `Crop` (domain/models/Crop.ts) para os nomes em
 // PT-BR usados nos cenários mockados abaixo.
 const CROP_TO_MOCK_PLANT: Record<string, string> = {
     SOYBEAN: 'Soja',
     WHEAT: 'Trigo',
+    TOMATO: 'Tomate',
 };
 
 // Nomes de `prediction` precisam bater (case-insensitive) com "name" na
@@ -67,6 +68,20 @@ const SCENARIOS: MockScenario[] = [
             manejo: 'Aplique fungicidas específicos assim que os primeiros sintomas forem identificados, realize rotação de culturas e utilize sementes de boa procedência.',
             precautions:
                 'Evite o monocultivo contínuo de soja na mesma área e mantenha boa drenagem do solo.',
+        },
+    },
+    {
+        plant: 'Tomate',
+        prediction: 'Bacterial_Spot',
+        handling: {
+            diagnostico:
+                'Pinta bacteriana (Xanthomonas spp.) identificada nas folhas do tomateiro.',
+            explicacao:
+                'Doença bacteriana que causa lesões encharcadas nas folhas, evoluindo para manchas escuras com halo amarelado, podendo atingir frutos e hastes.',
+            causas: 'Causada por espécies de Xanthomonas, favorecida por chuvas frequentes, irrigação por aspersão e temperaturas entre 24-32°C.',
+            manejo: 'Utilize sementes e mudas sadias, aplique bactericidas cúpricos preventivamente e evite molhar a folhagem durante a irrigação.',
+            precautions:
+                'Faça rotação de culturas e remova restos culturais infectados após a colheita.',
         },
     },
 ];

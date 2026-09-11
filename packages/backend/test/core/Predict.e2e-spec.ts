@@ -22,8 +22,6 @@ const FAKE_IMAGE_BASE64 = 'ZmFrZS1pbWFnZS1jb250ZW50';
 
 class FakePredictService implements PredictService {
     predictResponse: PredictServiceResponse = {
-        plant: 'tomate',
-        plantConfidence: 0.95,
         prediction: 'Healthy',
         predictionConfidence: 0.97,
     };
@@ -77,8 +75,6 @@ describe('Core - predict (e2e)', () => {
     beforeEach(async () => {
         producerService.sendMessage.mockClear();
         fakePredictService.predictResponse = {
-            plant: 'tomate',
-            plantConfidence: 0.95,
             prediction: 'Healthy',
             predictionConfidence: 0.97,
         };
@@ -127,8 +123,6 @@ describe('Core - predict (e2e)', () => {
         const { user, cookie } = await seedUserWithPlan(5);
 
         fakePredictService.predictResponse = {
-            plant: 'tomate',
-            plantConfidence: 0.93,
             prediction: TARGET_SPOT_SICKNESS_NAME,
             predictionConfidence: 0.9,
         };
@@ -162,8 +156,6 @@ describe('Core - predict (e2e)', () => {
         const { user, cookie } = await seedUserWithPlan(5);
 
         fakePredictService.predictResponse = {
-            plant: 'tomate',
-            plantConfidence: 0.4,
             prediction: 'saudavel',
             predictionConfidence: 0.4,
         };
@@ -212,7 +204,7 @@ describe('Core - predict (e2e)', () => {
         expect(response.body.message).toContain('cultura');
     });
 
-    it('recusa a análise quando a cultura informada ainda não está disponível para análise', async () => {
+    it('aceita a análise para a cultura tomate, já disponível para análise', async () => {
         const { user, cookie } = await seedUserWithPlan(5);
 
         const response = await request(app.getHttpServer())
@@ -221,11 +213,11 @@ describe('Core - predict (e2e)', () => {
             .field('crop', 'TOMATO')
             .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
 
-        expect(response.status).toBe(400);
-        expect(response.body.message).toContain('Tomate');
+        expect(response.status).toBe(201);
+        expect(response.body.crop).toBe('TOMATO');
 
         const histories = await historyRepository.getByUserId(user.id);
         if (histories.isFailure()) throw histories.error;
-        expect(histories.value).toHaveLength(0);
+        expect(histories.value).toHaveLength(1);
     });
 });

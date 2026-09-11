@@ -6,6 +6,7 @@ import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res } from 'src/shared/Result';
 import { HandlingLlmService } from '../../../domain/services/HandlingLlm.service';
 import { PredictServiceImpl } from '../Predict.service';
+import FormData = require('form-data');
 
 describe('PredictServiceImpl', () => {
     let httpService: jest.Mocked<HttpService>;
@@ -40,10 +41,11 @@ describe('PredictServiceImpl', () => {
             httpService.post.mockReturnValue(
                 of({
                     data: {
-                        plant: 'Tomate',
-                        plantConfidence: 0.9,
-                        prediction: 'Requeima',
-                        predictionConfidence: 0.8,
+                        culture: 'Soybean',
+                        expert: {
+                            predict: 'Requeima',
+                            predict_confidence: 80,
+                        },
                     },
                 }) as any,
             );
@@ -51,12 +53,33 @@ describe('PredictServiceImpl', () => {
             const result = await service.predict('/tmp/image.jpg', 'SOYBEAN');
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Tomate');
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Requeima',
+            );
+            expect(
+                result.isSuccess() && result.value.predictionConfidence,
+            ).toBe(0.8);
+        });
+
+        it('should send the mapped culture name expected by the IA service', async () => {
+            httpService.post.mockReturnValue(
+                of({
+                    data: {
+                        culture: 'Wheat',
+                        expert: { predict: 'Healthy', predict_confidence: 95 },
+                    },
+                }) as any,
+            );
+            const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+            await service.predict('/tmp/image.jpg', 'WHEAT');
+
+            expect(appendSpy).toHaveBeenCalledWith('culture', 'Wheat');
         });
 
         it('should fail when the response is incomplete', async () => {
             httpService.post.mockReturnValue(
-                of({ data: { plant: 'Tomate' } }) as any,
+                of({ data: { culture: 'Tomato' } }) as any,
             );
 
             const result = await service.predict('/tmp/image.jpg', 'SOYBEAN');

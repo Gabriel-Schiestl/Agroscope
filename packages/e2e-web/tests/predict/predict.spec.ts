@@ -119,21 +119,27 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
     await expect(analytics.limitReachedMessage).toBeVisible();
   });
 
-  test('CT-25 - selecionar cultura ainda não suportada (Tomate) exibe mensagem de indisponibilidade', async ({
+  test('CT-25 - selecionar cultura Tomate realiza a análise normalmente', async ({
     authedPage,
   }) => {
-    // Diferente das doenças/culturas sorteadas pelo MockPredictService, o
-    // bloqueio de Tomate acontece no PredictUseCase antes de chamar o
-    // serviço de IA — é determinístico e não depende de MOCK_AI.
+    // Tomate passou a ter modelo de IA treinado (culture=Tomato) e doenças
+    // cadastradas (Bacterial_Spot, Leaf_Mold) — deixou de ser bloqueado no
+    // PredictUseCase, então a análise segue o mesmo fluxo de Soja/Trigo.
     const analytics = new AnalyticsPage(authedPage);
     await analytics.goto();
 
-    await analytics.selectAndAnalyze(IMAGE_FIXTURE_PATH, 'Tomate');
+    await analytics.selectCrop('Tomate');
+    await analytics.selectImage(IMAGE_FIXTURE_PATH);
+    await expect(analytics.selectedFileLabel).toBeVisible();
+    await expect(analytics.analyzeButton).toBeEnabled();
 
-    await expect(
-      authedPage.getByText(/ainda n[ãa]o est[áa] dispon[íi]vel/i),
-    ).toBeVisible();
-    await expect(analytics.resultCropTitle).not.toBeVisible();
+    const [response] = await Promise.all([
+      authedPage.waitForResponse((r) => r.url().includes('/predict') && r.request().method() === 'POST'),
+      analytics.analyze(),
+    ]);
+
+    expect(response.status()).toBe(201);
+    await expect(analytics.resultCropTitle).toBeVisible();
   });
 
   test('CT-18 - análise de imagem de planta saudável', async ({

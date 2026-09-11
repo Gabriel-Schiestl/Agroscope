@@ -17,18 +17,17 @@ describe('MockPredictService', () => {
     });
 
     describe('predict', () => {
-        it('should return a mocked disease prediction after the simulated delay', async () => {
+        it('should pick a random scenario for a crop with no mocked mapping', async () => {
             randomSpy
                 .mockReturnValueOnce(0) // simulateDelay
                 .mockReturnValueOnce(0.9) // isHealthy check
                 .mockReturnValueOnce(0); // scenario index
 
-            const promise = service.predict('/tmp/some-image.jpg', 'TOMATO');
+            const promise = service.predict('/tmp/some-image.jpg', 'CORN');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Milho');
             expect(result.isSuccess() && result.value.prediction).toBe(
                 'Rust_Common',
             );
@@ -37,13 +36,28 @@ describe('MockPredictService', () => {
         it('should occasionally return a mocked healthy prediction', async () => {
             randomSpy.mockReturnValueOnce(0).mockReturnValueOnce(0);
 
-            const promise = service.predict('/tmp/some-image.jpg', 'TOMATO');
+            const promise = service.predict('/tmp/some-image.jpg', 'CORN');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
             expect(result.isSuccess() && result.value.prediction).toBe(
                 'Healthy',
+            );
+        });
+
+        it('should use the tomato scenario for the user-selected TOMATO crop', async () => {
+            randomSpy
+                .mockReturnValueOnce(0) // simulateDelay
+                .mockReturnValueOnce(0.9); // isHealthy check -> false
+
+            const promise = service.predict('/tmp/some-image.jpg', 'TOMATO');
+            await jest.advanceTimersByTimeAsync(1000);
+            const result = await promise;
+
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Bacterial_Spot',
             );
         });
 
@@ -57,7 +71,6 @@ describe('MockPredictService', () => {
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Trigo');
             expect(result.isSuccess() && result.value.prediction).toBe(
                 'Brown_Rust',
             );
@@ -71,7 +84,9 @@ describe('MockPredictService', () => {
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
-            expect(result.isSuccess() && result.value.plant).toBe('Soja');
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Healthy',
+            );
         });
     });
 

@@ -15,7 +15,10 @@ import { SendMessageUseCase } from '../application/usecases/SendMessage.usecase'
 import { AESService } from 'src/modules/auth/domain/services/AES.service';
 import { AuthenticationService } from 'src/modules/auth/domain/services/Authentication.service';
 
-@WebSocketGateway({ namespace: '/chat', cors: { origin: '*', credentials: true } })
+@WebSocketGateway({
+    namespace: '/chat',
+    cors: { origin: process.env.CORS_ORIGINS?.split(','), credentials: true },
+})
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server: Server;

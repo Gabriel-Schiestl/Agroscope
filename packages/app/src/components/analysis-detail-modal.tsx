@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Modal,
     View,
@@ -7,6 +7,8 @@ import {
     Image,
     StyleSheet,
     useColorScheme,
+    Animated,
+    PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
@@ -27,6 +29,44 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
     const colors = Colors[isDark ? 'dark' : 'light'];
     const styles = makeStyles(colors, isDark);
 
+    const translateY = useRef(new Animated.Value(0)).current;
+    const onCloseRef = useRef(onClose);
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+
+    useEffect(() => {
+        if (visible) {
+            translateY.setValue(0);
+        }
+    }, [visible, translateY]);
+
+    // Arrasta o cabeçalho (alça) para baixo para fechar, como em bottom
+    // sheets nativas.
+    const [panResponder] = useState(() =>
+        PanResponder.create({
+            onMoveShouldSetPanResponder: (_, gesture) =>
+                gesture.dy > 5 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+            onPanResponderMove: (_, gesture) => {
+                if (gesture.dy > 0) {
+                    translateY.setValue(gesture.dy);
+                }
+            },
+            onPanResponderRelease: (_, gesture) => {
+                if (gesture.dy > 100 || gesture.vy > 0.8) {
+                    onCloseRef.current();
+                } else {
+                    Animated.spring(translateY, {
+                        toValue: 0,
+                        useNativeDriver: true,
+                        tension: 65,
+                        friction: 11,
+                    }).start();
+                }
+            },
+        }),
+    );
+
     if (!analysis) return null;
 
     const imageSrc = imageToDataUri(analysis.image);
@@ -42,9 +82,9 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
             <View style={styles.overlay}>
                 <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
 
-                <View style={styles.sheet}>
+                <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
                     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-                        <View style={styles.header}>
+                        <View style={styles.header} {...panResponder.panHandlers}>
                             <View style={styles.headerHandle} />
                             <View style={styles.headerContent}>
                                 <ThemedText style={styles.headerTitle}>Detalhes da Análise</ThemedText>
@@ -142,7 +182,7 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
                             )}
                         </ScrollView>
                     </SafeAreaView>
-                </View>
+                </Animated.View>
             </View>
         </Modal>
     );

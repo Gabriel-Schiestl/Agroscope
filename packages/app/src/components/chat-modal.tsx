@@ -93,6 +93,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
     useEffect(() => {
         onCloseRef.current = onClose;
     }, [onClose]);
+    const pendingGreetingRef = useRef<string | null>(null);
 
     // Arrasta o cabeçalho (alça) para baixo para fechar o chat, como em
     // bottom sheets nativas.
@@ -165,13 +166,18 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                 })
                 .then((res) => {
                     if (res.data.length > 0) {
+                        pendingGreetingRef.current = null;
                         setMessages(res.data.map(dtoToMessage));
                     } else {
-                        setMessages([buildInitialMessage(analysis)]);
+                        const greeting = buildInitialMessage(analysis);
+                        pendingGreetingRef.current = greeting.content;
+                        setMessages([greeting]);
                     }
                 })
                 .catch(() => {
-                    setMessages([buildInitialMessage(analysis)]);
+                    const greeting = buildInitialMessage(analysis);
+                    pendingGreetingRef.current = greeting.content;
+                    setMessages([greeting]);
                 });
         } else {
             Animated.timing(slideAnim, {
@@ -205,11 +211,17 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
         setLimitError(null);
         scrollToBottom();
 
+        const initialMessage = pendingGreetingRef.current ?? undefined;
+        pendingGreetingRef.current = null;
+
         socketRef.current.emit(
             'send_message',
-            { content: text, sessionId: analysis.id },
+            { content: text, sessionId: analysis.id, initialMessage },
             (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto } | { error: string }) => {
                 if ('error' in response) {
+                    if (initialMessage) {
+                        pendingGreetingRef.current = initialMessage;
+                    }
                     setLimitError(response.error);
                     setIsTyping(false);
                     return;

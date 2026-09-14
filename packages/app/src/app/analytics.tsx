@@ -619,9 +619,12 @@ export default function AnalyticsScreen() {
                                     ]}
                                     onPress={pickImage}
                                 >
-                                    <ThemedText style={styles.captureBtnText}>
-                                        🖼  Galeria
-                                    </ThemedText>
+                                    <View style={styles.btnRow}>
+                                        <ThemedText style={styles.btnIcon}>🖼</ThemedText>
+                                        <ThemedText style={styles.captureBtnText}>
+                                            Galeria
+                                        </ThemedText>
+                                    </View>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[
@@ -630,9 +633,12 @@ export default function AnalyticsScreen() {
                                     ]}
                                     onPress={takePhoto}
                                 >
-                                    <ThemedText style={styles.captureBtnText}>
-                                        📷  Câmera
-                                    </ThemedText>
+                                    <View style={styles.btnRow}>
+                                        <ThemedText style={styles.btnIcon}>📷</ThemedText>
+                                        <ThemedText style={styles.captureBtnText}>
+                                            Câmera
+                                        </ThemedText>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
 
@@ -666,9 +672,12 @@ export default function AnalyticsScreen() {
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
-                                    <ThemedText style={styles.analyzeBtnText}>
-                                        🔍  Analisar Imagem
-                                    </ThemedText>
+                                    <View style={styles.btnRow}>
+                                        <ThemedText style={styles.btnIcon}>🔍</ThemedText>
+                                        <ThemedText style={styles.analyzeBtnText}>
+                                            Analisar Imagem
+                                        </ThemedText>
+                                    </View>
                                 )}
                             </TouchableOpacity>
                         </ThemedView>
@@ -796,8 +805,9 @@ export default function AnalyticsScreen() {
                                             )}
                                         </View>
                                         {!result.sicknessId ? (
-                                            <View style={[styles.badge, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
-                                                <ThemedText style={styles.badgeText}>🌿 Planta Saudável</ThemedText>
+                                            <View style={[styles.badge, styles.btnRow, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
+                                                <ThemedText style={styles.badgeIcon}>🌿</ThemedText>
+                                                <ThemedText style={styles.badgeText}>Planta Saudável</ThemedText>
                                             </View>
                                         ) : (
                                             <>
@@ -894,14 +904,19 @@ export default function AnalyticsScreen() {
                                             },
                                         ]}
                                     >
-                                        <ThemedText
-                                            style={[
-                                                styles.alertTitle,
-                                                { color: colors.tint },
-                                            ]}
-                                        >
-                                            ⚠️  Importante
-                                        </ThemedText>
+                                        <View style={styles.btnRow}>
+                                            <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
+                                                ⚠️
+                                            </ThemedText>
+                                            <ThemedText
+                                                style={[
+                                                    styles.alertTitle,
+                                                    { color: colors.tint },
+                                                ]}
+                                            >
+                                                Importante
+                                            </ThemedText>
+                                        </View>
                                         <ThemedText
                                             style={[
                                                 styles.alertBody,
@@ -922,9 +937,12 @@ export default function AnalyticsScreen() {
                                         ]}
                                         onPress={() => setChatAnalysis(result)}
                                     >
-                                        <ThemedText style={styles.chatBtnText}>
-                                            💬  Tirar dúvidas sobre esta análise
-                                        </ThemedText>
+                                        <View style={styles.btnRow}>
+                                            <ThemedText style={styles.btnIcon}>💬</ThemedText>
+                                            <ThemedText style={styles.chatBtnText}>
+                                                Tirar dúvidas sobre esta análise
+                                            </ThemedText>
+                                        </View>
                                     </TouchableOpacity>
 
                                     {/* PDF report */}
@@ -940,9 +958,14 @@ export default function AnalyticsScreen() {
                                         {generatingReportId === result.id ? (
                                             <ActivityIndicator color={colors.tint} />
                                         ) : (
-                                            <ThemedText style={[styles.reportBtnText, { color: colors.tint }]}>
-                                                📄  Gerar Relatório PDF
-                                            </ThemedText>
+                                            <View style={styles.btnRow}>
+                                                <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
+                                                    📄
+                                                </ThemedText>
+                                                <ThemedText style={[styles.reportBtnText, { color: colors.tint }]}>
+                                                    Gerar Relatório PDF
+                                                </ThemedText>
+                                            </View>
                                         )}
                                     </TouchableOpacity>
                                     {!canGenerateReport && (
@@ -1578,6 +1601,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     captureBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+    btnRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    btnIcon: { fontSize: 15, lineHeight: 18 },
     usageCounter: { fontSize: 11, textAlign: 'right', marginBottom: 6 },
     analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
     analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
@@ -1603,6 +1628,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     badgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+    badgeIcon: { fontSize: 12, lineHeight: 14 },
     badgeOutline: {
         paddingHorizontal: 7,
         paddingVertical: 2,

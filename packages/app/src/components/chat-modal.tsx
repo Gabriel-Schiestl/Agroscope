@@ -88,6 +88,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
     const scrollViewRef = useRef<ScrollView>(null);
     const slideAnim = useRef(new Animated.Value(300)).current;
     const socketRef = useRef<Socket | null>(null);
+    const pendingGreetingRef = useRef<string | null>(null);
 
     const hasNoChatAccess = limit != null && limit.chatLimit === 0;
     const hasReachedLimit = limit != null && limit.chatLimit > 0 && limit.chatRequests >= limit.chatLimit;
@@ -134,13 +135,18 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                 })
                 .then((res) => {
                     if (res.data.length > 0) {
+                        pendingGreetingRef.current = null;
                         setMessages(res.data.map(dtoToMessage));
                     } else {
-                        setMessages([buildInitialMessage(analysis)]);
+                        const greeting = buildInitialMessage(analysis);
+                        pendingGreetingRef.current = greeting.content;
+                        setMessages([greeting]);
                     }
                 })
                 .catch(() => {
-                    setMessages([buildInitialMessage(analysis)]);
+                    const greeting = buildInitialMessage(analysis);
+                    pendingGreetingRef.current = greeting.content;
+                    setMessages([greeting]);
                 });
         } else {
             Animated.timing(slideAnim, {
@@ -174,11 +180,17 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
         setLimitError(null);
         scrollToBottom();
 
+        const initialMessage = pendingGreetingRef.current ?? undefined;
+        pendingGreetingRef.current = null;
+
         socketRef.current.emit(
             'send_message',
-            { content: text, sessionId: analysis.id },
+            { content: text, sessionId: analysis.id, initialMessage },
             (response: { userMessage: ChatMessageDto; aiMessage: ChatMessageDto } | { error: string }) => {
                 if ('error' in response) {
+                    if (initialMessage) {
+                        pendingGreetingRef.current = initialMessage;
+                    }
                     setLimitError(response.error);
                     setIsTyping(false);
                     return;

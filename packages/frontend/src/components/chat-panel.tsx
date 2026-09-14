@@ -150,6 +150,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const pendingGreetingRef = useRef<string | null>(null);
 
   const chatLimitReached =
     limit !== null && limit.chatRequests >= limit.chatLimit;
@@ -192,13 +193,18 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
       .then((res) => {
         const history = res.data;
         if (history.length > 0) {
+          pendingGreetingRef.current = null;
           setMessages(history.map(dtoToMessage));
         } else {
-          setMessages([buildInitialMessage(analysis)]);
+          const greeting = buildInitialMessage(analysis);
+          pendingGreetingRef.current = greeting.content;
+          setMessages([greeting]);
         }
       })
       .catch(() => {
-        setMessages([buildInitialMessage(analysis)]);
+        const greeting = buildInitialMessage(analysis);
+        pendingGreetingRef.current = greeting.content;
+        setMessages([greeting]);
       });
 
     return () => {
@@ -243,15 +249,21 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
     };
     setMessages((prev) => [...prev, optimisticMsg]);
 
+    const initialMessage = pendingGreetingRef.current ?? undefined;
+    pendingGreetingRef.current = null;
+
     socketRef.current.emit(
       'send_message',
-      { content: text, sessionId: analysis.id },
+      { content: text, sessionId: analysis.id, initialMessage },
       (
         response:
           | { userMessage: ChatMessageDto; aiMessage: ChatMessageDto }
           | { error: string }
       ) => {
         if ('error' in response) {
+          if (initialMessage) {
+            pendingGreetingRef.current = initialMessage;
+          }
           setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
           setLimitError(response.error);
           setIsTyping(false);

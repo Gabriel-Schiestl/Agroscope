@@ -12,6 +12,7 @@ import {
     Animated,
     ActivityIndicator,
     Alert,
+    PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { io, Socket } from 'socket.io-client';
@@ -88,6 +89,36 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
     const scrollViewRef = useRef<ScrollView>(null);
     const slideAnim = useRef(new Animated.Value(300)).current;
     const socketRef = useRef<Socket | null>(null);
+    const onCloseRef = useRef(onClose);
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+
+    // Arrasta o cabeçalho (alça) para baixo para fechar o chat, como em
+    // bottom sheets nativas.
+    const [panResponder] = useState(() =>
+        PanResponder.create({
+            onMoveShouldSetPanResponder: (_, gesture) =>
+                gesture.dy > 5 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+            onPanResponderMove: (_, gesture) => {
+                if (gesture.dy > 0) {
+                    slideAnim.setValue(gesture.dy);
+                }
+            },
+            onPanResponderRelease: (_, gesture) => {
+                if (gesture.dy > 100 || gesture.vy > 0.8) {
+                    onCloseRef.current();
+                } else {
+                    Animated.spring(slideAnim, {
+                        toValue: 0,
+                        useNativeDriver: true,
+                        tension: 65,
+                        friction: 11,
+                    }).start();
+                }
+            },
+        }),
+    );
 
     const hasNoChatAccess = limit != null && limit.chatLimit === 0;
     const hasReachedLimit = limit != null && limit.chatLimit > 0 && limit.chatRequests >= limit.chatLimit;
@@ -215,7 +246,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                 >
                     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
                         {/* Header */}
-                        <View style={styles.header}>
+                        <View style={styles.header} {...panResponder.panHandlers}>
                             <View style={styles.headerHandle} />
                             <View style={styles.headerContent}>
                                 <View style={styles.headerLeft}>

@@ -10,6 +10,7 @@ import {
     Dimensions,
     useColorScheme,
     StatusBar,
+    Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -101,6 +102,7 @@ export default function AnalyticsScreen() {
     const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
     const [detailAnalysis, setDetailAnalysis] = useState<History | null>(null);
     const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRangePreset>('90d');
     const [analyticsGranularity, setAnalyticsGranularity] = useState<AnalyticsGranularity>('month');
@@ -381,53 +383,90 @@ export default function AnalyticsScreen() {
                     >
                         AgroScope
                     </ThemedText>
-                    <View style={styles.headerRight}>
-                        {auth?.name ? (
-                            <ThemedText
-                                style={[
-                                    styles.userName,
-                                    { color: colors.textSecondary },
-                                ]}
-                                numberOfLines={1}
-                            >
-                                {auth.name}
-                            </ThemedText>
-                        ) : null}
-                        <TouchableOpacity
-                            style={[
-                                styles.logoutBtn,
-                                { borderColor: colors.backgroundElement },
-                            ]}
-                            onPress={() => router.push('/plans')}
-                        >
-                            <ThemedText
-                                style={[
-                                    styles.logoutBtnText,
-                                    { color: colors.textSecondary },
-                                ]}
-                            >
-                                💳 Planos
-                            </ThemedText>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.logoutBtn,
-                                { borderColor: colors.backgroundElement },
-                            ]}
-                            onPress={handleLogout}
-                        >
-                            <ThemedText
-                                style={[
-                                    styles.logoutBtnText,
-                                    { color: colors.textSecondary },
-                                ]}
-                            >
-                                Sair
-                            </ThemedText>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                        style={[
+                            styles.menuBtn,
+                            { borderColor: colors.backgroundElement },
+                        ]}
+                        onPress={() => setMenuOpen(true)}
+                        accessibilityLabel="Abrir menu"
+                    >
+                        <ThemedText style={[styles.menuBtnIcon, { color: colors.text }]}>
+                            ☰
+                        </ThemedText>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
+
+            <Modal
+                visible={menuOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setMenuOpen(false)}
+            >
+                <View style={styles.menuOverlay}>
+                    <TouchableOpacity
+                        style={StyleSheet.absoluteFill}
+                        activeOpacity={1}
+                        onPress={() => setMenuOpen(false)}
+                    />
+                    <SafeAreaView edges={['top']} style={styles.menuSafeArea} pointerEvents="box-none">
+                        <View
+                            style={[
+                                styles.menuCard,
+                                {
+                                    backgroundColor: isDark
+                                        ? colors.backgroundElement
+                                        : '#fff',
+                                    borderColor: colors.backgroundElement,
+                                },
+                            ]}
+                        >
+                            {auth?.name ? (
+                                <ThemedText
+                                    style={[
+                                        styles.menuUserName,
+                                        { color: colors.textSecondary },
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {auth.name}
+                                </ThemedText>
+                            ) : null}
+                            <TouchableOpacity
+                                style={styles.menuItem}
+                                onPress={() => {
+                                    setMenuOpen(false);
+                                    router.push('/plans');
+                                }}
+                            >
+                                <ThemedText style={styles.menuItemText}>
+                                    💳 Planos
+                                </ThemedText>
+                            </TouchableOpacity>
+                            <View
+                                style={[
+                                    styles.menuDivider,
+                                    { backgroundColor: colors.backgroundElement },
+                                ]}
+                            />
+                            <TouchableOpacity
+                                style={styles.menuItem}
+                                onPress={() => {
+                                    setMenuOpen(false);
+                                    handleLogout();
+                                }}
+                            >
+                                <ThemedText
+                                    style={[styles.menuItemText, { color: '#ef4444' }]}
+                                >
+                                    Sair
+                                </ThemedText>
+                            </TouchableOpacity>
+                        </View>
+                    </SafeAreaView>
+                </View>
+            </Modal>
 
             <ScrollView
                 style={styles.scroll}
@@ -1480,15 +1519,33 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
     },
     brand: { fontSize: 18, fontWeight: '700' },
-    headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    userName: { fontSize: 13, maxWidth: 120 },
-    logoutBtn: {
+    menuBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 8,
         borderWidth: 1,
-        borderRadius: 7,
-        paddingHorizontal: 12,
-        paddingVertical: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    logoutBtnText: { fontSize: 13 },
+    menuBtnIcon: { fontSize: 18, lineHeight: 20 },
+    menuOverlay: { flex: 1 },
+    menuSafeArea: { alignItems: 'flex-end', paddingHorizontal: 20 },
+    menuCard: {
+        marginTop: 8,
+        minWidth: 180,
+        borderRadius: 10,
+        borderWidth: 1,
+        paddingVertical: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    menuUserName: { fontSize: 13, paddingHorizontal: 14, paddingVertical: 10 },
+    menuItem: { paddingHorizontal: 14, paddingVertical: 12 },
+    menuItemText: { fontSize: 14, fontWeight: '500' },
+    menuDivider: { height: 1, marginHorizontal: 6 },
     scroll: { flex: 1, paddingHorizontal: 16 },
     pageTitle: { marginTop: 16, marginBottom: 4 },
     title: { fontSize: 22, fontWeight: '700', marginBottom: 4 },

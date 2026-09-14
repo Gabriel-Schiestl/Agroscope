@@ -16,6 +16,7 @@ export interface SendMessageProps {
     content: string;
     userId: string;
     sessionId: string;
+    initialMessage?: string;
 }
 
 export interface SendMessageResult {
@@ -50,6 +51,7 @@ export class SendMessageUseCase extends AbstractUseCase<
         content,
         userId,
         sessionId,
+        initialMessage,
     }: SendMessageProps): Promise<Result<Exception, SendMessageResult>> {
         const userResult = await this.userRepository.getById(userId);
         if (userResult.isFailure()) {
@@ -77,6 +79,35 @@ export class SendMessageUseCase extends AbstractUseCase<
                     `Limite de ${plan.chatLimit} mensagens atingido`,
                 ),
             );
+        }
+
+        if (initialMessage) {
+            const existingResult = await this.chatMessageRepository.getBySession(
+                sessionId,
+                userId,
+            );
+            if (existingResult.isFailure()) {
+                return Res.failure(existingResult.error);
+            }
+
+            if (existingResult.value.length === 0) {
+                const greetingResult = ChatMessage.create({
+                    content: initialMessage,
+                    sender: 'ai',
+                    userId,
+                    sessionId,
+                });
+                if (greetingResult.isFailure()) {
+                    return Res.failure(greetingResult.error);
+                }
+
+                const saveGreetingResult = await this.chatMessageRepository.save(
+                    greetingResult.value,
+                );
+                if (saveGreetingResult.isFailure()) {
+                    return Res.failure(saveGreetingResult.error);
+                }
+            }
         }
 
         const humanMessageResult = ChatMessage.create({

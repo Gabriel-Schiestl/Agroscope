@@ -20,6 +20,7 @@ import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import api from '@/shared/http/http.config';
 import { useAuth } from '@/contexts/auth-context';
 import type { History } from '@/models/History';
+import { cropLabel } from '@/lib/agro-labels';
 
 interface ChatMessageDto {
     id: string;
@@ -59,8 +60,8 @@ function dtoToMessage(dto: ChatMessageDto): ChatMessage {
 }
 
 function buildInitialMessage(analysis: History | null): ChatMessage {
-    const disease = analysis?.explanation ?? analysis?.crop ?? 'a cultura analisada';
-    const crop = analysis?.crop ?? '';
+    const disease = analysis?.explanation ?? cropLabel(analysis?.crop);
+    const crop = cropLabel(analysis?.crop);
     const confidence = analysis?.sicknessConfidence
         ? ` (${(analysis.sicknessConfidence * 100).toFixed(1)}% de confiança)`
         : '';
@@ -68,7 +69,7 @@ function buildInitialMessage(analysis: History | null): ChatMessage {
     return {
         id: 'init',
         role: 'assistant',
-        content: `Olá! Sou seu assistente agrícola. Identifiquei **${disease}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`,
+        content: `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei **${disease}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`,
         timestamp: new Date(),
     };
 }
@@ -231,16 +232,18 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                             <View style={styles.headerHandle} />
                             <View style={styles.headerContent}>
                                 <View style={styles.headerLeft}>
-                                    <View style={[styles.avatarDot, { backgroundColor: colors.tint }]} />
+                                    <View style={[styles.avatarDot, { backgroundColor: colors.tint + '20' }]}>
+                                        <ThemedText style={styles.avatarDotIcon}>🌱</ThemedText>
+                                    </View>
                                     <View>
                                         <ThemedText style={styles.headerTitle}>
-                                            Assistente AgroScope
+                                            Íris
                                         </ThemedText>
                                         <ThemedText
                                             style={[styles.headerSub, { color: colors.textSecondary }]}
                                         >
                                             {analysis?.crop
-                                                ? `${analysis.crop} · ${new Date(analysis.createdAt).toLocaleDateString('pt-BR')}`
+                                                ? `${cropLabel(analysis.crop)} · ${new Date(analysis.createdAt).toLocaleDateString('pt-BR')}`
                                                 : 'Nova análise'}
                                         </ThemedText>
                                     </View>
@@ -525,6 +528,7 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
             alignItems: 'center',
             justifyContent: 'center',
         },
+        avatarDotIcon: { fontSize: 16, lineHeight: 19 },
         headerTitle: {
             fontSize: 15,
             fontWeight: '600',

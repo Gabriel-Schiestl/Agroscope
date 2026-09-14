@@ -23,7 +23,7 @@ import { AnalysisDetailModal } from '@/components/analysis-detail-modal';
 import { useAuth } from '@/contexts/auth-context';
 import { useLimit } from '@/hooks/use-limit';
 import { useAnalytics, type AnalyticsRangePreset } from '@/hooks/use-analytics';
-import { formatCompactNumber, formatPeriodLabel } from '@/lib/utils';
+import { formatCompactNumber, formatPeriodLabel, imageToDataUri } from '@/lib/utils';
 import api from '@/shared/http/http.config';
 import type { History } from '@/models/History';
 import type { AnalyticsGranularity } from '@/models/Analytics';
@@ -999,7 +999,7 @@ export default function AnalyticsScreen() {
                                             style={[
                                                 styles.filterChip,
                                                 active
-                                                    ? { backgroundColor: colors.tint }
+                                                    ? { backgroundColor: colors.tint, borderColor: colors.tint }
                                                     : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
                                             ]}
                                             onPress={() => setCropFilter(c)}
@@ -1026,7 +1026,7 @@ export default function AnalyticsScreen() {
                                             style={[
                                                 styles.filterChip,
                                                 active
-                                                    ? { backgroundColor: colors.tint }
+                                                    ? { backgroundColor: colors.tint, borderColor: colors.tint }
                                                     : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
                                             ]}
                                             onPress={() => setDateRange(r)}
@@ -1074,47 +1074,67 @@ export default function AnalyticsScreen() {
                                             onPress={() => setDetailAnalysis(item)}
                                             activeOpacity={0.7}
                                         >
-                                            <View style={styles.historyMain}>
-                                                <ThemedText style={styles.historyTitle} numberOfLines={2}>
-                                                    {item.sicknessName
-                                                        ? sicknessLabel(item.sicknessName)
-                                                        : item.sicknessId
-                                                        ? 'Doença identificada'
-                                                        : 'Planta saudável'}
-                                                </ThemedText>
-                                                <ThemedText style={[styles.historyCrop, { color: colors.textSecondary }]}>
-                                                    Cultura: {cropLabel(item.crop)}
-                                                </ThemedText>
-                                                <ThemedText style={[styles.historyDate, { color: colors.textSecondary }]}>
-                                                    {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                                                </ThemedText>
+                                            <View style={styles.historyTopRow}>
+                                                <Image
+                                                    source={{ uri: imageToDataUri(item.image) }}
+                                                    style={[
+                                                        styles.historyThumb,
+                                                        { backgroundColor: colors.backgroundSelected },
+                                                    ]}
+                                                    resizeMode="cover"
+                                                />
+                                                <View style={styles.historyMain}>
+                                                    <ThemedText style={styles.historyTitle} numberOfLines={2}>
+                                                        {item.sicknessName
+                                                            ? sicknessLabel(item.sicknessName)
+                                                            : item.sicknessId
+                                                            ? 'Doença identificada'
+                                                            : 'Planta saudável'}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.historyCrop, { color: colors.textSecondary }]}>
+                                                        Cultura: {cropLabel(item.crop)}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.historyDate, { color: colors.textSecondary }]}>
+                                                        {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                                                    </ThemedText>
+                                                </View>
+                                                <View style={styles.historyPctBadges}>
+                                                    {item.cropConfidence > 0 && (
+                                                        <View style={[styles.badge, { backgroundColor: colors.tint }]}>
+                                                            <ThemedText style={styles.badgeText}>
+                                                                {(item.cropConfidence * 100).toFixed(1)}%
+                                                            </ThemedText>
+                                                        </View>
+                                                    )}
+                                                    {item.sicknessConfidence != null && item.sicknessConfidence > 0 && (
+                                                        <View style={[styles.badgeOutline, { borderColor: colors.tint }]}>
+                                                            <ThemedText style={[styles.badgeOutlineText, { color: colors.tint }]}>
+                                                                {(item.sicknessConfidence * 100).toFixed(1)}%
+                                                            </ThemedText>
+                                                        </View>
+                                                    )}
+                                                </View>
                                             </View>
-                                            <View style={styles.historyBadges}>
-                                                {item.cropConfidence > 0 && (
-                                                    <View style={[styles.badge, { backgroundColor: colors.tint }]}>
-                                                        <ThemedText style={styles.badgeText}>
-                                                            {(item.cropConfidence * 100).toFixed(1)}%
-                                                        </ThemedText>
-                                                    </View>
-                                                )}
-                                                {item.sicknessConfidence != null && item.sicknessConfidence > 0 && (
-                                                    <View style={[styles.badgeOutline, { borderColor: colors.tint }]}>
-                                                        <ThemedText style={[styles.badgeOutlineText, { color: colors.tint }]}>
-                                                            {(item.sicknessConfidence * 100).toFixed(1)}%
-                                                        </ThemedText>
-                                                    </View>
-                                                )}
+                                            <View style={styles.historyActionsRow}>
                                                 <TouchableOpacity
-                                                    style={[styles.historyChatBtn, { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' }]}
+                                                    style={[
+                                                        styles.historyChatBtn,
+                                                        styles.historyActionBtn,
+                                                        { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' },
+                                                    ]}
                                                     onPress={(e) => { e.stopPropagation?.(); setChatAnalysis(item); }}
                                                 >
-                                                    <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
-                                                        💬 Chat
-                                                    </ThemedText>
+                                                    <View style={styles.historyBtnRow}>
+                                                        <ThemedText style={styles.historyBtnIcon}>💬</ThemedText>
+                                                        <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
+                                                            Chat
+                                                        </ThemedText>
+                                                    </View>
                                                 </TouchableOpacity>
                                                 <TouchableOpacity
                                                     style={[
                                                         styles.historyChatBtn,
+                                                        styles.historyActionBtn,
                                                         { backgroundColor: colors.tint + '18', borderColor: colors.tint + '50' },
                                                         (generatingReportId === item.id || !canGenerateReport) && { opacity: 0.6 },
                                                     ]}
@@ -1124,9 +1144,12 @@ export default function AnalyticsScreen() {
                                                     {generatingReportId === item.id ? (
                                                         <ActivityIndicator size="small" color={colors.tint} />
                                                     ) : (
-                                                        <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
-                                                            📄 PDF
-                                                        </ThemedText>
+                                                        <View style={styles.historyBtnRow}>
+                                                            <ThemedText style={styles.historyBtnIcon}>📄</ThemedText>
+                                                            <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
+                                                                PDF
+                                                            </ThemedText>
+                                                        </View>
                                                     )}
                                                 </TouchableOpacity>
                                             </View>
@@ -1173,7 +1196,7 @@ export default function AnalyticsScreen() {
                                             style={[
                                                 styles.filterChip,
                                                 active
-                                                    ? { backgroundColor: colors.tint }
+                                                    ? { backgroundColor: colors.tint, borderColor: colors.tint }
                                                     : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
                                             ]}
                                             onPress={() => setAnalyticsRange(option.value)}
@@ -1199,7 +1222,7 @@ export default function AnalyticsScreen() {
                                             style={[
                                                 styles.filterChip,
                                                 active
-                                                    ? { backgroundColor: colors.tint }
+                                                    ? { backgroundColor: colors.tint, borderColor: colors.tint }
                                                     : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
                                             ]}
                                             onPress={() => setAnalyticsGranularity(option.value)}
@@ -1567,17 +1590,24 @@ const styles = StyleSheet.create({
     tipDesc: { fontSize: 12, lineHeight: 18 },
     historyList: { marginTop: 8 },
     historyItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
         paddingVertical: 12,
-        gap: 8,
+        gap: 10,
     },
+    historyTopRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 10,
+    },
+    historyThumb: { width: 56, height: 56, borderRadius: 8 },
     historyMain: { flex: 1 },
     historyTitle: { fontSize: 13, fontWeight: '600', marginBottom: 3 },
     historyCrop: { fontSize: 12, marginBottom: 2 },
     historyDate: { fontSize: 11 },
-    historyBadges: { alignItems: 'flex-end', gap: 4 },
+    historyPctBadges: { alignItems: 'flex-end', gap: 4 },
+    historyActionsRow: { flexDirection: 'row', gap: 8 },
+    historyActionBtn: { flex: 1 },
+    historyBtnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+    historyBtnIcon: { fontSize: 13, lineHeight: 15 },
     statsGrid: { gap: 10, marginBottom: 20 },
     statCard: { borderRadius: 8, borderWidth: 1, padding: 12 },
     statLabel: { fontSize: 12 },

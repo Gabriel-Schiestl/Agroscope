@@ -112,7 +112,7 @@ export default function AnalyticsScreen() {
     const diseaseBars = useMemo<RankedBar[]>(() => {
         if (!analytics) return [];
         return foldTopN(
-            analytics.byDisease.map((d) => ({ name: d.sicknessName, count: d.count })),
+            analytics.byDisease.map((d) => ({ name: sicknessLabel(d.sicknessName), count: d.count })),
             BAR_CHART_DISPLAY_LIMIT,
         );
     }, [analytics]);
@@ -120,7 +120,7 @@ export default function AnalyticsScreen() {
     const cropBars = useMemo<RankedBar[]>(() => {
         if (!analytics) return [];
         return foldTopN(
-            analytics.byCrop.map((c) => ({ name: c.crop, count: c.count })),
+            analytics.byCrop.map((c) => ({ name: cropLabel(c.crop), count: c.count })),
             BAR_CHART_DISPLAY_LIMIT,
         );
     }, [analytics]);
@@ -148,7 +148,7 @@ export default function AnalyticsScreen() {
 
     const seriesNameById = useMemo(() => {
         const map = new Map<string, string>();
-        analytics?.diseaseIncidenceByPeriod.forEach((s) => map.set(s.sicknessId, s.sicknessName));
+        analytics?.diseaseIncidenceByPeriod.forEach((s) => map.set(s.sicknessId, sicknessLabel(s.sicknessName)));
         return map;
     }, [analytics]);
 
@@ -1221,7 +1221,7 @@ export default function AnalyticsScreen() {
                                 </View>
                             ) : !analytics || analytics.totalAnalyses === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={{ fontSize: 40, marginBottom: 12 }}>📊</ThemedText>
+                                    <ThemedText style={styles.statsEmptyIcon}>📊</ThemedText>
                                     <ThemedText style={[styles.emptyText, { fontWeight: '600' }]}>
                                         Ainda não há dados suficientes.
                                     </ThemedText>
@@ -1244,7 +1244,7 @@ export default function AnalyticsScreen() {
                                             {
                                                 label: 'Culturas Analisadas',
                                                 value: String(analytics.distinctCropsCount),
-                                                change: analytics.byCrop.map((c) => c.crop).slice(0, 4).join(', ') || undefined,
+                                                change: analytics.byCrop.map((c) => cropLabel(c.crop)).slice(0, 4).join(', ') || undefined,
                                             },
                                             {
                                                 label: 'Doenças Detectadas',
@@ -1408,7 +1408,7 @@ export default function AnalyticsScreen() {
                                                         {analytics.diseasePeakPeriods.map((peak) => (
                                                             <View key={peak.sicknessId} style={styles.peakRow}>
                                                                 <ThemedText style={styles.peakName} numberOfLines={1}>
-                                                                    {peak.sicknessName}
+                                                                    {sicknessLabel(peak.sicknessName)}
                                                                 </ThemedText>
                                                                 <ThemedText style={[styles.peakPeriod, { color: colors.textSecondary }]}>
                                                                     {formatPeriodLabel(peak.period, analytics.granularity)}
@@ -1525,6 +1525,7 @@ const styles = StyleSheet.create({
     analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
     analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     emptyState: { paddingVertical: 32, alignItems: 'center' },
+    statsEmptyIcon: { fontSize: 40, lineHeight: 48, marginBottom: 12 },
     emptyText: { fontSize: 13, textAlign: 'center', lineHeight: 20 },
     loadingState: { paddingVertical: 40, alignItems: 'center' },
     loadingText: { fontSize: 15, fontWeight: '500' },
@@ -1578,11 +1579,22 @@ const styles = StyleSheet.create({
     historyCrop: { fontSize: 12, marginBottom: 2 },
     historyDate: { fontSize: 11 },
     historyBadges: { alignItems: 'flex-end', gap: 4 },
-    statsGrid: { gap: 10, marginBottom: 20 },
-    statCard: { borderRadius: 8, borderWidth: 1, padding: 12 },
+    statsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginBottom: 20,
+    },
+    statCard: {
+        flexBasis: '47%',
+        flexGrow: 1,
+        borderRadius: 10,
+        borderWidth: 1,
+        padding: 14,
+    },
     statLabel: { fontSize: 12 },
-    statValue: { fontSize: 26, fontWeight: '700', marginTop: 4 },
-    statChange: { fontSize: 11, marginTop: 4 },
+    statValue: { fontSize: 24, fontWeight: '700', marginTop: 6 },
+    statChange: { fontSize: 11, marginTop: 6, lineHeight: 15 },
     diseasesTitle: { fontSize: 15, fontWeight: '600' },
     diseasesList: { gap: 12 },
     diseaseItem: { gap: 6 },

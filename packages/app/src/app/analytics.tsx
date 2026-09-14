@@ -10,6 +10,7 @@ import {
     Dimensions,
     useColorScheme,
     StatusBar,
+    Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -101,6 +102,7 @@ export default function AnalyticsScreen() {
     const [chatAnalysis, setChatAnalysis] = useState<History | null>(null);
     const [detailAnalysis, setDetailAnalysis] = useState<History | null>(null);
     const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRangePreset>('90d');
     const [analyticsGranularity, setAnalyticsGranularity] = useState<AnalyticsGranularity>('month');
@@ -381,53 +383,90 @@ export default function AnalyticsScreen() {
                     >
                         AgroScope
                     </ThemedText>
-                    <View style={styles.headerRight}>
-                        {auth?.name ? (
-                            <ThemedText
-                                style={[
-                                    styles.userName,
-                                    { color: colors.textSecondary },
-                                ]}
-                                numberOfLines={1}
-                            >
-                                {auth.name}
-                            </ThemedText>
-                        ) : null}
-                        <TouchableOpacity
-                            style={[
-                                styles.logoutBtn,
-                                { borderColor: colors.backgroundElement },
-                            ]}
-                            onPress={() => router.push('/plans')}
-                        >
-                            <ThemedText
-                                style={[
-                                    styles.logoutBtnText,
-                                    { color: colors.textSecondary },
-                                ]}
-                            >
-                                💳 Planos
-                            </ThemedText>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.logoutBtn,
-                                { borderColor: colors.backgroundElement },
-                            ]}
-                            onPress={handleLogout}
-                        >
-                            <ThemedText
-                                style={[
-                                    styles.logoutBtnText,
-                                    { color: colors.textSecondary },
-                                ]}
-                            >
-                                Sair
-                            </ThemedText>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                        style={[
+                            styles.menuBtn,
+                            { borderColor: colors.backgroundElement },
+                        ]}
+                        onPress={() => setMenuOpen(true)}
+                        accessibilityLabel="Abrir menu"
+                    >
+                        <ThemedText style={[styles.menuBtnIcon, { color: colors.text }]}>
+                            ☰
+                        </ThemedText>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
+
+            <Modal
+                visible={menuOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setMenuOpen(false)}
+            >
+                <View style={styles.menuOverlay}>
+                    <TouchableOpacity
+                        style={StyleSheet.absoluteFill}
+                        activeOpacity={1}
+                        onPress={() => setMenuOpen(false)}
+                    />
+                    <SafeAreaView edges={['top']} style={styles.menuSafeArea} pointerEvents="box-none">
+                        <View
+                            style={[
+                                styles.menuCard,
+                                {
+                                    backgroundColor: isDark
+                                        ? colors.backgroundElement
+                                        : '#fff',
+                                    borderColor: colors.backgroundElement,
+                                },
+                            ]}
+                        >
+                            {auth?.name ? (
+                                <ThemedText
+                                    style={[
+                                        styles.menuUserName,
+                                        { color: colors.textSecondary },
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {auth.name}
+                                </ThemedText>
+                            ) : null}
+                            <TouchableOpacity
+                                style={styles.menuItem}
+                                onPress={() => {
+                                    setMenuOpen(false);
+                                    router.push('/plans');
+                                }}
+                            >
+                                <ThemedText style={styles.menuItemText}>
+                                    💳 Planos
+                                </ThemedText>
+                            </TouchableOpacity>
+                            <View
+                                style={[
+                                    styles.menuDivider,
+                                    { backgroundColor: colors.backgroundElement },
+                                ]}
+                            />
+                            <TouchableOpacity
+                                style={styles.menuItem}
+                                onPress={() => {
+                                    setMenuOpen(false);
+                                    handleLogout();
+                                }}
+                            >
+                                <ThemedText
+                                    style={[styles.menuItemText, { color: '#ef4444' }]}
+                                >
+                                    Sair
+                                </ThemedText>
+                            </TouchableOpacity>
+                        </View>
+                    </SafeAreaView>
+                </View>
+            </Modal>
 
             <ScrollView
                 style={styles.scroll}
@@ -580,9 +619,12 @@ export default function AnalyticsScreen() {
                                     ]}
                                     onPress={pickImage}
                                 >
-                                    <ThemedText style={styles.captureBtnText}>
-                                        🖼  Galeria
-                                    </ThemedText>
+                                    <View style={styles.btnRow}>
+                                        <ThemedText style={styles.btnIcon}>🖼</ThemedText>
+                                        <ThemedText style={styles.captureBtnText}>
+                                            Galeria
+                                        </ThemedText>
+                                    </View>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[
@@ -591,9 +633,12 @@ export default function AnalyticsScreen() {
                                     ]}
                                     onPress={takePhoto}
                                 >
-                                    <ThemedText style={styles.captureBtnText}>
-                                        📷  Câmera
-                                    </ThemedText>
+                                    <View style={styles.btnRow}>
+                                        <ThemedText style={styles.btnIcon}>📷</ThemedText>
+                                        <ThemedText style={styles.captureBtnText}>
+                                            Câmera
+                                        </ThemedText>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
 
@@ -627,9 +672,12 @@ export default function AnalyticsScreen() {
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
-                                    <ThemedText style={styles.analyzeBtnText}>
-                                        🔍  Analisar Imagem
-                                    </ThemedText>
+                                    <View style={styles.btnRow}>
+                                        <ThemedText style={styles.btnIcon}>🔍</ThemedText>
+                                        <ThemedText style={styles.analyzeBtnText}>
+                                            Analisar Imagem
+                                        </ThemedText>
+                                    </View>
                                 )}
                             </TouchableOpacity>
                         </ThemedView>
@@ -655,7 +703,7 @@ export default function AnalyticsScreen() {
                                     Diagnóstico e recomendações de manejo
                                 </ThemedText>
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={{ fontSize: 44, marginBottom: 12 }}>
+                                    <ThemedText style={styles.emptyStateIcon}>
                                         🌿
                                     </ThemedText>
                                     <ThemedText
@@ -757,8 +805,9 @@ export default function AnalyticsScreen() {
                                             )}
                                         </View>
                                         {!result.sicknessId ? (
-                                            <View style={[styles.badge, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
-                                                <ThemedText style={styles.badgeText}>🌿 Planta Saudável</ThemedText>
+                                            <View style={[styles.badge, styles.btnRow, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
+                                                <ThemedText style={styles.badgeIcon}>🌿</ThemedText>
+                                                <ThemedText style={styles.badgeText}>Planta Saudável</ThemedText>
                                             </View>
                                         ) : (
                                             <>
@@ -855,14 +904,19 @@ export default function AnalyticsScreen() {
                                             },
                                         ]}
                                     >
-                                        <ThemedText
-                                            style={[
-                                                styles.alertTitle,
-                                                { color: colors.tint },
-                                            ]}
-                                        >
-                                            ⚠️  Importante
-                                        </ThemedText>
+                                        <View style={styles.btnRow}>
+                                            <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
+                                                ⚠️
+                                            </ThemedText>
+                                            <ThemedText
+                                                style={[
+                                                    styles.alertTitle,
+                                                    { color: colors.tint },
+                                                ]}
+                                            >
+                                                Importante
+                                            </ThemedText>
+                                        </View>
                                         <ThemedText
                                             style={[
                                                 styles.alertBody,
@@ -883,9 +937,12 @@ export default function AnalyticsScreen() {
                                         ]}
                                         onPress={() => setChatAnalysis(result)}
                                     >
-                                        <ThemedText style={styles.chatBtnText}>
-                                            💬  Tirar dúvidas sobre esta análise
-                                        </ThemedText>
+                                        <View style={styles.btnRow}>
+                                            <ThemedText style={styles.btnIcon}>💬</ThemedText>
+                                            <ThemedText style={styles.chatBtnText}>
+                                                Tirar dúvidas sobre esta análise
+                                            </ThemedText>
+                                        </View>
                                     </TouchableOpacity>
 
                                     {/* PDF report */}
@@ -901,9 +958,14 @@ export default function AnalyticsScreen() {
                                         {generatingReportId === result.id ? (
                                             <ActivityIndicator color={colors.tint} />
                                         ) : (
-                                            <ThemedText style={[styles.reportBtnText, { color: colors.tint }]}>
-                                                📄  Gerar Relatório PDF
-                                            </ThemedText>
+                                            <View style={styles.btnRow}>
+                                                <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
+                                                    📄
+                                                </ThemedText>
+                                                <ThemedText style={[styles.reportBtnText, { color: colors.tint }]}>
+                                                    Gerar Relatório PDF
+                                                </ThemedText>
+                                            </View>
                                         )}
                                     </TouchableOpacity>
                                     {!canGenerateReport && (
@@ -1480,15 +1542,33 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
     },
     brand: { fontSize: 18, fontWeight: '700' },
-    headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    userName: { fontSize: 13, maxWidth: 120 },
-    logoutBtn: {
+    menuBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 8,
         borderWidth: 1,
-        borderRadius: 7,
-        paddingHorizontal: 12,
-        paddingVertical: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    logoutBtnText: { fontSize: 13 },
+    menuBtnIcon: { fontSize: 18, lineHeight: 20 },
+    menuOverlay: { flex: 1 },
+    menuSafeArea: { alignItems: 'flex-end', paddingHorizontal: 20 },
+    menuCard: {
+        marginTop: 8,
+        minWidth: 180,
+        borderRadius: 10,
+        borderWidth: 1,
+        paddingVertical: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    menuUserName: { fontSize: 13, paddingHorizontal: 14, paddingVertical: 10 },
+    menuItem: { paddingHorizontal: 14, paddingVertical: 12 },
+    menuItemText: { fontSize: 14, fontWeight: '500' },
+    menuDivider: { height: 1, marginHorizontal: 6 },
     scroll: { flex: 1, paddingHorizontal: 16 },
     pageTitle: { marginTop: 16, marginBottom: 4 },
     title: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
@@ -1544,10 +1624,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     captureBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+    btnRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    btnIcon: { fontSize: 15, lineHeight: 18 },
     usageCounter: { fontSize: 11, textAlign: 'right', marginBottom: 6 },
     analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
     analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     emptyState: { paddingVertical: 32, alignItems: 'center' },
+    emptyStateIcon: { fontSize: 44, lineHeight: 52, marginBottom: 12 },
     emptyText: { fontSize: 13, textAlign: 'center', lineHeight: 20 },
     loadingState: { paddingVertical: 40, alignItems: 'center' },
     loadingText: { fontSize: 15, fontWeight: '500' },
@@ -1569,6 +1652,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     badgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+    badgeIcon: { fontSize: 12, lineHeight: 14 },
     badgeOutline: {
         paddingHorizontal: 7,
         paddingVertical: 2,

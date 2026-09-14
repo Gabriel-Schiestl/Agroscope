@@ -64,6 +64,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             content: dto.content,
             userId,
             sessionId: dto.sessionId,
+            initialMessage: dto.initialMessage,
         });
 
         if (result.isFailure()) {

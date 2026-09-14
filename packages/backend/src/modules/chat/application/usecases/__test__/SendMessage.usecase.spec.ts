@@ -335,6 +335,63 @@ describe('SendMessageUseCase', () => {
         );
     });
 
+    it('should persist the initial greeting when it is the first message of a session', async () => {
+        chatMessageRepository.getBySession.mockResolvedValue(Res.success([]));
+
+        const result = await useCase.execute({
+            content: 'Olá',
+            userId: 'user-1',
+            sessionId: 'session-1',
+            initialMessage: 'Olá! Sou a Íris...',
+        });
+
+        expect(result.isSuccess()).toBe(true);
+        expect(chatMessageRepository.getBySession).toHaveBeenCalledWith(
+            'session-1',
+            'user-1',
+        );
+        expect(chatMessageRepository.save).toHaveBeenCalledTimes(3);
+
+        const greetingMessage = chatMessageRepository.save.mock
+            .calls[0][0] as ChatMessage;
+        expect(greetingMessage.sender).toBe('ai');
+        expect(greetingMessage.content).toBe('Olá! Sou a Íris...');
+    });
+
+    it('should not duplicate the greeting when the session already has messages', async () => {
+        chatMessageRepository.getBySession.mockResolvedValue(
+            Res.success([buildPastMessage('old-1')]),
+        );
+
+        const result = await useCase.execute({
+            content: 'Olá',
+            userId: 'user-1',
+            sessionId: 'session-1',
+            initialMessage: 'Olá! Sou a Íris...',
+        });
+
+        expect(result.isSuccess()).toBe(true);
+        expect(chatMessageRepository.save).toHaveBeenCalledTimes(2);
+    });
+
+    it('should fail when checking for an existing session history fails', async () => {
+        const error = new TechnicalException('lookup error');
+        chatMessageRepository.getBySession.mockResolvedValue(
+            Res.failure(error),
+        );
+
+        const result = await useCase.execute({
+            content: 'Olá',
+            userId: 'user-1',
+            sessionId: 'session-1',
+            initialMessage: 'Olá! Sou a Íris...',
+        });
+
+        expect(result.isFailure()).toBe(true);
+        expect(result.isFailure() && result.error).toBe(error);
+        expect(chatMessageRepository.save).not.toHaveBeenCalled();
+    });
+
     it('should exclude the just-saved human message from the context history', async () => {
         chatMessageRepository.getLastBySession.mockImplementation(
             async () => {

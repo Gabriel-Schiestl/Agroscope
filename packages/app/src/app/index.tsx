@@ -293,6 +293,7 @@ const styles = StyleSheet.create({
         backgroundColor: C.primary,
         borderRadius: 8,
         paddingVertical: 14,
+        paddingHorizontal: 24,
         alignItems: 'center',
     },
     primaryBtnText: {

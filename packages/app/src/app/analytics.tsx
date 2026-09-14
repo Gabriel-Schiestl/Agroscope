@@ -655,7 +655,7 @@ export default function AnalyticsScreen() {
                                     Diagnóstico e recomendações de manejo
                                 </ThemedText>
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={{ fontSize: 44, marginBottom: 12 }}>
+                                    <ThemedText style={styles.emptyStateIcon}>
                                         🌿
                                     </ThemedText>
                                     <ThemedText
@@ -1525,6 +1525,7 @@ const styles = StyleSheet.create({
     analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
     analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     emptyState: { paddingVertical: 32, alignItems: 'center' },
+    emptyStateIcon: { fontSize: 44, lineHeight: 52, marginBottom: 12 },
     emptyText: { fontSize: 13, textAlign: 'center', lineHeight: 20 },
     loadingState: { paddingVertical: 40, alignItems: 'center' },
     loadingText: { fontSize: 15, fontWeight: '500' },

@@ -47,7 +47,7 @@ import type { History } from '@/models/History';
 import type { AnalyticsGranularity } from '@/models/Analytics';
 import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
 import { hasPlanFeature, PLAN_FEATURE_REPORT_GENERATION } from '@/lib/plan-features';
-import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
+import { cropLabel, sicknessLabel, ANALYSIS_CROP_OPTIONS } from '@/lib/agro-labels';
 
 const SEQUENTIAL_HUE = '#4CAF50';
 const CATEGORICAL_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
@@ -117,6 +117,7 @@ export default function AnalyticsScreen() {
     }, [authLoading, isAuthenticated, router]);
 
     const [file, setFile] = useState<ImagePicker.ImagePickerAsset | undefined>();
+    const [crop, setCrop] = useState('');
     const [result, setResult] = useState<History | null>(null);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'analysis' | 'history' | 'stats'>('analysis');
@@ -403,7 +404,7 @@ export default function AnalyticsScreen() {
     };
 
     const handleAnalyze = async () => {
-        if (!file) return;
+        if (!file || !crop) return;
 
         if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
             Alert.alert(
@@ -421,6 +422,7 @@ export default function AnalyticsScreen() {
                 name: file.fileName || 'image.jpg',
                 type: getMimeType(file.uri),
             } as any);
+            formData.append('crop', crop);
 
             const response = await api.post<History>(
                 '/predict',
@@ -710,6 +712,34 @@ export default function AnalyticsScreen() {
                                 Selecione uma imagem clara da planta para análise
                             </ThemedText>
 
+                            {/* Cultura (obrigatória) */}
+                            <ThemedText style={[styles.cropLabel, { color: colors.text }]}>
+                                Cultura <ThemedText style={styles.cropRequired}>*</ThemedText>
+                            </ThemedText>
+                            <View style={styles.cropRow}>
+                                {ANALYSIS_CROP_OPTIONS.map((option) => {
+                                    const active = crop === option.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={option.value}
+                                            style={[
+                                                styles.cropChip,
+                                                active
+                                                    ? { backgroundColor: colors.tint, borderColor: colors.tint }
+                                                    : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
+                                            ]}
+                                            onPress={() => setCrop(option.value)}
+                                            accessibilityRole="radio"
+                                            accessibilityState={{ checked: active }}
+                                        >
+                                            <ThemedText style={[styles.cropChipText, { color: active ? '#fff' : colors.textSecondary }]}>
+                                                {option.label}
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
                             {/* Preview */}
                             <View
                                 style={[
@@ -820,10 +850,10 @@ export default function AnalyticsScreen() {
                                 style={[
                                     styles.analyzeBtn,
                                     { backgroundColor: colors.tint },
-                                    (!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)) && { opacity: 0.5 },
+                                    (!file || !crop || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)) && { opacity: 0.5 },
                                 ]}
                                 onPress={handleAnalyze}
-                                disabled={!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
+                                disabled={!file || !crop || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
@@ -1869,6 +1899,16 @@ const styles = StyleSheet.create({
     },
     cardTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
     cardDescription: { fontSize: 13, marginBottom: 14 },
+    cropLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+    cropRequired: { color: '#ef4444' },
+    cropRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+    cropChip: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 16,
+        borderWidth: 1,
+    },
+    cropChipText: { fontSize: 13, fontWeight: '500' },
     imagePreview: {
         borderRadius: 8,
         overflow: 'hidden',

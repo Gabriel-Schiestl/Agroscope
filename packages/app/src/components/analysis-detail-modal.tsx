@@ -11,6 +11,7 @@ import {
     PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { X, Leaf } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import { imageToDataUri } from '@/lib/utils';
@@ -89,9 +90,7 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
                             <View style={styles.headerContent}>
                                 <ThemedText style={styles.headerTitle}>Detalhes da Análise</ThemedText>
                                 <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                                    <ThemedText style={[styles.closeBtnText, { color: colors.textSecondary }]}>
-                                        ✕
-                                    </ThemedText>
+                                    <X size={16} color={colors.textSecondary} />
                                 </TouchableOpacity>
                             </View>
                             <ThemedText style={[styles.headerSub, { color: colors.textSecondary }]}>
@@ -129,7 +128,8 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
                                 </ThemedText>
                                 {!analysis.sicknessId ? (
                                     <View style={[styles.badge, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
-                                        <ThemedText style={styles.badgeText}>🌿 Planta Saudável</ThemedText>
+                                        <Leaf size={12} color="#fff" />
+                                        <ThemedText style={styles.badgeText}>Planta Saudável</ThemedText>
                                     </View>
                                 ) : (
                                     <>
@@ -244,10 +244,6 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
         closeBtn: {
             padding: Spacing.two,
         },
-        closeBtnText: {
-            fontSize: 16,
-            fontWeight: '500',
-        },
         body: {
             flex: 1,
         },
@@ -282,6 +278,9 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
             lineHeight: 21,
         },
         badge: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
             alignSelf: 'flex-start',
             borderRadius: 12,
             paddingHorizontal: 10,

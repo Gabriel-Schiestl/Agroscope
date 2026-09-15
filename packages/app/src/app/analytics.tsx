@@ -11,11 +11,28 @@ import {
     useColorScheme,
     StatusBar,
     Modal,
+    Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { CartesianChart, Area, Line } from 'victory-native';
+import { CartesianChart, Area, Line, Scatter, useChartPressState } from 'victory-native';
+import { Circle } from '@shopify/react-native-skia';
+import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
+import {
+    Menu,
+    X,
+    CreditCard,
+    LogOut,
+    Camera,
+    Image as ImageIcon,
+    Search,
+    Leaf,
+    CheckCircle2,
+    MessageCircle,
+    FileText,
+    BarChart2,
+} from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -30,7 +47,7 @@ import type { History } from '@/models/History';
 import type { AnalyticsGranularity } from '@/models/Analytics';
 import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
 import { hasPlanFeature, PLAN_FEATURE_REPORT_GENERATION } from '@/lib/plan-features';
-import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
+import { cropLabel, sicknessLabel, ANALYSIS_CROP_OPTIONS } from '@/lib/agro-labels';
 
 const SEQUENTIAL_HUE = '#4CAF50';
 const CATEGORICAL_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
@@ -64,6 +81,9 @@ const DynamicCartesianChart = CartesianChart as unknown as React.ComponentType<{
     data: Record<string, string | number>[];
     xKey: string;
     yKeys: string[];
+    domain?: { y?: [number] | [number, number] };
+    domainPadding?: { top?: number; bottom?: number; left?: number; right?: number };
+    chartPressState?: unknown;
     children: (args: {
         points: Record<string, import('victory-native').PointsArray>;
     }) => React.ReactNode;
@@ -81,6 +101,7 @@ function foldTopN(items: RankedBar[], limit: number): RankedBar[] {
 export default function AnalyticsScreen() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+    const insets = useSafeAreaInsets();
     const router = useRouter();
     const { auth, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const { limit, refetch: refetchLimit } = useLimit();
@@ -96,6 +117,7 @@ export default function AnalyticsScreen() {
     }, [authLoading, isAuthenticated, router]);
 
     const [file, setFile] = useState<ImagePicker.ImagePickerAsset | undefined>();
+    const [crop, setCrop] = useState('');
     const [result, setResult] = useState<History | null>(null);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'analysis' | 'history' | 'stats'>('analysis');
@@ -103,6 +125,27 @@ export default function AnalyticsScreen() {
     const [detailAnalysis, setDetailAnalysis] = useState<History | null>(null);
     const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [menuMounted, setMenuMounted] = useState(false);
+    const drawerWidth = Math.min(300, Dimensions.get('window').width * 0.82);
+    const [drawerTranslateX] = useState(() => new Animated.Value(drawerWidth));
+
+    useEffect(() => {
+        if (menuOpen) {
+            setMenuMounted(true);
+            Animated.timing(drawerTranslateX, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true,
+            }).start();
+        } else if (menuMounted) {
+            Animated.timing(drawerTranslateX, {
+                toValue: drawerWidth,
+                duration: 200,
+                useNativeDriver: true,
+            }).start(() => setMenuMounted(false));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [menuOpen]);
 
     const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRangePreset>('90d');
     const [analyticsGranularity, setAnalyticsGranularity] = useState<AnalyticsGranularity>('month');
@@ -153,6 +196,93 @@ export default function AnalyticsScreen() {
         analytics?.diseaseIncidenceByPeriod.forEach((s) => map.set(s.sicknessId, sicknessLabel(s.sicknessName)));
         return map;
     }, [analytics]);
+
+    const periodPress = useChartPressState({ x: '', y: { count: 0 } });
+    const [periodTooltip, setPeriodTooltip] = useState<{
+        index: number;
+        left: number;
+        top: number;
+        period: string;
+        count: number;
+    } | null>(null);
+
+    const handlePeriodTooltipRelease = (data: {
+        index: number;
+        left: number;
+        top: number;
+        period: string;
+        count: number;
+    }) => {
+        // Toque único: se já está aberto no mesmo ponto, fecha; senão abre/troca.
+        setPeriodTooltip((existing) => (existing && existing.index === data.index ? null : data));
+    };
+
+    useAnimatedReaction(
+        () => ({
+            active: periodPress.state.isActive.value,
+            index: periodPress.state.matchedIndex.value,
+            left: periodPress.state.x.position.value,
+            top: periodPress.state.y.count.position.value,
+            period: periodPress.state.x.value.value,
+            count: periodPress.state.y.count.value.value,
+        }),
+        (curr, prev) => {
+            // O gesto do victory-native só entrega posição/valor enquanto o dedo
+            // está pressionado (ao soltar, ele zera tudo). Por isso capturamos o
+            // estado anterior (ainda pressionado) no momento em que a soltura é
+            // detectada, em vez de reagir a "curr" (já resetado).
+            if (!curr.active && prev?.active) {
+                runOnJS(handlePeriodTooltipRelease)(prev);
+            }
+        },
+    );
+
+    const incidencePress = useChartPressState({
+        x: '',
+        y: incidenceSeries.keys.reduce((acc, key) => {
+            acc[key] = 0;
+            return acc;
+        }, {} as Record<string, number>),
+    });
+    const [incidenceTooltip, setIncidenceTooltip] = useState<{
+        index: number;
+        left: number;
+        period: string;
+        values: { key: string; count: number; top: number }[];
+    } | null>(null);
+
+    const handleIncidenceTooltipRelease = (data: {
+        index: number;
+        left: number;
+        period: string;
+        values: { key: string; count: number; top: number }[];
+    }) => {
+        setIncidenceTooltip((existing) => (existing && existing.index === data.index ? null : data));
+    };
+
+    useAnimatedReaction(
+        () => {
+            const values: { key: string; count: number; top: number }[] = [];
+            for (const key of incidenceSeries.keys) {
+                const entry = incidencePress.state.y[key];
+                if (entry) {
+                    values.push({ key, count: entry.value.value, top: entry.position.value });
+                }
+            }
+            return {
+                active: incidencePress.state.isActive.value,
+                index: incidencePress.state.matchedIndex.value,
+                left: incidencePress.state.x.position.value,
+                period: incidencePress.state.x.value.value,
+                values,
+            };
+        },
+        (curr, prev) => {
+            if (!curr.active && prev?.active) {
+                runOnJS(handleIncidenceTooltipRelease)(prev);
+            }
+        },
+    );
 
     const renderRankedList = (items: RankedBar[], emptyLabel: string) => {
         if (items.length === 0) {
@@ -274,7 +404,7 @@ export default function AnalyticsScreen() {
     };
 
     const handleAnalyze = async () => {
-        if (!file) return;
+        if (!file || !crop) return;
 
         if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
             Alert.alert(
@@ -292,6 +422,7 @@ export default function AnalyticsScreen() {
                 name: file.fileName || 'image.jpg',
                 type: getMimeType(file.uri),
             } as any);
+            formData.append('crop', crop);
 
             const response = await api.post<History>(
                 '/predict',
@@ -391,41 +522,69 @@ export default function AnalyticsScreen() {
                         onPress={() => setMenuOpen(true)}
                         accessibilityLabel="Abrir menu"
                     >
-                        <ThemedText style={[styles.menuBtnIcon, { color: colors.text }]}>
-                            ☰
-                        </ThemedText>
+                        <Menu size={18} color={colors.text} />
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
 
             <Modal
-                visible={menuOpen}
+                visible={menuMounted}
                 transparent
-                animationType="fade"
+                animationType="none"
+                statusBarTranslucent
                 onRequestClose={() => setMenuOpen(false)}
             >
-                <View style={styles.menuOverlay}>
+                <View style={styles.drawerOverlay}>
                     <TouchableOpacity
                         style={StyleSheet.absoluteFill}
                         activeOpacity={1}
                         onPress={() => setMenuOpen(false)}
                     />
-                    <SafeAreaView edges={['top']} style={styles.menuSafeArea} pointerEvents="box-none">
+                    <Animated.View
+                        style={[
+                            styles.drawerPanel,
+                            {
+                                width: drawerWidth,
+                                top: insets.top,
+                                bottom: insets.bottom,
+                                backgroundColor: isDark
+                                    ? colors.backgroundElement
+                                    : '#fff',
+                                transform: [{ translateX: drawerTranslateX }],
+                            },
+                        ]}
+                    >
                         <View
                             style={[
-                                styles.menuCard,
-                                {
-                                    backgroundColor: isDark
-                                        ? colors.backgroundElement
-                                        : '#fff',
-                                    borderColor: colors.backgroundElement,
-                                },
+                                styles.drawerSafeArea,
+                                { paddingRight: insets.right },
                             ]}
                         >
+                            <View
+                                style={[
+                                    styles.drawerHeader,
+                                    { borderBottomColor: colors.backgroundSelected },
+                                ]}
+                            >
+                                <ThemedText style={[styles.drawerTitle, { color: colors.tint }]}>
+                                    AgroScope
+                                </ThemedText>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.drawerCloseBtn,
+                                        { borderColor: colors.backgroundSelected },
+                                    ]}
+                                    onPress={() => setMenuOpen(false)}
+                                    accessibilityLabel="Fechar menu"
+                                >
+                                    <X size={15} color={colors.text} />
+                                </TouchableOpacity>
+                            </View>
+
                             {auth?.name ? (
                                 <ThemedText
                                     style={[
-                                        styles.menuUserName,
+                                        styles.drawerUserName,
                                         { color: colors.textSecondary },
                                     ]}
                                     numberOfLines={1}
@@ -433,38 +592,41 @@ export default function AnalyticsScreen() {
                                     {auth.name}
                                 </ThemedText>
                             ) : null}
+
                             <TouchableOpacity
-                                style={styles.menuItem}
+                                style={[styles.drawerItem, styles.drawerItemRow]}
                                 onPress={() => {
                                     setMenuOpen(false);
                                     router.push('/plans');
                                 }}
                             >
-                                <ThemedText style={styles.menuItemText}>
-                                    💳 Planos
+                                <CreditCard size={16} color={colors.text} />
+                                <ThemedText style={styles.drawerItemText}>
+                                    Planos
                                 </ThemedText>
                             </TouchableOpacity>
                             <View
                                 style={[
-                                    styles.menuDivider,
-                                    { backgroundColor: colors.backgroundElement },
+                                    styles.drawerDivider,
+                                    { backgroundColor: colors.backgroundSelected },
                                 ]}
                             />
                             <TouchableOpacity
-                                style={styles.menuItem}
+                                style={[styles.drawerItem, styles.drawerItemRow]}
                                 onPress={() => {
                                     setMenuOpen(false);
                                     handleLogout();
                                 }}
                             >
+                                <LogOut size={16} color="#ef4444" />
                                 <ThemedText
-                                    style={[styles.menuItemText, { color: '#ef4444' }]}
+                                    style={[styles.drawerItemText, { color: '#ef4444' }]}
                                 >
                                     Sair
                                 </ThemedText>
                             </TouchableOpacity>
                         </View>
-                    </SafeAreaView>
+                    </Animated.View>
                 </View>
             </Modal>
 
@@ -550,6 +712,34 @@ export default function AnalyticsScreen() {
                                 Selecione uma imagem clara da planta para análise
                             </ThemedText>
 
+                            {/* Cultura (obrigatória) */}
+                            <ThemedText style={[styles.cropLabel, { color: colors.text }]}>
+                                Cultura <ThemedText style={styles.cropRequired}>*</ThemedText>
+                            </ThemedText>
+                            <View style={styles.cropRow}>
+                                {ANALYSIS_CROP_OPTIONS.map((option) => {
+                                    const active = crop === option.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={option.value}
+                                            style={[
+                                                styles.cropChip,
+                                                active
+                                                    ? { backgroundColor: colors.tint, borderColor: colors.tint }
+                                                    : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
+                                            ]}
+                                            onPress={() => setCrop(option.value)}
+                                            accessibilityRole="radio"
+                                            accessibilityState={{ checked: active }}
+                                        >
+                                            <ThemedText style={[styles.cropChipText, { color: active ? '#fff' : colors.textSecondary }]}>
+                                                {option.label}
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
                             {/* Preview */}
                             <View
                                 style={[
@@ -581,11 +771,7 @@ export default function AnalyticsScreen() {
                                                 },
                                             ]}
                                         >
-                                            <ThemedText
-                                                style={{ fontSize: 28 }}
-                                            >
-                                                📷
-                                            </ThemedText>
+                                            <Camera size={28} color={colors.tint} />
                                         </View>
                                         <ThemedText
                                             style={[
@@ -620,7 +806,7 @@ export default function AnalyticsScreen() {
                                     onPress={pickImage}
                                 >
                                     <View style={styles.btnRow}>
-                                        <ThemedText style={styles.btnIcon}>🖼</ThemedText>
+                                        <ImageIcon size={15} color="#fff" />
                                         <ThemedText style={styles.captureBtnText}>
                                             Galeria
                                         </ThemedText>
@@ -634,7 +820,7 @@ export default function AnalyticsScreen() {
                                     onPress={takePhoto}
                                 >
                                     <View style={styles.btnRow}>
-                                        <ThemedText style={styles.btnIcon}>📷</ThemedText>
+                                        <Camera size={15} color="#fff" />
                                         <ThemedText style={styles.captureBtnText}>
                                             Câmera
                                         </ThemedText>
@@ -664,16 +850,16 @@ export default function AnalyticsScreen() {
                                 style={[
                                     styles.analyzeBtn,
                                     { backgroundColor: colors.tint },
-                                    (!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)) && { opacity: 0.5 },
+                                    (!file || !crop || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)) && { opacity: 0.5 },
                                 ]}
                                 onPress={handleAnalyze}
-                                disabled={!file || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
+                                disabled={!file || !crop || loading || (limit !== null && limit.imageRequests >= limit.imageLimit)}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <View style={styles.btnRow}>
-                                        <ThemedText style={styles.btnIcon}>🔍</ThemedText>
+                                        <Search size={16} color="#fff" />
                                         <ThemedText style={styles.analyzeBtnText}>
                                             Analisar Imagem
                                         </ThemedText>
@@ -703,9 +889,7 @@ export default function AnalyticsScreen() {
                                     Diagnóstico e recomendações de manejo
                                 </ThemedText>
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={styles.emptyStateIcon}>
-                                        🌿
-                                    </ThemedText>
+                                    <Leaf size={44} color={colors.tint + '4d'} style={styles.emptyStateIcon} />
                                     <ThemedText
                                         style={[
                                             styles.emptyText,
@@ -806,7 +990,7 @@ export default function AnalyticsScreen() {
                                         </View>
                                         {!result.sicknessId ? (
                                             <View style={[styles.badge, styles.btnRow, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
-                                                <ThemedText style={styles.badgeIcon}>🌿</ThemedText>
+                                                <Leaf size={12} color="#fff" />
                                                 <ThemedText style={styles.badgeText}>Planta Saudável</ThemedText>
                                             </View>
                                         ) : (
@@ -905,9 +1089,7 @@ export default function AnalyticsScreen() {
                                         ]}
                                     >
                                         <View style={styles.btnRow}>
-                                            <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
-                                                ⚠️
-                                            </ThemedText>
+                                            <CheckCircle2 size={15} color={colors.tint} />
                                             <ThemedText
                                                 style={[
                                                     styles.alertTitle,
@@ -938,7 +1120,7 @@ export default function AnalyticsScreen() {
                                         onPress={() => setChatAnalysis(result)}
                                     >
                                         <View style={styles.btnRow}>
-                                            <ThemedText style={styles.btnIcon}>💬</ThemedText>
+                                            <MessageCircle size={15} color="#fff" />
                                             <ThemedText style={styles.chatBtnText}>
                                                 Tirar dúvidas sobre esta análise
                                             </ThemedText>
@@ -959,9 +1141,7 @@ export default function AnalyticsScreen() {
                                             <ActivityIndicator color={colors.tint} />
                                         ) : (
                                             <View style={styles.btnRow}>
-                                                <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
-                                                    📄
-                                                </ThemedText>
+                                                <FileText size={15} color={colors.tint} />
                                                 <ThemedText style={[styles.reportBtnText, { color: colors.tint }]}>
                                                     Gerar Relatório PDF
                                                 </ThemedText>
@@ -1116,7 +1296,7 @@ export default function AnalyticsScreen() {
                                 <ActivityIndicator style={{ marginTop: 24 }} color={colors.tint} />
                             ) : historyItems.length === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={{ fontSize: 40, marginBottom: 12 }}>🌿</ThemedText>
+                                    <Leaf size={40} color={colors.textSecondary} style={{ marginBottom: 12 }} />
                                     <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
                                         Nenhuma análise encontrada.
                                     </ThemedText>
@@ -1187,7 +1367,7 @@ export default function AnalyticsScreen() {
                                                     onPress={(e) => { e.stopPropagation?.(); setChatAnalysis(item); }}
                                                 >
                                                     <View style={styles.historyBtnRow}>
-                                                        <ThemedText style={styles.historyBtnIcon}>💬</ThemedText>
+                                                        <MessageCircle size={13} color={colors.tint} />
                                                         <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
                                                             Chat
                                                         </ThemedText>
@@ -1207,7 +1387,7 @@ export default function AnalyticsScreen() {
                                                         <ActivityIndicator size="small" color={colors.tint} />
                                                     ) : (
                                                         <View style={styles.historyBtnRow}>
-                                                            <ThemedText style={styles.historyBtnIcon}>📄</ThemedText>
+                                                            <FileText size={13} color={colors.tint} />
                                                             <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
                                                                 PDF
                                                             </ThemedText>
@@ -1306,7 +1486,7 @@ export default function AnalyticsScreen() {
                                 </View>
                             ) : !analytics || analytics.totalAnalyses === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={styles.statsEmptyIcon}>📊</ThemedText>
+                                    <BarChart2 size={40} color={colors.textSecondary} style={styles.statsEmptyIcon} />
                                     <ThemedText style={[styles.emptyText, { fontWeight: '600' }]}>
                                         Ainda não há dados suficientes.
                                     </ThemedText>
@@ -1377,7 +1557,19 @@ export default function AnalyticsScreen() {
                                             Volume de análises por período selecionado
                                         </ThemedText>
                                         <View style={styles.chartArea}>
-                                            <CartesianChart data={periodSeries} xKey="period" yKeys={['count']}>
+                                            {/* domain.y fixa o mínimo em 0: sem isso, quando todos os
+                                                pontos têm a mesma contagem (ex.: um único período), o
+                                                domínio Y calculado automaticamente colapsa (min === max)
+                                                e a escala do victory-native gera NaN, deixando a linha
+                                                invisível mesmo com o quadro do gráfico renderizado. */}
+                                            <CartesianChart
+                                                data={periodSeries}
+                                                xKey="period"
+                                                yKeys={['count']}
+                                                domain={{ y: [0] }}
+                                                domainPadding={{ top: 16, bottom: 4 }}
+                                                chartPressState={periodPress.state}
+                                            >
                                                 {({ points, chartBounds }) => (
                                                     <>
                                                         <Area
@@ -1393,9 +1585,47 @@ export default function AnalyticsScreen() {
                                                             strokeWidth={2}
                                                             curveType="natural"
                                                         />
+                                                        {/* Um Line entre 2 pontos ou menos não desenha nada
+                                                            visível (d3 só traça segmento com >= 2 pontos), então
+                                                            marcamos cada ponto com Scatter para garantir que o
+                                                            período apareça mesmo com pouco histórico. */}
+                                                        <Scatter
+                                                            points={points.count}
+                                                            color={SEQUENTIAL_HUE}
+                                                            radius={4}
+                                                        />
+                                                        {periodTooltip && (
+                                                            <Circle
+                                                                cx={periodTooltip.left}
+                                                                cy={periodTooltip.top}
+                                                                r={6}
+                                                                color={SEQUENTIAL_HUE}
+                                                            />
+                                                        )}
                                                     </>
                                                 )}
                                             </CartesianChart>
+                                            {periodTooltip && (
+                                                <View
+                                                    pointerEvents="none"
+                                                    style={[
+                                                        styles.chartTooltip,
+                                                        {
+                                                            backgroundColor: isDark ? colors.backgroundSelected : '#fff',
+                                                            borderColor: colors.backgroundElement,
+                                                            left: Math.max(4, periodTooltip.left - 46),
+                                                            top: Math.max(0, periodTooltip.top - 50),
+                                                        },
+                                                    ]}
+                                                >
+                                                    <ThemedText style={styles.chartTooltipPeriod}>
+                                                        {formatPeriodLabel(periodTooltip.period, analytics.granularity)}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.chartTooltipValue, { color: colors.tint }]}>
+                                                        {periodTooltip.count} análises
+                                                    </ThemedText>
+                                                </View>
+                                            )}
                                         </View>
                                         {periodSeries.length > 0 && (
                                             <View style={styles.chartAxisRow}>
@@ -1441,25 +1671,82 @@ export default function AnalyticsScreen() {
                                                         data={incidenceSeries.data}
                                                         xKey="period"
                                                         yKeys={incidenceSeries.keys}
+                                                        domain={{ y: [0] }}
+                                                        domainPadding={{ top: 16, bottom: 4 }}
+                                                        chartPressState={incidencePress.state}
                                                     >
                                                         {({ points }) => (
                                                             <>
-                                                                {incidenceSeries.keys.map((key, index) => (
-                                                                    <Line
-                                                                        key={key}
-                                                                        points={points[key]}
-                                                                        color={
-                                                                            key === 'other'
-                                                                                ? OTHER_HUE
-                                                                                : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length]
-                                                                        }
-                                                                        strokeWidth={2}
-                                                                        curveType="natural"
-                                                                    />
-                                                                ))}
+                                                                {incidenceSeries.keys.map((key, index) => {
+                                                                    const color = key === 'other'
+                                                                        ? OTHER_HUE
+                                                                        : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length];
+                                                                    return (
+                                                                        <React.Fragment key={key}>
+                                                                            <Line
+                                                                                points={points[key]}
+                                                                                color={color}
+                                                                                strokeWidth={2}
+                                                                                curveType="natural"
+                                                                            />
+                                                                            {/* Sem isso, uma doença com poucos
+                                                                                registros (linha de 1-2 pontos)
+                                                                                fica invisível, já que o d3 não
+                                                                                traça segmento com menos de 2
+                                                                                pontos. */}
+                                                                            <Scatter
+                                                                                points={points[key]}
+                                                                                color={color}
+                                                                                radius={4}
+                                                                            />
+                                                                        </React.Fragment>
+                                                                    );
+                                                                })}
+                                                                {incidenceTooltip?.values.map((v) => {
+                                                                    const seriesIndex = incidenceSeries.keys.indexOf(v.key);
+                                                                    const color = v.key === 'other'
+                                                                        ? OTHER_HUE
+                                                                        : CATEGORICAL_PALETTE[seriesIndex % CATEGORICAL_PALETTE.length];
+                                                                    return (
+                                                                        <Circle
+                                                                            key={v.key}
+                                                                            cx={incidenceTooltip.left}
+                                                                            cy={v.top}
+                                                                            r={5}
+                                                                            color={color}
+                                                                        />
+                                                                    );
+                                                                })}
                                                             </>
                                                         )}
                                                     </DynamicCartesianChart>
+                                                    {incidenceTooltip && (
+                                                        <View
+                                                            pointerEvents="none"
+                                                            style={[
+                                                                styles.chartTooltip,
+                                                                styles.chartTooltipMulti,
+                                                                {
+                                                                    backgroundColor: isDark ? colors.backgroundSelected : '#fff',
+                                                                    borderColor: colors.backgroundElement,
+                                                                    left: Math.max(4, incidenceTooltip.left - 60),
+                                                                },
+                                                            ]}
+                                                        >
+                                                            <ThemedText style={styles.chartTooltipPeriod}>
+                                                                {formatPeriodLabel(incidenceTooltip.period, analytics.granularity)}
+                                                            </ThemedText>
+                                                            {incidenceTooltip.values.map((v) => (
+                                                                <ThemedText
+                                                                    key={v.key}
+                                                                    style={[styles.chartTooltipValue, { color: colors.textSecondary }]}
+                                                                    numberOfLines={1}
+                                                                >
+                                                                    {seriesNameById.get(v.key) ?? v.key}: {v.count}
+                                                                </ThemedText>
+                                                            ))}
+                                                        </View>
+                                                    )}
                                                 </View>
 
                                                 {/* Legenda */}
@@ -1550,25 +1837,40 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    menuBtnIcon: { fontSize: 18, lineHeight: 20 },
-    menuOverlay: { flex: 1 },
-    menuSafeArea: { alignItems: 'flex-end', paddingHorizontal: 20 },
-    menuCard: {
-        marginTop: 8,
-        minWidth: 180,
-        borderRadius: 10,
-        borderWidth: 1,
-        paddingVertical: 6,
+    drawerOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.45)' },
+    drawerPanel: {
+        position: 'absolute',
+        right: 0,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 8,
+        shadowOffset: { width: -2, height: 0 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 16,
     },
-    menuUserName: { fontSize: 13, paddingHorizontal: 14, paddingVertical: 10 },
-    menuItem: { paddingHorizontal: 14, paddingVertical: 12 },
-    menuItemText: { fontSize: 14, fontWeight: '500' },
-    menuDivider: { height: 1, marginHorizontal: 6 },
+    drawerSafeArea: { flex: 1 },
+    drawerHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 18,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+    },
+    drawerTitle: { fontSize: 17, fontWeight: '700' },
+    drawerCloseBtn: {
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    drawerCloseIcon: { fontSize: 15, lineHeight: 17 },
+    drawerUserName: { fontSize: 16, fontWeight: '600', paddingHorizontal: 18, paddingVertical: 14 },
+    drawerItem: { paddingHorizontal: 18, paddingVertical: 14 },
+    drawerItemRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    drawerItemText: { fontSize: 15, fontWeight: '500' },
+    drawerDivider: { height: 1, marginHorizontal: 10 },
     scroll: { flex: 1, paddingHorizontal: 16 },
     pageTitle: { marginTop: 16, marginBottom: 4 },
     title: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
@@ -1597,6 +1899,16 @@ const styles = StyleSheet.create({
     },
     cardTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
     cardDescription: { fontSize: 13, marginBottom: 14 },
+    cropLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+    cropRequired: { color: '#ef4444' },
+    cropRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+    cropChip: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 16,
+        borderWidth: 1,
+    },
+    cropChipText: { fontSize: 13, fontWeight: '500' },
     imagePreview: {
         borderRadius: 8,
         overflow: 'hidden',
@@ -1625,13 +1937,12 @@ const styles = StyleSheet.create({
     },
     captureBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
     btnRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    btnIcon: { fontSize: 15, lineHeight: 18 },
     usageCounter: { fontSize: 11, textAlign: 'right', marginBottom: 6 },
     analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
     analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     emptyState: { paddingVertical: 32, alignItems: 'center' },
-    statsEmptyIcon: { fontSize: 40, lineHeight: 48, marginBottom: 12 },
-    emptyStateIcon: { fontSize: 44, lineHeight: 52, marginBottom: 12 },
+    statsEmptyIcon: { marginBottom: 12 },
+    emptyStateIcon: { marginBottom: 12 },
     emptyText: { fontSize: 13, textAlign: 'center', lineHeight: 20 },
     loadingState: { paddingVertical: 40, alignItems: 'center' },
     loadingText: { fontSize: 15, fontWeight: '500' },
@@ -1653,7 +1964,6 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     badgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
-    badgeIcon: { fontSize: 12, lineHeight: 14 },
     badgeOutline: {
         paddingHorizontal: 7,
         paddingVertical: 2,
@@ -1692,7 +2002,6 @@ const styles = StyleSheet.create({
     historyActionsRow: { flexDirection: 'row', gap: 8 },
     historyActionBtn: { flex: 1 },
     historyBtnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-    historyBtnIcon: { fontSize: 13, lineHeight: 15 },
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -1723,13 +2032,28 @@ const styles = StyleSheet.create({
     progressFill: { height: '100%', borderRadius: 3 },
     chartCard: { marginTop: 22 },
     chartSubtitle: { fontSize: 12, marginTop: 2, marginBottom: 4 },
-    chartArea: { height: 200, marginTop: 10 },
+    chartArea: { height: 200, marginTop: 10, position: 'relative' },
     chartAxisRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 4,
     },
     chartAxisLabel: { fontSize: 11 },
+    chartTooltip: {
+        position: 'absolute',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 6,
+    },
+    chartTooltipMulti: { top: 4, maxWidth: 160 },
+    chartTooltipPeriod: { fontSize: 11, fontWeight: '600' },
+    chartTooltipValue: { fontSize: 11, marginTop: 2 },
     legendWrap: {
         flexDirection: 'row',
         flexWrap: 'wrap',

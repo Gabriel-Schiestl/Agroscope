@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Leaf, Check, BarChart2, Upload, Zap, CheckCircle2 } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -25,17 +26,17 @@ const C = {
 
 const FEATURES = [
     {
-        icon: '🌿',
+        icon: Leaf,
         title: 'Diagnóstico Preciso',
         desc: 'Nossa IA foi treinada com milhares de imagens para identificar com precisão mais de 50 doenças em plantas.',
     },
     {
-        icon: '✅',
+        icon: Check,
         title: 'Recomendações Personalizadas',
         desc: 'Receba orientações específicas para tratamento e prevenção baseadas no diagnóstico da sua planta.',
     },
     {
-        icon: '📊',
+        icon: BarChart2,
         title: 'Histórico Completo',
         desc: 'Acompanhe todas as suas análises anteriores e visualize tendências ao longo do tempo.',
     },
@@ -44,19 +45,19 @@ const FEATURES = [
 const STEPS = [
     {
         step: '01',
-        icon: '📷',
+        icon: Upload,
         title: 'Envie a Imagem',
         desc: 'Faça upload de uma foto da folha da sua planta usando a câmera ou galeria.',
     },
     {
         step: '02',
-        icon: '⚡',
+        icon: Zap,
         title: 'Análise com IA',
         desc: 'Nosso algoritmo processa e identifica possíveis doenças em segundos.',
     },
     {
         step: '03',
-        icon: '🎯',
+        icon: CheckCircle2,
         title: 'Receba Resultados',
         desc: 'Obtenha diagnóstico detalhado com recomendações de tratamento.',
     },
@@ -146,9 +147,7 @@ export default function HomeScreen() {
                         {FEATURES.map((f) => (
                             <View key={f.title} style={styles.featureCard}>
                                 <View style={styles.featureIconWrap}>
-                                    <ThemedText style={styles.featureIcon}>
-                                        {f.icon}
-                                    </ThemedText>
+                                    <f.icon size={20} color={C.primary} />
                                 </View>
                                 <ThemedText style={styles.featureTitle}>
                                     {f.title}
@@ -171,9 +170,7 @@ export default function HomeScreen() {
                         {STEPS.map((s, idx) => (
                             <View key={s.step} style={styles.stepCard}>
                                 <View style={styles.stepIconWrap}>
-                                    <ThemedText style={styles.stepIcon}>
-                                        {s.icon}
-                                    </ThemedText>
+                                    <s.icon size={22} color={C.primary} />
                                 </View>
                                 <ThemedText style={styles.stepNumber}>
                                     PASSO {s.step}
@@ -345,9 +342,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 12,
     },
-    featureIcon: {
-        fontSize: 20,
-    },
     featureTitle: {
         fontSize: 15,
         fontWeight: '600',
@@ -380,9 +374,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 10,
-    },
-    stepIcon: {
-        fontSize: 22,
     },
     stepNumber: {
         fontSize: 11,

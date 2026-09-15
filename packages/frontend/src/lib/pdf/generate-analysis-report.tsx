@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import type { History } from "../../models/History";
+import { cropLabel } from "../agro-labels";
 
 const COMBINING_DIACRITICS = new RegExp("[\\u0300-\\u036f]", "g");
 
@@ -23,7 +24,7 @@ export async function generateAnalysisReportPdf(analysis: History): Promise<void
   ).toBlob();
 
   const fileName = `relatorio-analise-${slugify(
-    analysis.crop || "agroscope"
+    analysis.crop ? cropLabel(analysis.crop) : "agroscope"
   )}-${format(new Date(analysis.createdAt), "yyyy-MM-dd")}.pdf`;
 
   const url = URL.createObjectURL(blob);

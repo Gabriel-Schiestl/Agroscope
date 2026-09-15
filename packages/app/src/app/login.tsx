@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from 'react-native';
@@ -186,12 +187,13 @@ export default function LoginScreen() {
                                     onPress={() =>
                                         setShowPassword(!showPassword)
                                     }
+                                    accessibilityLabel={showPassword ? 'Esconder senha' : 'Mostrar senha'}
                                 >
-                                    <ThemedText
-                                        style={{ color: colors.textSecondary }}
-                                    >
-                                        {showPassword ? '🙈' : '👁'}
-                                    </ThemedText>
+                                    {showPassword ? (
+                                        <EyeOff size={18} color={colors.textSecondary} />
+                                    ) : (
+                                        <Eye size={18} color={colors.textSecondary} />
+                                    )}
                                 </TouchableOpacity>
                             </View>
                         </View>

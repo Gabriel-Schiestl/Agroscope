@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Eye, EyeOff, Check } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from 'react-native';
@@ -253,12 +254,13 @@ export default function SignupScreen() {
                                     onPress={() =>
                                         setShowPassword(!showPassword)
                                     }
+                                    accessibilityLabel={showPassword ? 'Esconder senha' : 'Mostrar senha'}
                                 >
-                                    <ThemedText
-                                        style={{ color: colors.textSecondary }}
-                                    >
-                                        {showPassword ? '🙈' : '👁'}
-                                    </ThemedText>
+                                    {showPassword ? (
+                                        <EyeOff size={18} color={colors.textSecondary} />
+                                    ) : (
+                                        <Eye size={18} color={colors.textSecondary} />
+                                    )}
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -284,9 +286,7 @@ export default function SignupScreen() {
                                 }}
                             >
                                 {acceptedTerms && (
-                                    <ThemedText style={styles.checkboxMark}>
-                                        ✓
-                                    </ThemedText>
+                                    <Check size={13} color="#fff" strokeWidth={3} />
                                 )}
                             </TouchableOpacity>
                             <View style={styles.termsTextWrap}>
@@ -516,12 +516,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginRight: 10,
         marginTop: 1,
-    },
-    checkboxMark: {
-        color: '#fff',
-        fontSize: 13,
-        lineHeight: 13,
-        fontWeight: '700',
     },
     termsTextWrap: {
         flex: 1,

@@ -19,6 +19,20 @@ import { useRouter } from 'expo-router';
 import { CartesianChart, Area, Line, Scatter, useChartPressState } from 'victory-native';
 import { Circle } from '@shopify/react-native-skia';
 import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
+import {
+    Menu,
+    X,
+    CreditCard,
+    LogOut,
+    Camera,
+    Image as ImageIcon,
+    Search,
+    Leaf,
+    CheckCircle2,
+    MessageCircle,
+    FileText,
+    BarChart2,
+} from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -506,9 +520,7 @@ export default function AnalyticsScreen() {
                         onPress={() => setMenuOpen(true)}
                         accessibilityLabel="Abrir menu"
                     >
-                        <ThemedText style={[styles.menuBtnIcon, { color: colors.text }]}>
-                            ☰
-                        </ThemedText>
+                        <Menu size={18} color={colors.text} />
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -563,9 +575,7 @@ export default function AnalyticsScreen() {
                                     onPress={() => setMenuOpen(false)}
                                     accessibilityLabel="Fechar menu"
                                 >
-                                    <ThemedText style={[styles.drawerCloseIcon, { color: colors.text }]}>
-                                        ✕
-                                    </ThemedText>
+                                    <X size={15} color={colors.text} />
                                 </TouchableOpacity>
                             </View>
 
@@ -582,14 +592,15 @@ export default function AnalyticsScreen() {
                             ) : null}
 
                             <TouchableOpacity
-                                style={styles.drawerItem}
+                                style={[styles.drawerItem, styles.drawerItemRow]}
                                 onPress={() => {
                                     setMenuOpen(false);
                                     router.push('/plans');
                                 }}
                             >
+                                <CreditCard size={16} color={colors.text} />
                                 <ThemedText style={styles.drawerItemText}>
-                                    💳 Planos
+                                    Planos
                                 </ThemedText>
                             </TouchableOpacity>
                             <View
@@ -599,12 +610,13 @@ export default function AnalyticsScreen() {
                                 ]}
                             />
                             <TouchableOpacity
-                                style={styles.drawerItem}
+                                style={[styles.drawerItem, styles.drawerItemRow]}
                                 onPress={() => {
                                     setMenuOpen(false);
                                     handleLogout();
                                 }}
                             >
+                                <LogOut size={16} color="#ef4444" />
                                 <ThemedText
                                     style={[styles.drawerItemText, { color: '#ef4444' }]}
                                 >
@@ -729,11 +741,7 @@ export default function AnalyticsScreen() {
                                                 },
                                             ]}
                                         >
-                                            <ThemedText
-                                                style={{ fontSize: 28 }}
-                                            >
-                                                📷
-                                            </ThemedText>
+                                            <Camera size={28} color={colors.tint} />
                                         </View>
                                         <ThemedText
                                             style={[
@@ -768,7 +776,7 @@ export default function AnalyticsScreen() {
                                     onPress={pickImage}
                                 >
                                     <View style={styles.btnRow}>
-                                        <ThemedText style={styles.btnIcon}>🖼</ThemedText>
+                                        <ImageIcon size={15} color="#fff" />
                                         <ThemedText style={styles.captureBtnText}>
                                             Galeria
                                         </ThemedText>
@@ -782,7 +790,7 @@ export default function AnalyticsScreen() {
                                     onPress={takePhoto}
                                 >
                                     <View style={styles.btnRow}>
-                                        <ThemedText style={styles.btnIcon}>📷</ThemedText>
+                                        <Camera size={15} color="#fff" />
                                         <ThemedText style={styles.captureBtnText}>
                                             Câmera
                                         </ThemedText>
@@ -821,7 +829,7 @@ export default function AnalyticsScreen() {
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <View style={styles.btnRow}>
-                                        <ThemedText style={styles.btnIcon}>🔍</ThemedText>
+                                        <Search size={16} color="#fff" />
                                         <ThemedText style={styles.analyzeBtnText}>
                                             Analisar Imagem
                                         </ThemedText>
@@ -851,9 +859,7 @@ export default function AnalyticsScreen() {
                                     Diagnóstico e recomendações de manejo
                                 </ThemedText>
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={styles.emptyStateIcon}>
-                                        🌿
-                                    </ThemedText>
+                                    <Leaf size={44} color={colors.tint + '4d'} style={styles.emptyStateIcon} />
                                     <ThemedText
                                         style={[
                                             styles.emptyText,
@@ -954,7 +960,7 @@ export default function AnalyticsScreen() {
                                         </View>
                                         {!result.sicknessId ? (
                                             <View style={[styles.badge, styles.btnRow, { backgroundColor: colors.tint, alignSelf: 'flex-start' }]}>
-                                                <ThemedText style={styles.badgeIcon}>🌿</ThemedText>
+                                                <Leaf size={12} color="#fff" />
                                                 <ThemedText style={styles.badgeText}>Planta Saudável</ThemedText>
                                             </View>
                                         ) : (
@@ -1053,9 +1059,7 @@ export default function AnalyticsScreen() {
                                         ]}
                                     >
                                         <View style={styles.btnRow}>
-                                            <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
-                                                ⚠️
-                                            </ThemedText>
+                                            <CheckCircle2 size={15} color={colors.tint} />
                                             <ThemedText
                                                 style={[
                                                     styles.alertTitle,
@@ -1086,7 +1090,7 @@ export default function AnalyticsScreen() {
                                         onPress={() => setChatAnalysis(result)}
                                     >
                                         <View style={styles.btnRow}>
-                                            <ThemedText style={styles.btnIcon}>💬</ThemedText>
+                                            <MessageCircle size={15} color="#fff" />
                                             <ThemedText style={styles.chatBtnText}>
                                                 Tirar dúvidas sobre esta análise
                                             </ThemedText>
@@ -1107,9 +1111,7 @@ export default function AnalyticsScreen() {
                                             <ActivityIndicator color={colors.tint} />
                                         ) : (
                                             <View style={styles.btnRow}>
-                                                <ThemedText style={[styles.btnIcon, { color: colors.tint }]}>
-                                                    📄
-                                                </ThemedText>
+                                                <FileText size={15} color={colors.tint} />
                                                 <ThemedText style={[styles.reportBtnText, { color: colors.tint }]}>
                                                     Gerar Relatório PDF
                                                 </ThemedText>
@@ -1264,7 +1266,7 @@ export default function AnalyticsScreen() {
                                 <ActivityIndicator style={{ marginTop: 24 }} color={colors.tint} />
                             ) : historyItems.length === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={{ fontSize: 40, marginBottom: 12 }}>🌿</ThemedText>
+                                    <Leaf size={40} color={colors.textSecondary} style={{ marginBottom: 12 }} />
                                     <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
                                         Nenhuma análise encontrada.
                                     </ThemedText>
@@ -1335,7 +1337,7 @@ export default function AnalyticsScreen() {
                                                     onPress={(e) => { e.stopPropagation?.(); setChatAnalysis(item); }}
                                                 >
                                                     <View style={styles.historyBtnRow}>
-                                                        <ThemedText style={styles.historyBtnIcon}>💬</ThemedText>
+                                                        <MessageCircle size={13} color={colors.tint} />
                                                         <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
                                                             Chat
                                                         </ThemedText>
@@ -1355,7 +1357,7 @@ export default function AnalyticsScreen() {
                                                         <ActivityIndicator size="small" color={colors.tint} />
                                                     ) : (
                                                         <View style={styles.historyBtnRow}>
-                                                            <ThemedText style={styles.historyBtnIcon}>📄</ThemedText>
+                                                            <FileText size={13} color={colors.tint} />
                                                             <ThemedText style={[styles.historyChatBtnText, { color: colors.tint }]}>
                                                                 PDF
                                                             </ThemedText>
@@ -1454,7 +1456,7 @@ export default function AnalyticsScreen() {
                                 </View>
                             ) : !analytics || analytics.totalAnalyses === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <ThemedText style={styles.statsEmptyIcon}>📊</ThemedText>
+                                    <BarChart2 size={40} color={colors.textSecondary} style={styles.statsEmptyIcon} />
                                     <ThemedText style={[styles.emptyText, { fontWeight: '600' }]}>
                                         Ainda não há dados suficientes.
                                     </ThemedText>
@@ -1805,7 +1807,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    menuBtnIcon: { fontSize: 18, lineHeight: 20 },
     drawerOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.45)' },
     drawerPanel: {
         position: 'absolute',
@@ -1837,6 +1838,7 @@ const styles = StyleSheet.create({
     drawerCloseIcon: { fontSize: 15, lineHeight: 17 },
     drawerUserName: { fontSize: 16, fontWeight: '600', paddingHorizontal: 18, paddingVertical: 14 },
     drawerItem: { paddingHorizontal: 18, paddingVertical: 14 },
+    drawerItemRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     drawerItemText: { fontSize: 15, fontWeight: '500' },
     drawerDivider: { height: 1, marginHorizontal: 10 },
     scroll: { flex: 1, paddingHorizontal: 16 },
@@ -1895,13 +1897,12 @@ const styles = StyleSheet.create({
     },
     captureBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
     btnRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    btnIcon: { fontSize: 15, lineHeight: 18 },
     usageCounter: { fontSize: 11, textAlign: 'right', marginBottom: 6 },
     analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
     analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
     emptyState: { paddingVertical: 32, alignItems: 'center' },
-    statsEmptyIcon: { fontSize: 40, lineHeight: 48, marginBottom: 12 },
-    emptyStateIcon: { fontSize: 44, lineHeight: 52, marginBottom: 12 },
+    statsEmptyIcon: { marginBottom: 12 },
+    emptyStateIcon: { marginBottom: 12 },
     emptyText: { fontSize: 13, textAlign: 'center', lineHeight: 20 },
     loadingState: { paddingVertical: 40, alignItems: 'center' },
     loadingText: { fontSize: 15, fontWeight: '500' },
@@ -1923,7 +1924,6 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     badgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
-    badgeIcon: { fontSize: 12, lineHeight: 14 },
     badgeOutline: {
         paddingHorizontal: 7,
         paddingVertical: 2,
@@ -1962,7 +1962,6 @@ const styles = StyleSheet.create({
     historyActionsRow: { flexDirection: 'row', gap: 8 },
     historyActionBtn: { flex: 1 },
     historyBtnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-    historyBtnIcon: { fontSize: 13, lineHeight: 15 },
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',

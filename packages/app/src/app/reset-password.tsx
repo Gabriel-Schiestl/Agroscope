@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
@@ -189,12 +190,13 @@ export default function ResetPasswordScreen() {
                                     onPress={() =>
                                         setShowPassword(!showPassword)
                                     }
+                                    accessibilityLabel={showPassword ? 'Esconder senha' : 'Mostrar senha'}
                                 >
-                                    <ThemedText
-                                        style={{ color: colors.textSecondary }}
-                                    >
-                                        {showPassword ? '🙈' : '👁'}
-                                    </ThemedText>
+                                    {showPassword ? (
+                                        <EyeOff size={18} color={colors.textSecondary} />
+                                    ) : (
+                                        <Eye size={18} color={colors.textSecondary} />
+                                    )}
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -231,12 +233,13 @@ export default function ResetPasswordScreen() {
                                             !showConfirmPassword,
                                         )
                                     }
+                                    accessibilityLabel={showConfirmPassword ? 'Esconder senha' : 'Mostrar senha'}
                                 >
-                                    <ThemedText
-                                        style={{ color: colors.textSecondary }}
-                                    >
-                                        {showConfirmPassword ? '🙈' : '👁'}
-                                    </ThemedText>
+                                    {showConfirmPassword ? (
+                                        <EyeOff size={18} color={colors.textSecondary} />
+                                    ) : (
+                                        <Eye size={18} color={colors.textSecondary} />
+                                    )}
                                 </TouchableOpacity>
                             </View>
                         </View>

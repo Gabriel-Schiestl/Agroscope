@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useToast } from 'expo-toast';
+import { CheckCircle2 } from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -140,9 +141,7 @@ export default function PlansScreen() {
 
                                     <View style={styles.featuresList}>
                                         <View style={styles.featureRow}>
-                                            <ThemedText style={[styles.featureCheck, { color: colors.tint }]}>
-                                                ✓
-                                            </ThemedText>
+                                            <CheckCircle2 size={16} color={colors.tint} style={styles.featureCheck} />
                                             <ThemedText
                                                 style={[styles.featureText, { color: colors.textSecondary }]}
                                             >
@@ -150,9 +149,7 @@ export default function PlansScreen() {
                                             </ThemedText>
                                         </View>
                                         <View style={styles.featureRow}>
-                                            <ThemedText style={[styles.featureCheck, { color: colors.tint }]}>
-                                                ✓
-                                            </ThemedText>
+                                            <CheckCircle2 size={16} color={colors.tint} style={styles.featureCheck} />
                                             <ThemedText
                                                 style={[styles.featureText, { color: colors.textSecondary }]}
                                             >
@@ -161,11 +158,7 @@ export default function PlansScreen() {
                                         </View>
                                         {plan.features.map((feature, index) => (
                                             <View key={index} style={styles.featureRow}>
-                                                <ThemedText
-                                                    style={[styles.featureCheck, { color: colors.tint }]}
-                                                >
-                                                    ✓
-                                                </ThemedText>
+                                                <CheckCircle2 size={16} color={colors.tint} style={styles.featureCheck} />
                                                 <ThemedText
                                                     style={[styles.featureText, { color: colors.textSecondary }]}
                                                 >
@@ -253,7 +246,7 @@ const styles = StyleSheet.create({
     pricePeriod: { fontSize: 13, marginBottom: 3 },
     featuresList: { gap: 8, marginBottom: 16 },
     featureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-    featureCheck: { fontSize: 13, fontWeight: '700', marginTop: 1 },
+    featureCheck: { marginTop: 1 },
     featureText: { flex: 1, fontSize: 13, lineHeight: 18 },
     hireBtn: {
         paddingVertical: 12,

@@ -16,7 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { io, Socket } from 'socket.io-client';
+import { X, Lock } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
+import { IrisIcon } from '@/components/iris-icon';
 import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import api from '@/shared/http/http.config';
 import { useAuth } from '@/contexts/auth-context';
@@ -264,7 +266,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                             <View style={styles.headerContent}>
                                 <View style={styles.headerLeft}>
                                     <View style={[styles.avatarDot, { backgroundColor: colors.tint + '20' }]}>
-                                        <ThemedText style={styles.avatarDotIcon}>🌱</ThemedText>
+                                        <IrisIcon size={16} color={colors.tint} />
                                     </View>
                                     <View>
                                         <ThemedText style={styles.headerTitle}>
@@ -287,9 +289,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                                         ]}
                                     />
                                     <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                                        <ThemedText style={[styles.closeBtnText, { color: colors.textSecondary }]}>
-                                            ✕
-                                        </ThemedText>
+                                        <X size={16} color={colors.textSecondary} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -325,9 +325,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                                                     { backgroundColor: colors.tint + '20' },
                                                 ]}
                                             >
-                                                <ThemedText style={styles.assistantAvatarIcon}>
-                                                    🌱
-                                                </ThemedText>
+                                                <IrisIcon size={15} color={colors.tint} />
                                             </View>
                                         )}
                                         <View
@@ -384,7 +382,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                                                 { backgroundColor: colors.tint + '20' },
                                             ]}
                                         >
-                                            <ThemedText style={styles.assistantAvatarIcon}>🌱</ThemedText>
+                                            <IrisIcon size={15} color={colors.tint} />
                                         </View>
                                         <View
                                             style={[
@@ -421,7 +419,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                             >
                                 {isChatBlocked ? (
                                     <View style={[styles.blockedBanner, { backgroundColor: isDark ? colors.backgroundElement : '#fef2f2', borderColor: '#fca5a5' }]}>
-                                        <ThemedText style={[styles.blockedIcon]}>🔒</ThemedText>
+                                        <Lock size={18} color="#ef4444" />
                                         <ThemedText style={[styles.blockedText, { color: '#ef4444' }]}>
                                             {hasNoChatAccess
                                                 ? 'Seu plano não inclui acesso ao chat. Faça upgrade para usar o assistente.'
@@ -559,7 +557,6 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
             alignItems: 'center',
             justifyContent: 'center',
         },
-        avatarDotIcon: { fontSize: 16, lineHeight: 19 },
         headerTitle: {
             fontSize: 15,
             fontWeight: '600',
@@ -575,10 +572,6 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
         },
         closeBtn: {
             padding: Spacing.two,
-        },
-        closeBtnText: {
-            fontSize: 16,
-            fontWeight: '500',
         },
         // Messages
         messagesList: {
@@ -608,9 +601,6 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-        },
-        assistantAvatarIcon: {
-            fontSize: 15,
         },
         bubble: {
             maxWidth: '78%',
@@ -692,9 +682,6 @@ function makeStyles(colors: ThemePalette, isDark: boolean) {
             borderRadius: 10,
             borderWidth: 1,
             marginBottom: 4,
-        },
-        blockedIcon: {
-            fontSize: 18,
         },
         blockedText: {
             flex: 1,

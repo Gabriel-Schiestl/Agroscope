@@ -184,24 +184,41 @@ export default function AnalyticsScreen() {
 
     const periodPress = useChartPressState({ x: '', y: { count: 0 } });
     const [periodTooltip, setPeriodTooltip] = useState<{
+        index: number;
         left: number;
         top: number;
         period: string;
         count: number;
     } | null>(null);
 
+    const handlePeriodTooltipRelease = (data: {
+        index: number;
+        left: number;
+        top: number;
+        period: string;
+        count: number;
+    }) => {
+        // Toque único: se já está aberto no mesmo ponto, fecha; senão abre/troca.
+        setPeriodTooltip((existing) => (existing && existing.index === data.index ? null : data));
+    };
+
     useAnimatedReaction(
-        () => {
-            if (!periodPress.state.isActive.value) return null;
-            return {
-                left: periodPress.state.x.position.value,
-                top: periodPress.state.y.count.position.value,
-                period: periodPress.state.x.value.value,
-                count: periodPress.state.y.count.value.value,
-            };
-        },
-        (curr) => {
-            runOnJS(setPeriodTooltip)(curr);
+        () => ({
+            active: periodPress.state.isActive.value,
+            index: periodPress.state.matchedIndex.value,
+            left: periodPress.state.x.position.value,
+            top: periodPress.state.y.count.position.value,
+            period: periodPress.state.x.value.value,
+            count: periodPress.state.y.count.value.value,
+        }),
+        (curr, prev) => {
+            // O gesto do victory-native só entrega posição/valor enquanto o dedo
+            // está pressionado (ao soltar, ele zera tudo). Por isso capturamos o
+            // estado anterior (ainda pressionado) no momento em que a soltura é
+            // detectada, em vez de reagir a "curr" (já resetado).
+            if (!curr.active && prev?.active) {
+                runOnJS(handlePeriodTooltipRelease)(prev);
+            }
         },
     );
 
@@ -213,29 +230,42 @@ export default function AnalyticsScreen() {
         }, {} as Record<string, number>),
     });
     const [incidenceTooltip, setIncidenceTooltip] = useState<{
+        index: number;
         left: number;
         period: string;
-        values: { key: string; count: number }[];
+        values: { key: string; count: number; top: number }[];
     } | null>(null);
+
+    const handleIncidenceTooltipRelease = (data: {
+        index: number;
+        left: number;
+        period: string;
+        values: { key: string; count: number; top: number }[];
+    }) => {
+        setIncidenceTooltip((existing) => (existing && existing.index === data.index ? null : data));
+    };
 
     useAnimatedReaction(
         () => {
-            if (!incidencePress.state.isActive.value) return null;
-            const values: { key: string; count: number }[] = [];
+            const values: { key: string; count: number; top: number }[] = [];
             for (const key of incidenceSeries.keys) {
                 const entry = incidencePress.state.y[key];
                 if (entry) {
-                    values.push({ key, count: entry.value.value });
+                    values.push({ key, count: entry.value.value, top: entry.position.value });
                 }
             }
             return {
+                active: incidencePress.state.isActive.value,
+                index: incidencePress.state.matchedIndex.value,
                 left: incidencePress.state.x.position.value,
                 period: incidencePress.state.x.value.value,
                 values,
             };
         },
-        (curr) => {
-            runOnJS(setIncidenceTooltip)(curr);
+        (curr, prev) => {
+            if (!curr.active && prev?.active) {
+                runOnJS(handleIncidenceTooltipRelease)(prev);
+            }
         },
     );
 
@@ -1532,10 +1562,10 @@ export default function AnalyticsScreen() {
                                                             color={SEQUENTIAL_HUE}
                                                             radius={4}
                                                         />
-                                                        {periodPress.isActive && (
+                                                        {periodTooltip && (
                                                             <Circle
-                                                                cx={periodPress.state.x.position}
-                                                                cy={periodPress.state.y.count.position}
+                                                                cx={periodTooltip.left}
+                                                                cy={periodTooltip.top}
                                                                 r={6}
                                                                 color={SEQUENTIAL_HUE}
                                                             />
@@ -1637,15 +1667,22 @@ export default function AnalyticsScreen() {
                                                                                 color={color}
                                                                                 radius={4}
                                                                             />
-                                                                            {incidencePress.isActive && incidencePress.state.y[key] && (
-                                                                                <Circle
-                                                                                    cx={incidencePress.state.x.position}
-                                                                                    cy={incidencePress.state.y[key].position}
-                                                                                    r={5}
-                                                                                    color={color}
-                                                                                />
-                                                                            )}
                                                                         </React.Fragment>
+                                                                    );
+                                                                })}
+                                                                {incidenceTooltip?.values.map((v) => {
+                                                                    const seriesIndex = incidenceSeries.keys.indexOf(v.key);
+                                                                    const color = v.key === 'other'
+                                                                        ? OTHER_HUE
+                                                                        : CATEGORICAL_PALETTE[seriesIndex % CATEGORICAL_PALETTE.length];
+                                                                    return (
+                                                                        <Circle
+                                                                            key={v.key}
+                                                                            cx={incidenceTooltip.left}
+                                                                            cy={v.top}
+                                                                            r={5}
+                                                                            color={color}
+                                                                        />
                                                                     );
                                                                 })}
                                                             </>

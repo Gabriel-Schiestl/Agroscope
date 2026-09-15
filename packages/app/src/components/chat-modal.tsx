@@ -212,6 +212,16 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
         setInputText('');
         setIsTyping(true);
         setLimitError(null);
+
+        // Feedback imediato: mostra a mensagem do usuário assim que ele envia,
+        // sem esperar a resposta do backend. Removida e substituída pelas
+        // mensagens reais quando a resposta chega (ou removida sem mais nada
+        // se der erro, revertendo o otimismo).
+        const optimisticId = `optimistic-${Date.now()}`;
+        setMessages((prev) => [
+            ...prev,
+            { id: optimisticId, role: 'user', content: text, timestamp: new Date() },
+        ]);
         scrollToBottom();
 
         const initialMessage = pendingGreetingRef.current ?? undefined;
@@ -225,12 +235,13 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                     if (initialMessage) {
                         pendingGreetingRef.current = initialMessage;
                     }
+                    setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
                     setLimitError(response.error);
                     setIsTyping(false);
                     return;
                 }
                 setMessages((prev) => [
-                    ...prev,
+                    ...prev.filter((m) => m.id !== optimisticId),
                     dtoToMessage(response.userMessage),
                     dtoToMessage(response.aiMessage),
                 ]);

@@ -6,6 +6,7 @@ import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { AlertHost } from '@/components/alert-host';
 import { AuthProvider } from '@/contexts/auth-context';
 
 export default function RootLayout() {
@@ -20,6 +21,7 @@ export default function RootLayout() {
                     <ToastProvider>
                         <AnimatedSplashOverlay />
                         <Stack screenOptions={{ headerShown: false }} />
+                        <AlertHost />
                     </ToastProvider>
                 </AuthProvider>
             </ThemeProvider>

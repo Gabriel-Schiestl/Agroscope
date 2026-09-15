@@ -5,7 +5,6 @@ import {
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
-    Alert,
     Image,
     Dimensions,
     useColorScheme,
@@ -16,9 +15,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { CartesianChart, Area, Line, Scatter, useChartPressState } from 'victory-native';
-import { Circle } from '@shopify/react-native-skia';
-import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
 import {
     Menu,
     X,
@@ -38,6 +34,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ChatModal } from '@/components/chat-modal';
 import { AnalysisDetailModal } from '@/components/analysis-detail-modal';
+import { PeriodChartCard, IncidenceChartCard } from '@/components/analytics-charts';
 import { useAuth } from '@/contexts/auth-context';
 import { useLimit } from '@/hooks/use-limit';
 import { useAnalytics, type AnalyticsRangePreset } from '@/hooks/use-analytics';
@@ -48,10 +45,9 @@ import type { AnalyticsGranularity } from '@/models/Analytics';
 import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
 import { hasPlanFeature, PLAN_FEATURE_REPORT_GENERATION } from '@/lib/plan-features';
 import { cropLabel, sicknessLabel, ANALYSIS_CROP_OPTIONS } from '@/lib/agro-labels';
+import { showAlert } from '@/lib/alert';
+import { styles } from '@/styles/analytics.styles';
 
-const SEQUENTIAL_HUE = '#4CAF50';
-const CATEGORICAL_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
-const OTHER_HUE = '#898781';
 const BAR_CHART_DISPLAY_LIMIT = 7;
 const OTHER_BUCKET_LABEL = 'Outras';
 
@@ -72,22 +68,6 @@ interface RankedBar {
     name: string;
     count: number;
 }
-
-// A "Incidência de Doenças por Período" tem uma série por doença, cujas chaves
-// (sicknessId) só são conhecidas em tempo de execução — o CartesianChart não
-// consegue tipar genericamente um conjunto dinâmico de yKeys, então usamos um
-// wrapper com tipos relaxados apenas para esse gráfico multi-série.
-const DynamicCartesianChart = CartesianChart as unknown as React.ComponentType<{
-    data: Record<string, string | number>[];
-    xKey: string;
-    yKeys: string[];
-    domain?: { y?: [number] | [number, number] };
-    domainPadding?: { top?: number; bottom?: number; left?: number; right?: number };
-    chartPressState?: unknown;
-    children: (args: {
-        points: Record<string, import('victory-native').PointsArray>;
-    }) => React.ReactNode;
-}>;
 
 function foldTopN(items: RankedBar[], limit: number): RankedBar[] {
     if (items.length <= limit) return items;
@@ -197,93 +177,6 @@ export default function AnalyticsScreen() {
         return map;
     }, [analytics]);
 
-    const periodPress = useChartPressState({ x: '', y: { count: 0 } });
-    const [periodTooltip, setPeriodTooltip] = useState<{
-        index: number;
-        left: number;
-        top: number;
-        period: string;
-        count: number;
-    } | null>(null);
-
-    const handlePeriodTooltipRelease = (data: {
-        index: number;
-        left: number;
-        top: number;
-        period: string;
-        count: number;
-    }) => {
-        // Toque único: se já está aberto no mesmo ponto, fecha; senão abre/troca.
-        setPeriodTooltip((existing) => (existing && existing.index === data.index ? null : data));
-    };
-
-    useAnimatedReaction(
-        () => ({
-            active: periodPress.state.isActive.value,
-            index: periodPress.state.matchedIndex.value,
-            left: periodPress.state.x.position.value,
-            top: periodPress.state.y.count.position.value,
-            period: periodPress.state.x.value.value,
-            count: periodPress.state.y.count.value.value,
-        }),
-        (curr, prev) => {
-            // O gesto do victory-native só entrega posição/valor enquanto o dedo
-            // está pressionado (ao soltar, ele zera tudo). Por isso capturamos o
-            // estado anterior (ainda pressionado) no momento em que a soltura é
-            // detectada, em vez de reagir a "curr" (já resetado).
-            if (!curr.active && prev?.active) {
-                runOnJS(handlePeriodTooltipRelease)(prev);
-            }
-        },
-    );
-
-    const incidencePress = useChartPressState({
-        x: '',
-        y: incidenceSeries.keys.reduce((acc, key) => {
-            acc[key] = 0;
-            return acc;
-        }, {} as Record<string, number>),
-    });
-    const [incidenceTooltip, setIncidenceTooltip] = useState<{
-        index: number;
-        left: number;
-        period: string;
-        values: { key: string; count: number; top: number }[];
-    } | null>(null);
-
-    const handleIncidenceTooltipRelease = (data: {
-        index: number;
-        left: number;
-        period: string;
-        values: { key: string; count: number; top: number }[];
-    }) => {
-        setIncidenceTooltip((existing) => (existing && existing.index === data.index ? null : data));
-    };
-
-    useAnimatedReaction(
-        () => {
-            const values: { key: string; count: number; top: number }[] = [];
-            for (const key of incidenceSeries.keys) {
-                const entry = incidencePress.state.y[key];
-                if (entry) {
-                    values.push({ key, count: entry.value.value, top: entry.position.value });
-                }
-            }
-            return {
-                active: incidencePress.state.isActive.value,
-                index: incidencePress.state.matchedIndex.value,
-                left: incidencePress.state.x.position.value,
-                period: incidencePress.state.x.value.value,
-                values,
-            };
-        },
-        (curr, prev) => {
-            if (!curr.active && prev?.active) {
-                runOnJS(handleIncidenceTooltipRelease)(prev);
-            }
-        },
-    );
-
     const renderRankedList = (items: RankedBar[], emptyLabel: string) => {
         if (items.length === 0) {
             return (
@@ -351,7 +244,7 @@ export default function AnalyticsScreen() {
             );
             setHistoryItems(response.data);
         } catch {
-            Alert.alert('Erro', 'Não foi possível carregar o histórico.');
+            showAlert('Erro', 'Não foi possível carregar o histórico.');
         } finally {
             setHistoryLoading(false);
         }
@@ -407,7 +300,7 @@ export default function AnalyticsScreen() {
         if (!file || !crop) return;
 
         if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-            Alert.alert(
+            showAlert(
                 'Imagem muito grande',
                 'O tamanho máximo permitido é 5MB. Por favor, selecione uma imagem menor.',
             );
@@ -434,14 +327,14 @@ export default function AnalyticsScreen() {
                 setResult(response.data);
                 refetchLimit();
             } else {
-                Alert.alert('Erro', 'Falha na análise. Tente novamente.');
+                showAlert('Erro', 'Falha na análise. Tente novamente.');
             }
         } catch (error: any) {
             const message: string =
                 error?.response?.data?.message ?? 'Erro inesperado na análise.';
 
             const isLowConfidence = message.includes('confiança insuficiente') || message.includes('confiança suficiente');
-            Alert.alert(
+            showAlert(
                 isLowConfidence ? 'Imagem insuficiente' : 'Erro',
                 message,
                 isLowConfidence
@@ -470,7 +363,7 @@ export default function AnalyticsScreen() {
 
     const handleGenerateReport = async (analysis: History) => {
         if (!canGenerateReport) {
-            Alert.alert(
+            showAlert(
                 'Recurso indisponível',
                 'Relatórios em PDF estão disponíveis apenas nos planos pagos. Faça upgrade do seu plano.',
             );
@@ -480,7 +373,7 @@ export default function AnalyticsScreen() {
         try {
             await generateAnalysisReportPdf(analysis);
         } catch {
-            Alert.alert('Erro', 'Não foi possível gerar o relatório.');
+            showAlert('Erro', 'Não foi possível gerar o relatório.');
         } finally {
             setGeneratingReportId(null);
         }
@@ -1548,96 +1441,12 @@ export default function AnalyticsScreen() {
                                         ))}
                                     </View>
 
-                                    {/* Análises ao longo do tempo */}
-                                    <View style={styles.chartCard}>
-                                        <ThemedText style={styles.diseasesTitle}>
-                                            Análises ao Longo do Tempo
-                                        </ThemedText>
-                                        <ThemedText style={[styles.chartSubtitle, { color: colors.textSecondary }]}>
-                                            Volume de análises por período selecionado
-                                        </ThemedText>
-                                        <View style={styles.chartArea}>
-                                            {/* domain.y fixa o mínimo em 0: sem isso, quando todos os
-                                                pontos têm a mesma contagem (ex.: um único período), o
-                                                domínio Y calculado automaticamente colapsa (min === max)
-                                                e a escala do victory-native gera NaN, deixando a linha
-                                                invisível mesmo com o quadro do gráfico renderizado. */}
-                                            <CartesianChart
-                                                data={periodSeries}
-                                                xKey="period"
-                                                yKeys={['count']}
-                                                domain={{ y: [0] }}
-                                                domainPadding={{ top: 16, bottom: 4 }}
-                                                chartPressState={periodPress.state}
-                                            >
-                                                {({ points, chartBounds }) => (
-                                                    <>
-                                                        <Area
-                                                            points={points.count}
-                                                            y0={chartBounds.bottom}
-                                                            color={SEQUENTIAL_HUE}
-                                                            opacity={0.15}
-                                                            curveType="natural"
-                                                        />
-                                                        <Line
-                                                            points={points.count}
-                                                            color={SEQUENTIAL_HUE}
-                                                            strokeWidth={2}
-                                                            curveType="natural"
-                                                        />
-                                                        {/* Um Line entre 2 pontos ou menos não desenha nada
-                                                            visível (d3 só traça segmento com >= 2 pontos), então
-                                                            marcamos cada ponto com Scatter para garantir que o
-                                                            período apareça mesmo com pouco histórico. */}
-                                                        <Scatter
-                                                            points={points.count}
-                                                            color={SEQUENTIAL_HUE}
-                                                            radius={4}
-                                                        />
-                                                        {periodTooltip && (
-                                                            <Circle
-                                                                cx={periodTooltip.left}
-                                                                cy={periodTooltip.top}
-                                                                r={6}
-                                                                color={SEQUENTIAL_HUE}
-                                                            />
-                                                        )}
-                                                    </>
-                                                )}
-                                            </CartesianChart>
-                                            {periodTooltip && (
-                                                <View
-                                                    pointerEvents="none"
-                                                    style={[
-                                                        styles.chartTooltip,
-                                                        {
-                                                            backgroundColor: isDark ? colors.backgroundSelected : '#fff',
-                                                            borderColor: colors.backgroundElement,
-                                                            left: Math.max(4, periodTooltip.left - 46),
-                                                            top: Math.max(0, periodTooltip.top - 50),
-                                                        },
-                                                    ]}
-                                                >
-                                                    <ThemedText style={styles.chartTooltipPeriod}>
-                                                        {formatPeriodLabel(periodTooltip.period, analytics.granularity)}
-                                                    </ThemedText>
-                                                    <ThemedText style={[styles.chartTooltipValue, { color: colors.tint }]}>
-                                                        {periodTooltip.count} análises
-                                                    </ThemedText>
-                                                </View>
-                                            )}
-                                        </View>
-                                        {periodSeries.length > 0 && (
-                                            <View style={styles.chartAxisRow}>
-                                                <ThemedText style={[styles.chartAxisLabel, { color: colors.textSecondary }]}>
-                                                    {formatPeriodLabel(periodSeries[0].period, analytics.granularity)}
-                                                </ThemedText>
-                                                <ThemedText style={[styles.chartAxisLabel, { color: colors.textSecondary }]}>
-                                                    {formatPeriodLabel(periodSeries[periodSeries.length - 1].period, analytics.granularity)}
-                                                </ThemedText>
-                                            </View>
-                                        )}
-                                    </View>
+                                    <PeriodChartCard
+                                        periodSeries={periodSeries}
+                                        granularity={analytics.granularity}
+                                        colors={colors}
+                                        isDark={isDark}
+                                    />
 
                                     {/* Doenças mais frequentes */}
                                     <ThemedText style={[styles.diseasesTitle, { marginTop: 4, marginBottom: 14 }]}>
@@ -1651,148 +1460,15 @@ export default function AnalyticsScreen() {
                                     </ThemedText>
                                     {renderRankedList(cropBars, 'Nenhuma cultura registrada no período.')}
 
-                                    {/* Incidência de doenças por período */}
-                                    <View style={[styles.chartCard, { marginTop: 22 }]}>
-                                        <ThemedText style={styles.diseasesTitle}>
-                                            Incidência de Doenças por Período
-                                        </ThemedText>
-                                        <ThemedText style={[styles.chartSubtitle, { color: colors.textSecondary }]}>
-                                            {`As ${Math.min(5, analytics.byDisease.length)} doenças mais frequentes, comparadas período a período`}
-                                        </ThemedText>
-
-                                        {incidenceSeries.data.length === 0 ? (
-                                            <ThemedText style={[styles.emptyText, { color: colors.textSecondary, marginTop: 16 }]}>
-                                                Nenhuma doença identificada no período.
-                                            </ThemedText>
-                                        ) : (
-                                            <>
-                                                <View style={styles.chartArea}>
-                                                    <DynamicCartesianChart
-                                                        data={incidenceSeries.data}
-                                                        xKey="period"
-                                                        yKeys={incidenceSeries.keys}
-                                                        domain={{ y: [0] }}
-                                                        domainPadding={{ top: 16, bottom: 4 }}
-                                                        chartPressState={incidencePress.state}
-                                                    >
-                                                        {({ points }) => (
-                                                            <>
-                                                                {incidenceSeries.keys.map((key, index) => {
-                                                                    const color = key === 'other'
-                                                                        ? OTHER_HUE
-                                                                        : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length];
-                                                                    return (
-                                                                        <React.Fragment key={key}>
-                                                                            <Line
-                                                                                points={points[key]}
-                                                                                color={color}
-                                                                                strokeWidth={2}
-                                                                                curveType="natural"
-                                                                            />
-                                                                            {/* Sem isso, uma doença com poucos
-                                                                                registros (linha de 1-2 pontos)
-                                                                                fica invisível, já que o d3 não
-                                                                                traça segmento com menos de 2
-                                                                                pontos. */}
-                                                                            <Scatter
-                                                                                points={points[key]}
-                                                                                color={color}
-                                                                                radius={4}
-                                                                            />
-                                                                        </React.Fragment>
-                                                                    );
-                                                                })}
-                                                                {incidenceTooltip?.values.map((v) => {
-                                                                    const seriesIndex = incidenceSeries.keys.indexOf(v.key);
-                                                                    const color = v.key === 'other'
-                                                                        ? OTHER_HUE
-                                                                        : CATEGORICAL_PALETTE[seriesIndex % CATEGORICAL_PALETTE.length];
-                                                                    return (
-                                                                        <Circle
-                                                                            key={v.key}
-                                                                            cx={incidenceTooltip.left}
-                                                                            cy={v.top}
-                                                                            r={5}
-                                                                            color={color}
-                                                                        />
-                                                                    );
-                                                                })}
-                                                            </>
-                                                        )}
-                                                    </DynamicCartesianChart>
-                                                    {incidenceTooltip && (
-                                                        <View
-                                                            pointerEvents="none"
-                                                            style={[
-                                                                styles.chartTooltip,
-                                                                styles.chartTooltipMulti,
-                                                                {
-                                                                    backgroundColor: isDark ? colors.backgroundSelected : '#fff',
-                                                                    borderColor: colors.backgroundElement,
-                                                                    left: Math.max(4, incidenceTooltip.left - 60),
-                                                                },
-                                                            ]}
-                                                        >
-                                                            <ThemedText style={styles.chartTooltipPeriod}>
-                                                                {formatPeriodLabel(incidenceTooltip.period, analytics.granularity)}
-                                                            </ThemedText>
-                                                            {incidenceTooltip.values.map((v) => (
-                                                                <ThemedText
-                                                                    key={v.key}
-                                                                    style={[styles.chartTooltipValue, { color: colors.textSecondary }]}
-                                                                    numberOfLines={1}
-                                                                >
-                                                                    {seriesNameById.get(v.key) ?? v.key}: {v.count}
-                                                                </ThemedText>
-                                                            ))}
-                                                        </View>
-                                                    )}
-                                                </View>
-
-                                                {/* Legenda */}
-                                                <View style={styles.legendWrap}>
-                                                    {incidenceSeries.keys.map((key, index) => (
-                                                        <View key={key} style={styles.legendItem}>
-                                                            <View
-                                                                style={[
-                                                                    styles.legendSwatch,
-                                                                    {
-                                                                        backgroundColor:
-                                                                            key === 'other'
-                                                                                ? OTHER_HUE
-                                                                                : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length],
-                                                                    },
-                                                                ]}
-                                                            />
-                                                            <ThemedText
-                                                                style={[styles.legendLabel, { color: colors.textSecondary }]}
-                                                                numberOfLines={1}
-                                                            >
-                                                                {seriesNameById.get(key) ?? key}
-                                                            </ThemedText>
-                                                        </View>
-                                                    ))}
-                                                </View>
-
-                                                {/* Períodos de pico */}
-                                                {analytics.diseasePeakPeriods.length > 0 && (
-                                                    <View style={styles.peakList}>
-                                                        {analytics.diseasePeakPeriods.map((peak) => (
-                                                            <View key={peak.sicknessId} style={styles.peakRow}>
-                                                                <ThemedText style={styles.peakName} numberOfLines={1}>
-                                                                    {sicknessLabel(peak.sicknessName)}
-                                                                </ThemedText>
-                                                                <ThemedText style={[styles.peakPeriod, { color: colors.textSecondary }]}>
-                                                                    {formatPeriodLabel(peak.period, analytics.granularity)}
-                                                                </ThemedText>
-                                                                <ThemedText style={styles.peakCount}>{peak.count}</ThemedText>
-                                                            </View>
-                                                        ))}
-                                                    </View>
-                                                )}
-                                            </>
-                                        )}
-                                    </View>
+                                    <IncidenceChartCard
+                                        incidenceSeries={incidenceSeries}
+                                        seriesNameById={seriesNameById}
+                                        byDiseaseCount={analytics.byDisease.length}
+                                        diseasePeakPeriods={analytics.diseasePeakPeriods}
+                                        granularity={analytics.granularity}
+                                        colors={colors}
+                                        isDark={isDark}
+                                    />
                                 </>
                             )}
                         </ThemedView>
@@ -1817,300 +1493,3 @@ export default function AnalyticsScreen() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    root: { flex: 1 },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 13,
-        borderBottomWidth: 1,
-    },
-    brand: { fontSize: 18, fontWeight: '700' },
-    menuBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 8,
-        borderWidth: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    drawerOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.45)' },
-    drawerPanel: {
-        position: 'absolute',
-        right: 0,
-        shadowColor: '#000',
-        shadowOffset: { width: -2, height: 0 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-        elevation: 16,
-    },
-    drawerSafeArea: { flex: 1 },
-    drawerHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 18,
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-    },
-    drawerTitle: { fontSize: 17, fontWeight: '700' },
-    drawerCloseBtn: {
-        width: 30,
-        height: 30,
-        borderRadius: 8,
-        borderWidth: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    drawerCloseIcon: { fontSize: 15, lineHeight: 17 },
-    drawerUserName: { fontSize: 16, fontWeight: '600', paddingHorizontal: 18, paddingVertical: 14 },
-    drawerItem: { paddingHorizontal: 18, paddingVertical: 14 },
-    drawerItemRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    drawerItemText: { fontSize: 15, fontWeight: '500' },
-    drawerDivider: { height: 1, marginHorizontal: 10 },
-    scroll: { flex: 1, paddingHorizontal: 16 },
-    pageTitle: { marginTop: 16, marginBottom: 4 },
-    title: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
-    subtitle: { fontSize: 13 },
-    tabsContainer: {
-        flexDirection: 'row',
-        borderBottomWidth: 1,
-        marginTop: 14,
-        marginBottom: 16,
-    },
-    tab: {
-        flex: 1,
-        paddingVertical: 11,
-        alignItems: 'center',
-        borderBottomWidth: 2,
-        borderBottomColor: 'transparent',
-    },
-    activeTab: { borderBottomWidth: 2 },
-    tabText: { fontSize: 13 },
-    content: { gap: 0 },
-    card: {
-        borderRadius: 12,
-        borderWidth: 1,
-        padding: 16,
-        marginBottom: 16,
-    },
-    cardTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
-    cardDescription: { fontSize: 13, marginBottom: 14 },
-    cropLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
-    cropRequired: { color: '#ef4444' },
-    cropRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
-    cropChip: {
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 16,
-        borderWidth: 1,
-    },
-    cropChipText: { fontSize: 13, fontWeight: '500' },
-    imagePreview: {
-        borderRadius: 8,
-        overflow: 'hidden',
-        marginBottom: 12,
-        minHeight: 160,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    placeholderInner: { alignItems: 'center', paddingVertical: 32 },
-    placeholderIcon: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
-    },
-    placeholderText: { fontSize: 13 },
-    fileName: { fontSize: 11, marginBottom: 10 },
-    captureRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-    captureBtn: {
-        flex: 1,
-        paddingVertical: 10,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    captureBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-    btnRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    usageCounter: { fontSize: 11, textAlign: 'right', marginBottom: 6 },
-    analyzeBtn: { paddingVertical: 13, borderRadius: 8, alignItems: 'center' },
-    analyzeBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-    emptyState: { paddingVertical: 32, alignItems: 'center' },
-    statsEmptyIcon: { marginBottom: 12 },
-    emptyStateIcon: { marginBottom: 12 },
-    emptyText: { fontSize: 13, textAlign: 'center', lineHeight: 20 },
-    loadingState: { paddingVertical: 40, alignItems: 'center' },
-    loadingText: { fontSize: 15, fontWeight: '500' },
-    loadingSubtext: { fontSize: 12, marginTop: 6 },
-    resultSection: { gap: 14 },
-    resultRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        flexWrap: 'wrap',
-    },
-    resultLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
-    resultValue: { fontSize: 17, fontWeight: '600' },
-    resultBody: { fontSize: 13, lineHeight: 20, marginTop: 2 },
-    divider: { height: 1 },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 6,
-    },
-    badgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
-    badgeOutline: {
-        paddingHorizontal: 7,
-        paddingVertical: 2,
-        borderRadius: 6,
-        borderWidth: 1,
-    },
-    badgeOutlineText: { fontSize: 11, fontWeight: '600' },
-    alertBox: {
-        borderRadius: 8,
-        borderWidth: 1,
-        padding: 12,
-        gap: 4,
-    },
-    alertTitle: { fontSize: 13, fontWeight: '600' },
-    alertBody: { fontSize: 12, lineHeight: 18 },
-    tipsGrid: { gap: 10, marginTop: 4 },
-    tipCard: { borderRadius: 8, borderWidth: 1, padding: 12 },
-    tipTitle: { fontSize: 13, fontWeight: '600', marginBottom: 4 },
-    tipDesc: { fontSize: 12, lineHeight: 18 },
-    historyList: { marginTop: 8 },
-    historyItem: {
-        paddingVertical: 12,
-        gap: 10,
-    },
-    historyTopRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 10,
-    },
-    historyThumb: { width: 56, height: 56, borderRadius: 8 },
-    historyMain: { flex: 1 },
-    historyTitle: { fontSize: 13, fontWeight: '600', marginBottom: 3 },
-    historyCrop: { fontSize: 12, marginBottom: 2 },
-    historyDate: { fontSize: 11 },
-    historyPctBadges: { alignItems: 'flex-end', gap: 4 },
-    historyActionsRow: { flexDirection: 'row', gap: 8 },
-    historyActionBtn: { flex: 1 },
-    historyBtnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-    statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 10,
-        marginBottom: 20,
-    },
-    statCard: {
-        flexBasis: '47%',
-        flexGrow: 1,
-        borderRadius: 10,
-        borderWidth: 1,
-        padding: 14,
-    },
-    statLabel: { fontSize: 12 },
-    statValue: { fontSize: 24, fontWeight: '700', marginTop: 6 },
-    statChange: { fontSize: 11, marginTop: 6, lineHeight: 15 },
-    diseasesTitle: { fontSize: 15, fontWeight: '600' },
-    diseasesList: { gap: 12 },
-    diseaseItem: { gap: 6 },
-    diseaseHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    diseaseName: { fontSize: 13, fontWeight: '500' },
-    diseasePct: { fontSize: 12 },
-    progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-    progressFill: { height: '100%', borderRadius: 3 },
-    chartCard: { marginTop: 22 },
-    chartSubtitle: { fontSize: 12, marginTop: 2, marginBottom: 4 },
-    chartArea: { height: 200, marginTop: 10, position: 'relative' },
-    chartAxisRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 4,
-    },
-    chartAxisLabel: { fontSize: 11 },
-    chartTooltip: {
-        position: 'absolute',
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-        elevation: 6,
-    },
-    chartTooltipMulti: { top: 4, maxWidth: 160 },
-    chartTooltipPeriod: { fontSize: 11, fontWeight: '600' },
-    chartTooltipValue: { fontSize: 11, marginTop: 2 },
-    legendWrap: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-        marginTop: 14,
-    },
-    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: 150 },
-    legendSwatch: { width: 10, height: 10, borderRadius: 2 },
-    legendLabel: { fontSize: 11 },
-    peakList: { marginTop: 18, gap: 10 },
-    peakRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    peakName: { flex: 1, fontSize: 12, fontWeight: '500' },
-    peakPeriod: { fontSize: 11 },
-    peakCount: { fontSize: 12, fontWeight: '700', minWidth: 24, textAlign: 'right' },
-    chatBtn: {
-        marginTop: 6,
-        paddingVertical: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    chatBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-    reportBtn: {
-        marginTop: 6,
-        paddingVertical: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        alignItems: 'center',
-    },
-    reportBtnText: { fontWeight: '600', fontSize: 14 },
-    reportLockedText: { fontSize: 11, textAlign: 'center', marginTop: 6 },
-    historyChatBtn: {
-        marginTop: 4,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 6,
-        borderWidth: 1,
-        alignItems: 'center',
-    },
-    historyChatBtnText: { fontSize: 11, fontWeight: '600' },
-    filterLabel: { fontSize: 12, fontWeight: '600', marginTop: 14, marginBottom: 6 },
-    filterRow: { flexDirection: 'row', marginBottom: 4 },
-    filterChip: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
-        borderWidth: 1,
-        marginRight: 8,
-    },
-    filterChipText: { fontSize: 12, fontWeight: '500' },
-    orderToggle: {
-        marginTop: 12,
-        marginBottom: 4,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        alignSelf: 'flex-start',
-    },
-    orderToggleText: { fontSize: 12, fontWeight: '500' },
-});

@@ -16,7 +16,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { CartesianChart, Area, Line } from 'victory-native';
+import { CartesianChart, Area, Line, Scatter } from 'victory-native';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -1455,6 +1455,15 @@ export default function AnalyticsScreen() {
                                                             strokeWidth={2}
                                                             curveType="natural"
                                                         />
+                                                        {/* Um Line entre 2 pontos ou menos não desenha nada
+                                                            visível (d3 só traça segmento com >= 2 pontos), então
+                                                            marcamos cada ponto com Scatter para garantir que o
+                                                            período apareça mesmo com pouco histórico. */}
+                                                        <Scatter
+                                                            points={points.count}
+                                                            color={SEQUENTIAL_HUE}
+                                                            radius={4}
+                                                        />
                                                     </>
                                                 )}
                                             </CartesianChart>
@@ -1507,19 +1516,31 @@ export default function AnalyticsScreen() {
                                                     >
                                                         {({ points }) => (
                                                             <>
-                                                                {incidenceSeries.keys.map((key, index) => (
-                                                                    <Line
-                                                                        key={key}
-                                                                        points={points[key]}
-                                                                        color={
-                                                                            key === 'other'
-                                                                                ? OTHER_HUE
-                                                                                : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length]
-                                                                        }
-                                                                        strokeWidth={2}
-                                                                        curveType="natural"
-                                                                    />
-                                                                ))}
+                                                                {incidenceSeries.keys.map((key, index) => {
+                                                                    const color = key === 'other'
+                                                                        ? OTHER_HUE
+                                                                        : CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length];
+                                                                    return (
+                                                                        <React.Fragment key={key}>
+                                                                            <Line
+                                                                                points={points[key]}
+                                                                                color={color}
+                                                                                strokeWidth={2}
+                                                                                curveType="natural"
+                                                                            />
+                                                                            {/* Sem isso, uma doença com poucos
+                                                                                registros (linha de 1-2 pontos)
+                                                                                fica invisível, já que o d3 não
+                                                                                traça segmento com menos de 2
+                                                                                pontos. */}
+                                                                            <Scatter
+                                                                                points={points[key]}
+                                                                                color={color}
+                                                                                radius={4}
+                                                                            />
+                                                                        </React.Fragment>
+                                                                    );
+                                                                })}
                                                             </>
                                                         )}
                                                     </DynamicCartesianChart>

@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AuthGuard } from './modules/auth/infra/services/Auth.guard';
 import { ResponseInterceptor } from './shared/Response.interceptor';
+import { buildCorsOriginValidator } from './shared/cors-origin.util';
 
 config();
 
@@ -37,8 +38,16 @@ async function bootstrap() {
 
     app.useGlobalGuards(app.get(AuthGuard));
 
+    const isOriginAllowed = buildCorsOriginValidator();
+
     app.enableCors({
-        origin: process.env.CORS_ORIGINS.split(','),
+        origin: (origin, callback) => {
+            const allowed = isOriginAllowed(origin);
+            callback(
+                allowed ? null : new Error('Not allowed by CORS'),
+                allowed,
+            );
+        },
         credentials: true,
         exposedHeaders: ['Authorization'],
     });

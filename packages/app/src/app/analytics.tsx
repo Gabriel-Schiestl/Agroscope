@@ -1798,7 +1798,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     drawerCloseIcon: { fontSize: 15, lineHeight: 17 },
-    drawerUserName: { fontSize: 13, paddingHorizontal: 18, paddingVertical: 14 },
+    drawerUserName: { fontSize: 16, fontWeight: '600', paddingHorizontal: 18, paddingVertical: 14 },
     drawerItem: { paddingHorizontal: 18, paddingVertical: 14 },
     drawerItemText: { fontSize: 15, fontWeight: '500' },
     drawerDivider: { height: 1, marginHorizontal: 10 },

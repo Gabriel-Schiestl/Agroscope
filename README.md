@@ -25,7 +25,7 @@ Atualmente, a inteligência artificial está configurada para identificar difere
 - Permite ao usuário fazer o upload da imagem e receber a predição.  
 
 ### **Backend**  
-- API construída com **FastAPI**.  
+- API construída com **FastAPI**/**NestJS**.  
 - Integração com o modelo de inteligência artificial.  
 - Processamento das imagens enviadas e comunicação com a CNN.  
 
@@ -38,7 +38,8 @@ Atualmente, a inteligência artificial está configurada para identificar difere
 
 ## Tecnologias Utilizadas  
 - **Frontend**: React.js, Tailwind CSS
-- **Backend**: Flask, Flask-CORS
+- **Backend_Application**: NestJS
+- **Backend_Ai**: FastAPI, FastAPI-CORS
 - **Filtros Personalizados**: openCV/CV2
 - **Inteligência Artificial**: pyTorch
 - **Pré-processamento de Imagens**: PIL (Python Imaging Library), Numpy

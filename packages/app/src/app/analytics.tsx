@@ -16,7 +16,9 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { CartesianChart, Area, Line, Scatter } from 'victory-native';
+import { CartesianChart, Area, Line, Scatter, useChartPressState } from 'victory-native';
+import { Circle } from '@shopify/react-native-skia';
+import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -66,6 +68,8 @@ const DynamicCartesianChart = CartesianChart as unknown as React.ComponentType<{
     xKey: string;
     yKeys: string[];
     domain?: { y?: [number] | [number, number] };
+    domainPadding?: { top?: number; bottom?: number; left?: number; right?: number };
+    chartPressState?: unknown;
     children: (args: {
         points: Record<string, import('victory-native').PointsArray>;
     }) => React.ReactNode;
@@ -177,6 +181,63 @@ export default function AnalyticsScreen() {
         analytics?.diseaseIncidenceByPeriod.forEach((s) => map.set(s.sicknessId, sicknessLabel(s.sicknessName)));
         return map;
     }, [analytics]);
+
+    const periodPress = useChartPressState({ x: '', y: { count: 0 } });
+    const [periodTooltip, setPeriodTooltip] = useState<{
+        left: number;
+        top: number;
+        period: string;
+        count: number;
+    } | null>(null);
+
+    useAnimatedReaction(
+        () => {
+            if (!periodPress.state.isActive.value) return null;
+            return {
+                left: periodPress.state.x.position.value,
+                top: periodPress.state.y.count.position.value,
+                period: periodPress.state.x.value.value,
+                count: periodPress.state.y.count.value.value,
+            };
+        },
+        (curr) => {
+            runOnJS(setPeriodTooltip)(curr);
+        },
+    );
+
+    const incidencePress = useChartPressState({
+        x: '',
+        y: incidenceSeries.keys.reduce((acc, key) => {
+            acc[key] = 0;
+            return acc;
+        }, {} as Record<string, number>),
+    });
+    const [incidenceTooltip, setIncidenceTooltip] = useState<{
+        left: number;
+        period: string;
+        values: { key: string; count: number }[];
+    } | null>(null);
+
+    useAnimatedReaction(
+        () => {
+            if (!incidencePress.state.isActive.value) return null;
+            const values: { key: string; count: number }[] = [];
+            for (const key of incidenceSeries.keys) {
+                const entry = incidencePress.state.y[key];
+                if (entry) {
+                    values.push({ key, count: entry.value.value });
+                }
+            }
+            return {
+                left: incidencePress.state.x.position.value,
+                period: incidencePress.state.x.value.value,
+                values,
+            };
+        },
+        (curr) => {
+            runOnJS(setIncidenceTooltip)(curr);
+        },
+    );
 
     const renderRankedList = (items: RankedBar[], emptyLabel: string) => {
         if (items.length === 0) {
@@ -1439,7 +1500,14 @@ export default function AnalyticsScreen() {
                                                 domínio Y calculado automaticamente colapsa (min === max)
                                                 e a escala do victory-native gera NaN, deixando a linha
                                                 invisível mesmo com o quadro do gráfico renderizado. */}
-                                            <CartesianChart data={periodSeries} xKey="period" yKeys={['count']} domain={{ y: [0] }}>
+                                            <CartesianChart
+                                                data={periodSeries}
+                                                xKey="period"
+                                                yKeys={['count']}
+                                                domain={{ y: [0] }}
+                                                domainPadding={{ top: 16, bottom: 4 }}
+                                                chartPressState={periodPress.state}
+                                            >
                                                 {({ points, chartBounds }) => (
                                                     <>
                                                         <Area
@@ -1464,9 +1532,38 @@ export default function AnalyticsScreen() {
                                                             color={SEQUENTIAL_HUE}
                                                             radius={4}
                                                         />
+                                                        {periodPress.isActive && (
+                                                            <Circle
+                                                                cx={periodPress.state.x.position}
+                                                                cy={periodPress.state.y.count.position}
+                                                                r={6}
+                                                                color={SEQUENTIAL_HUE}
+                                                            />
+                                                        )}
                                                     </>
                                                 )}
                                             </CartesianChart>
+                                            {periodTooltip && (
+                                                <View
+                                                    pointerEvents="none"
+                                                    style={[
+                                                        styles.chartTooltip,
+                                                        {
+                                                            backgroundColor: isDark ? colors.backgroundSelected : '#fff',
+                                                            borderColor: colors.backgroundElement,
+                                                            left: Math.max(4, periodTooltip.left - 46),
+                                                            top: Math.max(0, periodTooltip.top - 50),
+                                                        },
+                                                    ]}
+                                                >
+                                                    <ThemedText style={styles.chartTooltipPeriod}>
+                                                        {formatPeriodLabel(periodTooltip.period, analytics.granularity)}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.chartTooltipValue, { color: colors.tint }]}>
+                                                        {periodTooltip.count} análises
+                                                    </ThemedText>
+                                                </View>
+                                            )}
                                         </View>
                                         {periodSeries.length > 0 && (
                                             <View style={styles.chartAxisRow}>
@@ -1513,6 +1610,8 @@ export default function AnalyticsScreen() {
                                                         xKey="period"
                                                         yKeys={incidenceSeries.keys}
                                                         domain={{ y: [0] }}
+                                                        domainPadding={{ top: 16, bottom: 4 }}
+                                                        chartPressState={incidencePress.state}
                                                     >
                                                         {({ points }) => (
                                                             <>
@@ -1538,12 +1637,47 @@ export default function AnalyticsScreen() {
                                                                                 color={color}
                                                                                 radius={4}
                                                                             />
+                                                                            {incidencePress.isActive && incidencePress.state.y[key] && (
+                                                                                <Circle
+                                                                                    cx={incidencePress.state.x.position}
+                                                                                    cy={incidencePress.state.y[key].position}
+                                                                                    r={5}
+                                                                                    color={color}
+                                                                                />
+                                                                            )}
                                                                         </React.Fragment>
                                                                     );
                                                                 })}
                                                             </>
                                                         )}
                                                     </DynamicCartesianChart>
+                                                    {incidenceTooltip && (
+                                                        <View
+                                                            pointerEvents="none"
+                                                            style={[
+                                                                styles.chartTooltip,
+                                                                styles.chartTooltipMulti,
+                                                                {
+                                                                    backgroundColor: isDark ? colors.backgroundSelected : '#fff',
+                                                                    borderColor: colors.backgroundElement,
+                                                                    left: Math.max(4, incidenceTooltip.left - 60),
+                                                                },
+                                                            ]}
+                                                        >
+                                                            <ThemedText style={styles.chartTooltipPeriod}>
+                                                                {formatPeriodLabel(incidenceTooltip.period, analytics.granularity)}
+                                                            </ThemedText>
+                                                            {incidenceTooltip.values.map((v) => (
+                                                                <ThemedText
+                                                                    key={v.key}
+                                                                    style={[styles.chartTooltipValue, { color: colors.textSecondary }]}
+                                                                    numberOfLines={1}
+                                                                >
+                                                                    {seriesNameById.get(v.key) ?? v.key}: {v.count}
+                                                                </ThemedText>
+                                                            ))}
+                                                        </View>
+                                                    )}
                                                 </View>
 
                                                 {/* Legenda */}
@@ -1822,13 +1956,28 @@ const styles = StyleSheet.create({
     progressFill: { height: '100%', borderRadius: 3 },
     chartCard: { marginTop: 22 },
     chartSubtitle: { fontSize: 12, marginTop: 2, marginBottom: 4 },
-    chartArea: { height: 200, marginTop: 10 },
+    chartArea: { height: 200, marginTop: 10, position: 'relative' },
     chartAxisRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 4,
     },
     chartAxisLabel: { fontSize: 11 },
+    chartTooltip: {
+        position: 'absolute',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 6,
+    },
+    chartTooltipMulti: { top: 4, maxWidth: 160 },
+    chartTooltipPeriod: { fontSize: 11, fontWeight: '600' },
+    chartTooltipValue: { fontSize: 11, marginTop: 2 },
     legendWrap: {
         flexDirection: 'row',
         flexWrap: 'wrap',

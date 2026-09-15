@@ -7,7 +7,7 @@ O **AgroScope** é uma solução tecnológica inovadora que visa auxíliar produ
 - Análise de crédito e gasto de produtores (prospectar clientes aos agrônomos).
 - Outras..
 
-Atualmente, a inteligência artificial está configurada para identificar diferentes doenças em diferentes plantas (milho, soja, trigo).
+Atualmente, a inteligência artificial está configurada para identificar diferentes doenças em diferentes plantas (milho, soja, trigo, café, tomate).
 
 ---
 

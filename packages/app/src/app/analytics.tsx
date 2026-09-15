@@ -1125,8 +1125,10 @@ export default function AnalyticsScreen() {
                                 Cultura
                             </ThemedText>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-                                {([undefined, 'corn', 'soybean', 'wheat'] as const).map((c) => {
-                                    const label = c === undefined ? 'Todas' : c === 'corn' ? 'Milho' : c === 'soybean' ? 'Soja' : 'Trigo';
+                                {([{ value: undefined, label: 'Todas' }, ...ANALYSIS_CROP_OPTIONS] as {
+                                    value: string | undefined;
+                                    label: string;
+                                }[]).map(({ value: c, label }) => {
                                     const active = cropFilter === c;
                                     return (
                                         <TouchableOpacity

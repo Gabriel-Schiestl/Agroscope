@@ -2,6 +2,7 @@ export const CROP_LABELS: Record<string, string> = {
     CORN: 'Milho',
     SOYBEAN: 'Soja',
     WHEAT: 'Trigo',
+    TOMATO: 'Tomate',
 };
 
 export const SICKNESS_LABELS: Record<string, string> = {

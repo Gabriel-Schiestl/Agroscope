@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { History } from "../../models/History";
 import { toImageSrc } from "../utils";
+import { cropLabel } from "../agro-labels";
 
 const COLORS = {
   primaryGreen: "#4CAF50",
@@ -248,7 +249,7 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
 
   return (
     <Document
-      title={`Relatório de Análise - ${analysis.crop || "AgroScope"}`}
+      title={`Relatório de Análise - ${analysis.crop ? cropLabel(analysis.crop) : "AgroScope"}`}
       author="AgroScope"
     >
       <Page size="A4" style={styles.page}>
@@ -295,7 +296,7 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
                 <Text style={styles.summaryLabel}>Cultura Identificada</Text>
                 <View style={styles.summaryValueRow}>
                   <Text style={styles.summaryValue}>
-                    {analysis.crop || "Não identificada"}
+                    {cropLabel(analysis.crop)}
                   </Text>
                   {analysis.cropConfidence != null && (
                     <View style={styles.badge}>

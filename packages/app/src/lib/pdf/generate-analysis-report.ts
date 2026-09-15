@@ -3,6 +3,7 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { History } from '@/models/History';
 import { imageToDataUri } from '@/lib/utils';
+import { cropLabel } from '@/lib/agro-labels';
 
 const COLORS = {
     primaryGreen: '#4CAF50',
@@ -166,7 +167,7 @@ function buildReportHtml(analysis: History): string {
                     <div class="summary-block">
                         <div class="summary-label">Cultura Identificada</div>
                         <div class="summary-value-row">
-                            <span class="summary-value">${escapeHtml(analysis.crop || 'Não identificada')}</span>
+                            <span class="summary-value">${escapeHtml(cropLabel(analysis.crop))}</span>
                             ${cropConfidenceBadge}
                         </div>
                     </div>
@@ -199,7 +200,7 @@ export async function generateAnalysisReportPdf(analysis: History): Promise<void
     const { uri } = await Print.printToFileAsync({ html, base64: false });
 
     const fileName = `relatorio-analise-${slugify(
-        analysis.crop || 'agroscope',
+        analysis.crop ? cropLabel(analysis.crop) : 'agroscope',
     )}-${new Date(analysis.createdAt).toISOString().slice(0, 10)}.pdf`;
     const destination = `${FileSystem.cacheDirectory}${fileName}`;
 

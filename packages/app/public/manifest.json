@@ -1,0 +1,19 @@
+{
+    "name": "AgroScope",
+    "short_name": "AgroScope",
+    "description": "Análise inteligente de plantas por imagem",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FFFFFF",
+    "icons": [
+        {
+            "src": "/icons/icon-1024.png",
+            "sizes": "1024x1024",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

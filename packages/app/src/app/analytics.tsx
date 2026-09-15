@@ -11,8 +11,9 @@ import {
     useColorScheme,
     StatusBar,
     Modal,
+    Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { CartesianChart, Area, Line } from 'victory-native';
@@ -64,6 +65,7 @@ const DynamicCartesianChart = CartesianChart as unknown as React.ComponentType<{
     data: Record<string, string | number>[];
     xKey: string;
     yKeys: string[];
+    domain?: { y?: [number] | [number, number] };
     children: (args: {
         points: Record<string, import('victory-native').PointsArray>;
     }) => React.ReactNode;
@@ -81,6 +83,7 @@ function foldTopN(items: RankedBar[], limit: number): RankedBar[] {
 export default function AnalyticsScreen() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+    const insets = useSafeAreaInsets();
     const router = useRouter();
     const { auth, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const { limit, refetch: refetchLimit } = useLimit();
@@ -103,6 +106,27 @@ export default function AnalyticsScreen() {
     const [detailAnalysis, setDetailAnalysis] = useState<History | null>(null);
     const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [menuMounted, setMenuMounted] = useState(false);
+    const drawerWidth = Math.min(300, Dimensions.get('window').width * 0.82);
+    const [drawerTranslateX] = useState(() => new Animated.Value(drawerWidth));
+
+    useEffect(() => {
+        if (menuOpen) {
+            setMenuMounted(true);
+            Animated.timing(drawerTranslateX, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true,
+            }).start();
+        } else if (menuMounted) {
+            Animated.timing(drawerTranslateX, {
+                toValue: drawerWidth,
+                duration: 200,
+                useNativeDriver: true,
+            }).start(() => setMenuMounted(false));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [menuOpen]);
 
     const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRangePreset>('90d');
     const [analyticsGranularity, setAnalyticsGranularity] = useState<AnalyticsGranularity>('month');
@@ -399,33 +423,65 @@ export default function AnalyticsScreen() {
             </SafeAreaView>
 
             <Modal
-                visible={menuOpen}
+                visible={menuMounted}
                 transparent
-                animationType="fade"
+                animationType="none"
+                statusBarTranslucent
                 onRequestClose={() => setMenuOpen(false)}
             >
-                <View style={styles.menuOverlay}>
+                <View style={styles.drawerOverlay}>
                     <TouchableOpacity
                         style={StyleSheet.absoluteFill}
                         activeOpacity={1}
                         onPress={() => setMenuOpen(false)}
                     />
-                    <SafeAreaView edges={['top']} style={styles.menuSafeArea} pointerEvents="box-none">
+                    <Animated.View
+                        style={[
+                            styles.drawerPanel,
+                            {
+                                width: drawerWidth,
+                                top: insets.top,
+                                bottom: insets.bottom,
+                                backgroundColor: isDark
+                                    ? colors.backgroundElement
+                                    : '#fff',
+                                transform: [{ translateX: drawerTranslateX }],
+                            },
+                        ]}
+                    >
                         <View
                             style={[
-                                styles.menuCard,
-                                {
-                                    backgroundColor: isDark
-                                        ? colors.backgroundElement
-                                        : '#fff',
-                                    borderColor: colors.backgroundElement,
-                                },
+                                styles.drawerSafeArea,
+                                { paddingRight: insets.right },
                             ]}
                         >
+                            <View
+                                style={[
+                                    styles.drawerHeader,
+                                    { borderBottomColor: colors.backgroundSelected },
+                                ]}
+                            >
+                                <ThemedText style={[styles.drawerTitle, { color: colors.tint }]}>
+                                    AgroScope
+                                </ThemedText>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.drawerCloseBtn,
+                                        { borderColor: colors.backgroundSelected },
+                                    ]}
+                                    onPress={() => setMenuOpen(false)}
+                                    accessibilityLabel="Fechar menu"
+                                >
+                                    <ThemedText style={[styles.drawerCloseIcon, { color: colors.text }]}>
+                                        ✕
+                                    </ThemedText>
+                                </TouchableOpacity>
+                            </View>
+
                             {auth?.name ? (
                                 <ThemedText
                                     style={[
-                                        styles.menuUserName,
+                                        styles.drawerUserName,
                                         { color: colors.textSecondary },
                                     ]}
                                     numberOfLines={1}
@@ -433,38 +489,39 @@ export default function AnalyticsScreen() {
                                     {auth.name}
                                 </ThemedText>
                             ) : null}
+
                             <TouchableOpacity
-                                style={styles.menuItem}
+                                style={styles.drawerItem}
                                 onPress={() => {
                                     setMenuOpen(false);
                                     router.push('/plans');
                                 }}
                             >
-                                <ThemedText style={styles.menuItemText}>
+                                <ThemedText style={styles.drawerItemText}>
                                     💳 Planos
                                 </ThemedText>
                             </TouchableOpacity>
                             <View
                                 style={[
-                                    styles.menuDivider,
-                                    { backgroundColor: colors.backgroundElement },
+                                    styles.drawerDivider,
+                                    { backgroundColor: colors.backgroundSelected },
                                 ]}
                             />
                             <TouchableOpacity
-                                style={styles.menuItem}
+                                style={styles.drawerItem}
                                 onPress={() => {
                                     setMenuOpen(false);
                                     handleLogout();
                                 }}
                             >
                                 <ThemedText
-                                    style={[styles.menuItemText, { color: '#ef4444' }]}
+                                    style={[styles.drawerItemText, { color: '#ef4444' }]}
                                 >
                                     Sair
                                 </ThemedText>
                             </TouchableOpacity>
                         </View>
-                    </SafeAreaView>
+                    </Animated.View>
                 </View>
             </Modal>
 
@@ -1377,7 +1434,12 @@ export default function AnalyticsScreen() {
                                             Volume de análises por período selecionado
                                         </ThemedText>
                                         <View style={styles.chartArea}>
-                                            <CartesianChart data={periodSeries} xKey="period" yKeys={['count']}>
+                                            {/* domain.y fixa o mínimo em 0: sem isso, quando todos os
+                                                pontos têm a mesma contagem (ex.: um único período), o
+                                                domínio Y calculado automaticamente colapsa (min === max)
+                                                e a escala do victory-native gera NaN, deixando a linha
+                                                invisível mesmo com o quadro do gráfico renderizado. */}
+                                            <CartesianChart data={periodSeries} xKey="period" yKeys={['count']} domain={{ y: [0] }}>
                                                 {({ points, chartBounds }) => (
                                                     <>
                                                         <Area
@@ -1441,6 +1503,7 @@ export default function AnalyticsScreen() {
                                                         data={incidenceSeries.data}
                                                         xKey="period"
                                                         yKeys={incidenceSeries.keys}
+                                                        domain={{ y: [0] }}
                                                     >
                                                         {({ points }) => (
                                                             <>
@@ -1551,24 +1614,39 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     menuBtnIcon: { fontSize: 18, lineHeight: 20 },
-    menuOverlay: { flex: 1 },
-    menuSafeArea: { alignItems: 'flex-end', paddingHorizontal: 20 },
-    menuCard: {
-        marginTop: 8,
-        minWidth: 180,
-        borderRadius: 10,
-        borderWidth: 1,
-        paddingVertical: 6,
+    drawerOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.45)' },
+    drawerPanel: {
+        position: 'absolute',
+        right: 0,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 8,
+        shadowOffset: { width: -2, height: 0 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 16,
     },
-    menuUserName: { fontSize: 13, paddingHorizontal: 14, paddingVertical: 10 },
-    menuItem: { paddingHorizontal: 14, paddingVertical: 12 },
-    menuItemText: { fontSize: 14, fontWeight: '500' },
-    menuDivider: { height: 1, marginHorizontal: 6 },
+    drawerSafeArea: { flex: 1 },
+    drawerHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 18,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+    },
+    drawerTitle: { fontSize: 17, fontWeight: '700' },
+    drawerCloseBtn: {
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    drawerCloseIcon: { fontSize: 15, lineHeight: 17 },
+    drawerUserName: { fontSize: 13, paddingHorizontal: 18, paddingVertical: 14 },
+    drawerItem: { paddingHorizontal: 18, paddingVertical: 14 },
+    drawerItemText: { fontSize: 15, fontWeight: '500' },
+    drawerDivider: { height: 1, marginHorizontal: 10 },
     scroll: { flex: 1, paddingHorizontal: 16 },
     pageTitle: { marginTop: 16, marginBottom: 4 },
     title: { fontSize: 22, fontWeight: '700', marginBottom: 4 },

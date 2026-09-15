@@ -76,6 +76,21 @@ describe('MockPredictService', () => {
             );
         });
 
+        it('should use the coffee scenario for the user-selected COFFEE crop', async () => {
+            randomSpy
+                .mockReturnValueOnce(0) // simulateDelay
+                .mockReturnValueOnce(0.9); // isHealthy check -> false
+
+            const promise = service.predict('/tmp/some-image.jpg', 'COFFEE');
+            await jest.advanceTimersByTimeAsync(1000);
+            const result = await promise;
+
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Rust',
+            );
+        });
+
         it('should use the user-selected crop for a healthy prediction instead of a random plant', async () => {
             randomSpy.mockReturnValueOnce(0).mockReturnValueOnce(0);
 

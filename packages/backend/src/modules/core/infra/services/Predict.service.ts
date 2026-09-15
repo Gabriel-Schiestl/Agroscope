@@ -19,6 +19,7 @@ const CROP_TO_IA_CULTURE: Record<string, string> = {
     SOYBEAN: 'Soybean',
     WHEAT: 'Wheat',
     TOMATO: 'Tomato',
+    COFFEE: 'Coffee',
 };
 
 interface IaPredictResponse {

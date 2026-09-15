@@ -25,7 +25,7 @@ Atualmente, a inteligência artificial está configurada para identificar difere
 - Permite ao usuário fazer o upload da imagem e receber a predição.  
 
 ### **Backend**  
-- API construída com **Flask**.  
+- API construída com **FastAPI**.  
 - Integração com o modelo de inteligência artificial.  
 - Processamento das imagens enviadas e comunicação com a CNN.  
 

@@ -14,10 +14,16 @@ import { SendMessageDto } from '../application/dto/SendMessage.dto';
 import { SendMessageUseCase } from '../application/usecases/SendMessage.usecase';
 import { AESService } from 'src/modules/auth/domain/services/AES.service';
 import { AuthenticationService } from 'src/modules/auth/domain/services/Authentication.service';
+import { buildCorsOriginValidator } from 'src/shared/cors-origin.util';
+
+const isOriginAllowed = buildCorsOriginValidator();
 
 @WebSocketGateway({
     namespace: '/chat',
-    cors: { origin: process.env.CORS_ORIGINS?.split(','), credentials: true },
+    cors: {
+        origin: (origin, callback) => callback(null, isOriginAllowed(origin)),
+        credentials: true,
+    },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
@@ -99,9 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private extractCookieToken(cookieHeader?: string): string | null {
         if (!cookieHeader) return null;
 
-        const match = cookieHeader.match(
-            /agroscope-authentication=([^;]+)/,
-        );
+        const match = cookieHeader.match(/agroscope-authentication=([^;]+)/);
         return match ? decodeURIComponent(match[1]) : null;
     }
 }

@@ -5,7 +5,6 @@ import {
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
-    Alert,
     StatusBar,
     useColorScheme,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/auth-context';
 import { usePlans } from '@/hooks/use-plans';
+import { showAlert } from '@/lib/alert';
 import api from '@/shared/http/http.config';
 import type { Plan } from '@/models/Plan';
 
@@ -53,7 +53,7 @@ export default function PlansScreen() {
     };
 
     const handleHire = (plan: Plan) => {
-        Alert.alert(
+        showAlert(
             'Confirmar contratação',
             `Deseja contratar o plano ${plan.type} por ${formatPrice(plan.price)}${
                 plan.price > 0 ? '/mês' : ''

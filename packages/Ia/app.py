@@ -77,7 +77,8 @@ print("Começando a carregar os modelos.")
 ## Experts
 if  os.path.isfile(os.getenv("TOMATO")) and \
     os.path.isfile(os.getenv("WHEAT")) and \
-    os.path.isfile(os.getenv("SOYBEAN")):
+    os.path.isfile(os.getenv("SOYBEAN")) and \
+    os.path.isfile(os.getenv("COFFEE")):
 
     TOMATO, LOADED_TOMATO = loadModel(os.getenv("TOMATO"), device=DEVICE)
     print("TOMATO Model loaded successfully")
@@ -87,6 +88,9 @@ if  os.path.isfile(os.getenv("TOMATO")) and \
 
     SOYBEAN, LOADED_SOYBEAN = loadModel(os.getenv("SOYBEAN"), device=DEVICE)
     print("SOYBEAN Model loaded successfully")
+
+    COFFEE, LOADED_COFFEE = loadModel(os.getenv("COFFEE"), device=DEVICE)
+    print("COFFEE Model loaded successfully")
 
 else:
     raise FileNotFoundError("couldn't identify some of the experts in models archive")
@@ -180,7 +184,7 @@ def __expert_predict(image_tensor, type: str):
                 
                 return predicted_class, round(confidence * 100, 2), all_probabilities
             
-            case "Soybean": 
+            case "Soybean":
                 with torch.no_grad():
 
                     outputs = SOYBEAN(image_tensor.to(DEVICE))
@@ -188,14 +192,32 @@ def __expert_predict(image_tensor, type: str):
                     predicted_class_idx = torch.argmax(probabilities, dim=1).item()
 
                     confidence = probabilities[0][predicted_class_idx].item()
-                
+
                 predicted_class = LOADED_SOYBEAN["class_names"][predicted_class_idx]
 
                 all_probabilities = {
                     LOADED_SOYBEAN["class_names"][i]: float(probabilities[0][i])
                     for i in range(len(LOADED_SOYBEAN["class_names"]))
                 }
-                
+
+                return predicted_class, round(confidence * 100, 2), all_probabilities
+
+            case "Coffee":
+                with torch.no_grad():
+
+                    outputs = COFFEE(image_tensor.to(DEVICE))
+                    probabilities = F.softmax(outputs, dim=1)
+                    predicted_class_idx = torch.argmax(probabilities, dim=1).item()
+
+                    confidence = probabilities[0][predicted_class_idx].item()
+
+                predicted_class = LOADED_COFFEE["class_names"][predicted_class_idx]
+
+                all_probabilities = {
+                    LOADED_COFFEE["class_names"][i]: float(probabilities[0][i])
+                    for i in range(len(LOADED_COFFEE["class_names"]))
+                }
+
                 return predicted_class, round(confidence * 100, 2), all_probabilities
 
     except Exception as e:
@@ -222,6 +244,11 @@ def ModelInfo():
                 "class_names": LOADED_SOYBEAN["class_names"],
                 "num_classes": LOADED_SOYBEAN["num_classes"],
                 "model_info": LOADED_SOYBEAN["model_info"],
+            },
+            "coffee": {
+                "class_names": LOADED_COFFEE["class_names"],
+                "num_classes": LOADED_COFFEE["num_classes"],
+                "model_info": LOADED_COFFEE["model_info"],
             }
         },
     }

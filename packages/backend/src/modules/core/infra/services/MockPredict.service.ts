@@ -14,7 +14,7 @@ interface MockScenario {
     handling: HandlingServiceResponse;
 }
 
-const HEALTHY_PLANTS = ['Milho', 'Trigo', 'Soja', 'Tomate'];
+const HEALTHY_PLANTS = ['Milho', 'Trigo', 'Soja', 'Tomate', 'Café'];
 
 // Traduz os códigos de `Crop` (domain/models/Crop.ts) para os nomes em
 // PT-BR usados nos cenários mockados abaixo.
@@ -22,6 +22,7 @@ const CROP_TO_MOCK_PLANT: Record<string, string> = {
     SOYBEAN: 'Soja',
     WHEAT: 'Trigo',
     TOMATO: 'Tomate',
+    COFFEE: 'Café',
 };
 
 // Nomes de `prediction` precisam bater (case-insensitive) com "name" na
@@ -82,6 +83,20 @@ const SCENARIOS: MockScenario[] = [
             manejo: 'Utilize sementes e mudas sadias, aplique bactericidas cúpricos preventivamente e evite molhar a folhagem durante a irrigação.',
             precautions:
                 'Faça rotação de culturas e remova restos culturais infectados após a colheita.',
+        },
+    },
+    {
+        plant: 'Café',
+        prediction: 'Rust',
+        handling: {
+            diagnostico:
+                'Ferrugem do cafeeiro (Hemileia vastatrix) identificada nas folhas.',
+            explicacao:
+                'Doença fúngica que forma manchas cloróticas alaranjadas na face superior e pústulas pulverulentas na face inferior das folhas, causando desfolha precoce e queda de produtividade.',
+            causas: 'Causada pelo fungo Hemileia vastatrix, favorecida por temperaturas amenas (21-25°C), alta umidade e chuvas frequentes.',
+            manejo: 'Aplique fungicidas cúpricos ou triazóis preventivamente, utilize cultivares resistentes e mantenha espaçamento adequado entre plantas para melhorar a ventilação.',
+            precautions:
+                'Monitore a lavoura em períodos chuvosos e evite adubação nitrogenada excessiva, que aumenta a suscetibilidade das plantas.',
         },
     },
 ];

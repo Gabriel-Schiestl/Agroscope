@@ -3,6 +3,7 @@ export const CROP_LABELS: Record<string, string> = {
     SOYBEAN: 'Soja',
     WHEAT: 'Trigo',
     TOMATO: 'Tomate',
+    COFFEE: 'Café',
 };
 
 /** Culturas disponíveis para seleção obrigatória antes do envio da foto para análise. */
@@ -10,6 +11,7 @@ export const ANALYSIS_CROP_OPTIONS: { value: string; label: string }[] = [
     { value: 'SOYBEAN', label: 'Soja' },
     { value: 'WHEAT', label: 'Trigo' },
     { value: 'TOMATO', label: 'Tomate' },
+    { value: 'COFFEE', label: 'Café' },
 ];
 
 export const SICKNESS_LABELS: Record<string, string> = {
@@ -25,6 +27,14 @@ export const SICKNESS_LABELS: Record<string, string> = {
     SOYBEAN_RUST: 'Ferrugem Asiática',
     Target_Spot: 'Mancha Alvo',
     TARGET_SPOT: 'Mancha Alvo',
+    Bacterial_Spot: 'Pinta Bacteriana',
+    BACTERIAL_SPOT: 'Pinta Bacteriana',
+    Leaf_Mold: 'Mofo das Folhas',
+    LEAF_MOLD: 'Mofo das Folhas',
+    Rust: 'Ferrugem do Cafeeiro',
+    RUST: 'Ferrugem do Cafeeiro',
+    Phoma: 'Mancha de Phoma',
+    PHOMA: 'Mancha de Phoma',
 };
 
 export function cropLabel(crop?: string): string {

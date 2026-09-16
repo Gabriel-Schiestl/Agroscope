@@ -28,11 +28,12 @@ from dotenv import load_dotenv
 
 
 # Loading env
+# Não é fatal a ausência de um arquivo .env físico: em deploy via Docker as
+# envs vêm direto de `docker run -e`, sem .env nenhum na imagem.
 if load_dotenv():
     print(".env loaded successfully.") # Apply logging
-    print(os.getenv("TOMATO"))
 else:
-    raise("Couldn't load the .env")
+    print("No .env file found, relying on environment variables already set.")
 
 
 # Configuração

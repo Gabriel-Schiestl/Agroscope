@@ -109,15 +109,30 @@ docker run -d --name rabbitmq --network agroscope-net --restart unless-stopped \
 > Não use o usuário `guest` — o RabbitMQ bloqueia login de `guest` fora de
 > `localhost` por padrão, e o backend conecta via rede docker (não é loopback).
 
-### IA (interna, sem porta pública — carrega os 4 modelos PyTorch no boot)
+### IA (interna, sem porta pública — carrega os modelos PyTorch no boot)
+
+A imagem não embute mais um `.env` (deploy via env vars puras) — precisa
+passar os caminhos dos modelos via `-e`, senão o boot quebra com
+`TypeError: stat: path should be string... not NoneType`:
 
 ```bash
 docker run -d --name ia --network agroscope-net --restart unless-stopped \
+  -e SERVER_HOST=0.0.0.0 \
+  -e SERVER_PORT=8000 \
+  -e GENERALIST='./models/General/generalist.pth' \
+  -e CORN='./models/Corn/corn.pth' \
+  -e TOMATO='./models/Tomato/tomato.pth' \
+  -e WHEAT='./models/Wheat/wheat.pth' \
+  -e SOYBEAN='./models/Soybean/soybean.pth' \
+  -e COFFEE='./models/Coffee/coffee.pth' \
   gabrielschiestl/agroscope-ia:latest
 
-# Espere ficar "healthy" antes de seguir (healthcheck bate em /modelinfo):
-docker ps --filter name=ia
+docker ps --filter name=ia   # sem healthcheck configurado — só confirma "Up"
+docker logs ia --tail 20     # confira "Uvicorn running on http://0.0.0.0:5000"
 ```
+
+`GENERALIST`/`CORN` são passados por completude com o `.env` de referência,
+mas o `app.py` atual só carrega de fato TOMATO/WHEAT/SOYBEAN/COFFEE.
 
 ### Backend
 

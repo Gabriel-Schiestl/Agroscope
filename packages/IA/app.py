@@ -3,8 +3,9 @@ Para rodar a aplicação, você deve estar dentro da pasta /Project/IA
 """
 
 # FastAPI
-from fastapi import FastAPI, Form, UploadFile, File, HTTPException
+from fastapi import FastAPI, Form, UploadFile, File, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 import uvicorn
 
@@ -45,22 +46,55 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 # CORS
-origins = [
-    "http://localhost:3000", # Atualizar CORS com .env
+# Lista padrão cobre só os hosts de dev local. Em produção, defina CORS_ORIGINS
+# (mesma variável usada pelo backend Node) com os domínios reais, separados por
+# vírgula, em vez de abrir para qualquer origem.
+_DEFAULT_ORIGINS = [
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+
+_cors_origins_env = os.getenv("CORS_ORIGINS")
+origins = (
+    [origin.strip() for origin in _cors_origins_env.split(",") if origin.strip()]
+    if _cors_origins_env
+    else _DEFAULT_ORIGINS
+)
 
 print(f"Origens: {origins}")
 
 APP.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    # Sem cookies/sessão nessa API (chamada server-to-server pelo backend), não
+    # há necessidade de credentials nem de refletir qualquer header enviado.
+    allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["*"], # Change for security
+    allow_headers=["Content-Type"],
 )
+
+# Tamanho máximo aceito para o corpo da requisição. O parser multipart do
+# Starlette não limita o tamanho de um arquivo enviado (só de campos de texto),
+# então sem essa checagem um upload arbitrariamente grande seria bufferizado
+# por completo antes de qualquer validação da rota.
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(8 * 1024 * 1024)))
+
+
+@APP.middleware("http")
+async def limit_upload_size(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            if int(content_length) > MAX_UPLOAD_BYTES:
+                return JSONResponse(
+                    {"detail": "Request body too large."}, status_code=413
+                )
+        except ValueError:
+            pass
+
+    return await call_next(request)
 
 
 """
@@ -76,6 +110,7 @@ Logo após, necessitamos introduzir os pesos próprios nos nós do modelo carreg
 
 print("Começando a carregar os modelos.")
 ## Experts
+## Adicionar list env dos modelos (Criar feature)
 if  os.path.isfile(os.getenv("TOMATO")) and \
     os.path.isfile(os.getenv("WHEAT")) and \
     os.path.isfile(os.getenv("SOYBEAN")) and \
@@ -107,10 +142,14 @@ transform = transforms.Compose([
 
 
 # Defs
+# Adicionar por env
+SUPPORTED_CULTURES = {"Tomato", "Wheat", "Soybean", "Coffee"}
+
+
 def __preprocess_image(image_file: UploadFile):
     try:
         # Tratamento Imagem
-        image_data = image_file.file.read()    
+        image_data = image_file.file.read()
         image = Image.open(io.BytesIO(image_data)).convert("RGB")
 
         image_tensor = transform(image).unsqueeze(0)
@@ -118,6 +157,9 @@ def __preprocess_image(image_file: UploadFile):
 
     except Exception as e:
         print(f"Error trying to manipulate the image: {e}")
+        # Antes retornava None silenciosamente, o que derrubava a predição
+        # mais adiante com um erro não tratado (500 sem contexto pro cliente).
+        raise HTTPException(400, "Invalid image file.")
 
 
 # Pode ser usado no futuro
@@ -229,6 +271,7 @@ def __expert_predict(image_tensor, type: str):
 ## Debug
 @APP.get("/modelinfo")
 def ModelInfo():
+    # Arrumar função para identificar e evitar trabalho manual
     return {
         "models": {
             "tomato": {
@@ -257,12 +300,17 @@ def ModelInfo():
 ## Predict
 @APP.post("/predict")
 async def Predict( culture: str = Form(...), file: UploadFile = File(...) ):
-    
-    if not file.content_type.startswith("image/"):
+
+    if culture not in SUPPORTED_CULTURES:
+        raise HTTPException(
+            400, f"Unsupported culture. Must be one of: {sorted(SUPPORTED_CULTURES)}"
+        )
+
+    if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(400, "Only images are acceptable.")
 
     contents = await file.read()
-    if len(contents) > 8 * 1024 * 1024:
+    if len(contents) > MAX_UPLOAD_BYTES:
         raise HTTPException(400, "File too large.")
     
     await file.seek(0)

@@ -110,6 +110,7 @@ Logo após, necessitamos introduzir os pesos próprios nos nós do modelo carreg
 
 print("Começando a carregar os modelos.")
 ## Experts
+## Adicionar list env dos modelos (Criar feature)
 if  os.path.isfile(os.getenv("TOMATO")) and \
     os.path.isfile(os.getenv("WHEAT")) and \
     os.path.isfile(os.getenv("SOYBEAN")) and \
@@ -141,6 +142,7 @@ transform = transforms.Compose([
 
 
 # Defs
+# Adicionar por env
 SUPPORTED_CULTURES = {"Tomato", "Wheat", "Soybean", "Coffee"}
 
 
@@ -269,6 +271,7 @@ def __expert_predict(image_tensor, type: str):
 ## Debug
 @APP.get("/modelinfo")
 def ModelInfo():
+    # Arrumar função para identificar e evitar trabalho manual
     return {
         "models": {
             "tomato": {

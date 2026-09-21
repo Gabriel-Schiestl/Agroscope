@@ -180,10 +180,11 @@ export default function ResetPasswordScreen() {
                                     ]}
                                     value={newPassword}
                                     onChangeText={setNewPassword}
-                                    placeholder="Mín. 8 caracteres, com maiúscula, número e símbolo"
+                                    placeholder="Mín. 8 caracteres"
                                     placeholderTextColor={colors.textSecondary}
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"
+                                    numberOfLines={1}
                                 />
                                 <TouchableOpacity
                                     style={styles.eyeBtn}

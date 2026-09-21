@@ -244,10 +244,11 @@ export default function SignupScreen() {
                                     ]}
                                     value={password}
                                     onChangeText={setPassword}
-                                    placeholder="Mín. 8 caracteres, com maiúscula, número e símbolo"
+                                    placeholder="Mín. 8 caracteres"
                                     placeholderTextColor={colors.textSecondary}
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"
+                                    numberOfLines={1}
                                 />
                                 <TouchableOpacity
                                     style={styles.eyeBtn}

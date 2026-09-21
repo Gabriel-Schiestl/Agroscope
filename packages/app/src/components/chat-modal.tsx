@@ -313,7 +313,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                         {/* Messages */}
                         <KeyboardAvoidingView
                             style={styles.flex}
-                            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                             keyboardVerticalOffset={0}
                         >
                             <ScrollView

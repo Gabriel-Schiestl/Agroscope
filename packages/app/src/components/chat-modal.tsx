@@ -6,6 +6,7 @@ import {
     TextInput,
     TouchableOpacity,
     KeyboardAvoidingView,
+    Keyboard,
     Platform,
     StyleSheet,
     useColorScheme,
@@ -92,6 +93,25 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
     const [inputText, setInputText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
+    // KeyboardAvoidingView não redimensiona de forma confiável dentro de um
+    // Modal no Android (o Modal abre sua própria janela nativa, fora do
+    // ciclo de resize da Activity) — rastreamos a altura do teclado na mão
+    // e aplicamos como padding no rodapé de input.
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+    useEffect(() => {
+        if (Platform.OS !== 'android') return;
+        const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+            setKeyboardHeight(e.endCoordinates.height);
+        });
+        const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardHeight(0);
+        });
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
 
     const scrollViewRef = useRef<ScrollView>(null);
     const slideAnim = useRef(new Animated.Value(300)).current;
@@ -313,7 +333,10 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                         {/* Messages */}
                         <KeyboardAvoidingView
                             style={styles.flex}
-                            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                            // No Android o ajuste é feito manualmente via listener de
+                            // teclado (mais confiável dentro de um Modal) — deixar o
+                            // behavior automático também ativo geraria offset duplicado.
+                            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                             keyboardVerticalOffset={0}
                         >
                             <ScrollView
@@ -429,6 +452,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                                             ? colors.backgroundSelected
                                             : '#e8e8eb',
                                         backgroundColor: isDark ? colors.background : '#fff',
+                                        paddingBottom: keyboardHeight,
                                     },
                                 ]}
                             >

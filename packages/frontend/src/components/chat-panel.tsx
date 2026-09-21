@@ -321,9 +321,9 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
           {/* Analysis context strip */}
           {analysis && (
             <div className="!mt-6 flex flex-wrap gap-1.5">
-              {analysis.cropConfidence > 0 && (
+              {analysis.crop && (
                 <Badge className="bg-primaryGreen text-xs">
-                  {cropLabel(analysis.crop)} · {(analysis.cropConfidence * 100).toFixed(1)}%
+                  {cropLabel(analysis.crop)}
                 </Badge>
               )}
               {analysis.sicknessId && analysis.sicknessConfidence != null &&

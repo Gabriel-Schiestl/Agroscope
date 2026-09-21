@@ -5,7 +5,6 @@ import { cn } from "../lib/utils";
 
 export interface DiagnosisResultProps {
   crop: string;
-  cropConfidence: number;
   sicknessId?: string;
   sicknessName?: string;
   sicknessConfidence?: number;
@@ -29,7 +28,6 @@ function Section({ label, text }: { label: string; text: string }) {
 
 export function DiagnosisResult({
   crop,
-  cropConfidence,
   sicknessId,
   sicknessName,
   sicknessConfidence,
@@ -60,7 +58,6 @@ export function DiagnosisResult({
             <h2 data-testid="diagnosis-headline" className="text-2xl font-bold leading-tight">{headline}</h2>
             <p data-testid="diagnosis-crop" className="text-sm text-muted-foreground mt-0.5">
               {cropLabel(crop)}
-              {cropConfidence > 0 && ` · ${(cropConfidence * 100).toFixed(1)}% confiança na cultura`}
             </p>
           </div>
         </div>

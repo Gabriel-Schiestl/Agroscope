@@ -416,7 +416,6 @@ export default function AnalyticsPage() {
                   <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <DiagnosisResult
                       crop={result.crop}
-                      cropConfidence={result.cropConfidence}
                       sicknessId={result.sicknessId}
                       sicknessName={result.sicknessName}
                       sicknessConfidence={result.sicknessConfidence}
@@ -698,10 +697,7 @@ export default function AnalyticsPage() {
                               {h.crop && (
                                 <div className="flex items-center text-sm text-muted-foreground">
                                   <Leaf className="mr-1 h-3 w-3" />
-                                  <span>
-                                    Cultura: {cropLabel(h.crop)}
-                                    {h.cropConfidence != null && ` (${(h.cropConfidence * 100).toFixed(1)}%)`}
-                                  </span>
+                                  <span>Cultura: {cropLabel(h.crop)}</span>
                                 </div>
                               )}
                             </div>

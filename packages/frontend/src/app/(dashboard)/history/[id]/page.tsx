@@ -137,7 +137,6 @@ export default function HistoryDetailsPage({
 
             <DiagnosisResult
               crop={history.crop}
-              cropConfidence={history.cropConfidence}
               sicknessId={history.sicknessId}
               sicknessName={history.sicknessName}
               sicknessConfidence={history.sicknessConfidence}

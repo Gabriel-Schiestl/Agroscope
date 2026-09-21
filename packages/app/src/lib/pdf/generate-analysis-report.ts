@@ -77,11 +77,6 @@ function buildReportHtml(analysis: History): string {
         ? `<div class="image-wrapper"><img src="${imageSrc}" /></div>`
         : `<div class="image-placeholder">Imagem não disponível</div>`;
 
-    const cropConfidenceBadge =
-        analysis.cropConfidence != null
-            ? `<span class="badge">${(analysis.cropConfidence * 100).toFixed(1)}% confiança</span>`
-            : '';
-
     const diagnosisText = isHealthy
         ? 'Nenhuma doença identificada'
         : escapeHtml(analysis.explanation || 'Não identificado');
@@ -168,7 +163,6 @@ function buildReportHtml(analysis: History): string {
                         <div class="summary-label">Cultura Identificada</div>
                         <div class="summary-value-row">
                             <span class="summary-value">${escapeHtml(cropLabel(analysis.crop))}</span>
-                            ${cropConfidenceBadge}
                         </div>
                     </div>
                     <div class="summary-block">

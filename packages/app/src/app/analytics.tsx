@@ -856,13 +856,6 @@ export default function AnalyticsScreen() {
                                             <ThemedText style={[styles.resultValue, { color: colors.tint }]}>
                                                 {cropLabel(result.crop)}
                                             </ThemedText>
-                                            {result.cropConfidence > 0 && (
-                                                <View style={[styles.badge, { backgroundColor: colors.tint }]}>
-                                                    <ThemedText style={styles.badgeText}>
-                                                        {(result.cropConfidence * 100).toFixed(1)}% confiança
-                                                    </ThemedText>
-                                                </View>
-                                            )}
                                         </View>
                                     </View>
 
@@ -1236,13 +1229,6 @@ export default function AnalyticsScreen() {
                                                     </ThemedText>
                                                 </View>
                                                 <View style={styles.historyPctBadges}>
-                                                    {item.cropConfidence > 0 && (
-                                                        <View style={[styles.badge, { backgroundColor: colors.tint }]}>
-                                                            <ThemedText style={styles.badgeText}>
-                                                                {(item.cropConfidence * 100).toFixed(1)}%
-                                                            </ThemedText>
-                                                        </View>
-                                                    )}
                                                     {item.sicknessConfidence != null && item.sicknessConfidence > 0 && (
                                                         <View style={[styles.badgeOutline, { borderColor: colors.tint }]}>
                                                             <ThemedText style={[styles.badgeOutlineText, { color: colors.tint }]}>

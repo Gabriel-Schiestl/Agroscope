@@ -117,8 +117,6 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
                                 </ThemedText>
                                 <ThemedText style={[styles.value, { color: colors.tint }]}>
                                     {cropLabel(analysis.crop)}
-                                    {analysis.cropConfidence != null &&
-                                        ` · ${(analysis.cropConfidence * 100).toFixed(1)}% confiança`}
                                 </ThemedText>
                             </View>
 

@@ -221,6 +221,10 @@ server {
     server_name ${EC2_DOMAIN};
 
     location /api/ {
+        # Padrão do nginx é 1MB — fotos de câmera passam disso fácil e
+        # tomam 413 antes de chegar no backend (que aceita até 50MB, ver
+        # File.interceptor.ts). Precisa bater com esse limite.
+        client_max_body_size 50M;
         proxy_pass http://127.0.0.1:3001/;
         proxy_http_version 1.1;
         proxy_set_header Host \$host;

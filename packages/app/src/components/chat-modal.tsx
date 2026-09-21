@@ -23,7 +23,7 @@ import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import api from '@/shared/http/http.config';
 import { useAuth } from '@/contexts/auth-context';
 import type { History } from '@/models/History';
-import { cropLabel } from '@/lib/agro-labels';
+import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
 
 interface ChatMessageDto {
     id: string;
@@ -63,16 +63,20 @@ function dtoToMessage(dto: ChatMessageDto): ChatMessage {
 }
 
 function buildInitialMessage(analysis: History | null): ChatMessage {
-    const disease = analysis?.explanation ?? cropLabel(analysis?.crop);
     const crop = cropLabel(analysis?.crop);
     const confidence = analysis?.sicknessConfidence
         ? ` (${(analysis.sicknessConfidence * 100).toFixed(1)}% de confiança)`
         : '';
+    const isHealthy = !analysis?.sicknessId;
+
+    const content = isHealthy
+        ? `Olá! Sou a Íris, sua assistente de análise da AgroScope. A planta ${crop} está saudável — nenhuma doença detectada.\n\nPosso ajudá-lo com dúvidas gerais sobre manejo preventivo ou outras questões. O que gostaria de saber?`
+        : `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei **${sicknessLabel(analysis?.sicknessName)}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
 
     return {
         id: 'init',
         role: 'assistant',
-        content: `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei **${disease}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`,
+        content,
         timestamp: new Date(),
     };
 }

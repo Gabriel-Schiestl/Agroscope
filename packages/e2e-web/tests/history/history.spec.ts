@@ -30,11 +30,12 @@ test.describe('Módulo: Histórico', () => {
 
     const firstItem = historyPage.itemByIndex(0);
     await expect(firstItem).toBeVisible();
-    // A cultura sempre é exibida com sua confiança ("Cultura: X (Y%)"); a
+    // A cultura sempre é exibida ("Cultura: X"), sem confiança — ela não é
+    // mais inferida por um modelo, é escolhida pelo próprio usuário. A
     // confiança da doença só aparece quando a análise não é saudável, então
     // não é uma boa asserção genérica aqui — ver CT-27 para o filtro por
     // cultura.
-    await expect(firstItem.getByText(/Cultura:.*%/)).toBeVisible();
+    await expect(firstItem.getByText(/Cultura:/)).toBeVisible();
   });
 
   test('CT-27 - filtrar histórico por cultura', async ({ authedPage, authedUser }) => {

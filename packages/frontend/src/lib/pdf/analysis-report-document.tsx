@@ -298,13 +298,6 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
                   <Text style={styles.summaryValue}>
                     {cropLabel(analysis.crop)}
                   </Text>
-                  {analysis.cropConfidence != null && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>
-                        {(analysis.cropConfidence * 100).toFixed(1)}% confiança
-                      </Text>
-                    </View>
-                  )}
                 </View>
               </View>
 

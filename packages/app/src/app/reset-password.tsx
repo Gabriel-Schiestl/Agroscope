@@ -86,7 +86,7 @@ export default function ResetPasswordScreen() {
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <ScrollView
                     contentContainerStyle={styles.scroll}
@@ -180,10 +180,11 @@ export default function ResetPasswordScreen() {
                                     ]}
                                     value={newPassword}
                                     onChangeText={setNewPassword}
-                                    placeholder="Mín. 8 caracteres, com maiúscula, número e símbolo"
+                                    placeholder="Mín. 8 caracteres"
                                     placeholderTextColor={colors.textSecondary}
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"
+                                    numberOfLines={1}
                                 />
                                 <TouchableOpacity
                                     style={styles.eyeBtn}

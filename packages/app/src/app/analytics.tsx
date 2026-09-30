@@ -28,15 +28,19 @@ import {
     MessageCircle,
     FileText,
     BarChart2,
+    MapPin,
+    MapPinOff,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ChatModal } from '@/components/chat-modal';
 import { AnalysisDetailModal } from '@/components/analysis-detail-modal';
+import { ClimateValidationCard } from '@/components/climate-validation-card';
 import { PeriodChartCard, IncidenceChartCard } from '@/components/analytics-charts';
 import { useAuth } from '@/contexts/auth-context';
 import { useLimit } from '@/hooks/use-limit';
+import { useUserLocation } from '@/hooks/use-user-location';
 import { useAnalytics, type AnalyticsRangePreset } from '@/hooks/use-analytics';
 import { formatCompactNumber, formatPeriodLabel, imageToDataUri } from '@/lib/utils';
 import api from '@/shared/http/http.config';
@@ -85,6 +89,11 @@ export default function AnalyticsScreen() {
     const router = useRouter();
     const { auth, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const { limit, refetch: refetchLimit } = useLimit();
+    const {
+        coords,
+        status: locationStatus,
+        retry: retryLocation,
+    } = useUserLocation();
     const canGenerateReport = hasPlanFeature(
         limit?.featureFlags,
         PLAN_FEATURE_REPORT_GENERATION,
@@ -316,6 +325,10 @@ export default function AnalyticsScreen() {
                 type: getMimeType(file.uri),
             } as any);
             formData.append('crop', crop);
+            if (coords) {
+                formData.append('latitude', String(coords.latitude));
+                formData.append('longitude', String(coords.longitude));
+            }
 
             const response = await api.post<History>(
                 '/predict',
@@ -721,6 +734,48 @@ export default function AnalyticsScreen() {
                                 </TouchableOpacity>
                             </View>
 
+                            {/* Localização (validação climática) */}
+                            <View style={styles.locationRow}>
+                                {locationStatus === 'granted' ? (
+                                    <MapPin size={13} color={colors.tint} />
+                                ) : (
+                                    <MapPinOff size={13} color={colors.textSecondary} />
+                                )}
+                                <ThemedText
+                                    style={[
+                                        styles.locationText,
+                                        {
+                                            color:
+                                                locationStatus === 'granted'
+                                                    ? colors.tint
+                                                    : colors.textSecondary,
+                                        },
+                                    ]}
+                                >
+                                    {locationStatus === 'granted'
+                                        ? 'Diagnóstico será validado com o clima da sua região'
+                                        : locationStatus === 'requesting'
+                                          ? 'Obtendo localização...'
+                                          : 'Localização indisponível'}
+                                </ThemedText>
+                                {(locationStatus === 'denied' ||
+                                    locationStatus === 'unavailable') && (
+                                    <TouchableOpacity
+                                        onPress={retryLocation}
+                                        accessibilityLabel="Permitir acesso à localização"
+                                    >
+                                        <ThemedText
+                                            style={[
+                                                styles.locationText,
+                                                { color: colors.tint, fontWeight: '600' },
+                                            ]}
+                                        >
+                                            Permitir
+                                        </ThemedText>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+
                             {/* Usage counter */}
                             {limit && (
                                 <ThemedText
@@ -894,6 +949,13 @@ export default function AnalyticsScreen() {
                                             </>
                                         )}
                                     </View>
+
+                                    {/* Validação climática */}
+                                    {result.sicknessId && (
+                                        <ClimateValidationCard
+                                            validation={result.climateValidation}
+                                        />
+                                    )}
 
                                     {/* Causas */}
                                     {result.causes && (

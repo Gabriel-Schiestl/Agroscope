@@ -1,4 +1,5 @@
 import { v4 as uuid } from 'uuid';
+import { ClimateValidation } from './ClimateValidation';
 
 export interface HistoryProps {
     createdAt: Date;
@@ -13,6 +14,7 @@ export interface HistoryProps {
     userId?: string;
     causes?: string;
     precautions?: string;
+    climateValidation?: ClimateValidation;
 }
 
 export interface CreateHistoryProps {
@@ -27,6 +29,7 @@ export interface CreateHistoryProps {
     userId?: string;
     causes?: string;
     precautions?: string;
+    climateValidation?: ClimateValidation;
 }
 
 export interface LoadHistoryProps {
@@ -42,6 +45,7 @@ export interface LoadHistoryProps {
     userId?: string;
     causes?: string;
     precautions?: string;
+    climateValidation?: ClimateValidation;
 }
 
 export class History {
@@ -58,6 +62,7 @@ export class History {
     #userId?: string;
     #causes?: string;
     #precautions?: string;
+    #climateValidation?: ClimateValidation;
 
     private constructor(props: HistoryProps, id?: string) {
         this.#id = id || uuid();
@@ -73,6 +78,7 @@ export class History {
         this.#userId = props.userId;
         this.#causes = props.causes;
         this.#precautions = props.precautions;
+        this.#climateValidation = props.climateValidation;
     }
 
     static create(props: CreateHistoryProps): History {
@@ -133,5 +139,9 @@ export class History {
 
     get precautions(): string {
         return this.#precautions;
+    }
+
+    get climateValidation(): ClimateValidation | undefined {
+        return this.#climateValidation;
     }
 }

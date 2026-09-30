@@ -4,6 +4,11 @@ import { ptBR } from "date-fns/locale";
 import type { History } from "../../models/History";
 import { toImageSrc } from "../utils";
 import { cropLabel } from "../agro-labels";
+import {
+  climateValidationMessage,
+  climateValidationTitle,
+  formatClimateCoordinates,
+} from "../climate";
 
 const COLORS = {
   primaryGreen: "#4CAF50",
@@ -14,6 +19,8 @@ const COLORS = {
   darkGray: "#424242",
   border: "#E5E7EB",
   white: "#FFFFFF",
+  warning: "#B45309",
+  lightWarning: "#FEF3C7",
 };
 
 const styles = StyleSheet.create({
@@ -183,6 +190,32 @@ const styles = StyleSheet.create({
     padding: 12,
     border: `1px solid ${COLORS.primaryGreen}55`,
   },
+  climateBox: {
+    borderRadius: 4,
+    padding: 12,
+  },
+  climateCompatible: {
+    backgroundColor: COLORS.lightGreen,
+    border: `1px solid ${COLORS.primaryGreen}55`,
+  },
+  climateIncompatible: {
+    backgroundColor: COLORS.lightWarning,
+    border: `1px solid ${COLORS.warning}55`,
+  },
+  climateUnverified: {
+    backgroundColor: COLORS.lightGray,
+    border: `1px solid ${COLORS.border}`,
+  },
+  climateTitle: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    marginBottom: 4,
+  },
+  climateMeta: {
+    fontSize: 7.5,
+    color: COLORS.mediumGray,
+    marginTop: 6,
+  },
   disclaimer: {
     marginTop: 6,
     padding: 10,
@@ -227,6 +260,55 @@ function Section({ title, text }: { title: string; text?: string }) {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <Text style={styles.sectionText}>{text}</Text>
+    </View>
+  );
+}
+
+function ClimateValidationSection({ analysis }: { analysis: History }) {
+  if (!analysis.sicknessId) return null;
+
+  const validation = analysis.climateValidation;
+
+  if (!validation) {
+    return (
+      <View style={styles.section} wrap={false}>
+        <Text style={styles.sectionTitle}>Validação Climática</Text>
+        <View style={[styles.climateBox, styles.climateUnverified]}>
+          <Text style={[styles.climateTitle, { color: COLORS.mediumGray }]}>
+            Clima da região não verificado
+          </Text>
+          <Text style={styles.sectionText}>
+            A análise foi realizada sem acesso à localização, portanto o
+            diagnóstico não foi comparado com o clima da região.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.section} wrap={false}>
+      <Text style={styles.sectionTitle}>Validação Climática</Text>
+      <View
+        style={[
+          styles.climateBox,
+          validation.compatible ? styles.climateCompatible : styles.climateIncompatible,
+        ]}
+      >
+        <Text
+          style={[
+            styles.climateTitle,
+            { color: validation.compatible ? COLORS.darkGreen : COLORS.warning },
+          ]}
+        >
+          {climateValidationTitle(validation)}
+        </Text>
+        <Text style={styles.sectionText}>{climateValidationMessage(validation)}</Text>
+        <Text style={styles.climateMeta}>
+          Região aproximada: {formatClimateCoordinates(validation)} • Fonte:
+          Open-Meteo, média dos últimos 7 dias
+        </Text>
+      </View>
     </View>
   );
 }
@@ -320,6 +402,8 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
               </View>
             </View>
           </View>
+
+          <ClimateValidationSection analysis={analysis} />
 
           <Section title="Causas / Sintomas" text={analysis.causes} />
 

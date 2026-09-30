@@ -1,6 +1,39 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+    IsArray,
+    IsBoolean,
+    IsDate,
+    IsNumber,
+    IsOptional,
+    IsString,
+    ValidateNested,
+} from 'class-validator';
 import { SicknessDto } from './Sickness.dto';
+import { ClimateMismatch, Season } from '../../domain/models/Sickness';
+
+export class ClimateValidationDto {
+    @IsNumber()
+    latitude: number;
+
+    @IsNumber()
+    longitude: number;
+
+    @IsNumber()
+    temperature: number;
+
+    @IsNumber()
+    humidity: number;
+
+    @IsOptional()
+    @IsString()
+    season?: Season;
+
+    @IsBoolean()
+    compatible: boolean;
+
+    @IsArray()
+    mismatches: ClimateMismatch[];
+}
 
 export class HistoryDto {
     @IsString()
@@ -42,4 +75,9 @@ export class HistoryDto {
     @IsOptional()
     @IsString()
     precautions?: string;
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => ClimateValidationDto)
+    climateValidation?: ClimateValidationDto;
 }

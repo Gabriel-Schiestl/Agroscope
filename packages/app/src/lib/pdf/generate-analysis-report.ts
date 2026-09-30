@@ -4,6 +4,11 @@ import * as FileSystem from 'expo-file-system/legacy';
 import type { History } from '@/models/History';
 import { imageToDataUri } from '@/lib/utils';
 import { cropLabel } from '@/lib/agro-labels';
+import {
+    climateValidationMessage,
+    climateValidationTitle,
+    formatClimateCoordinates,
+} from '@/lib/climate';
 
 const COLORS = {
     primaryGreen: '#4CAF50',
@@ -14,6 +19,8 @@ const COLORS = {
     darkGray: '#424242',
     border: '#E5E7EB',
     white: '#FFFFFF',
+    warning: '#B45309',
+    lightWarning: '#FEF3C7',
 };
 
 const COMBINING_DIACRITICS = new RegExp('[\\u0300-\\u036f]', 'g');
@@ -62,6 +69,38 @@ function sectionHtml(title: string, text?: string): string {
         <div class="section">
             <div class="section-title">${escapeHtml(title)}</div>
             <div class="section-text">${escapeHtml(text)}</div>
+        </div>
+    `;
+}
+
+function climateValidationHtml(analysis: History): string {
+    if (!analysis.sicknessId) return '';
+
+    const validation = analysis.climateValidation;
+    if (!validation) {
+        return `
+            <div class="section">
+                <div class="section-title">Validação Climática</div>
+                <div class="climate-box climate-unverified">
+                    <div class="climate-title">Clima da região não verificado</div>
+                    <div class="climate-text">A análise foi realizada sem acesso à localização, portanto o diagnóstico não foi comparado com o clima da região.</div>
+                </div>
+            </div>
+        `;
+    }
+
+    const statusClass = validation.compatible
+        ? 'climate-compatible'
+        : 'climate-incompatible';
+
+    return `
+        <div class="section">
+            <div class="section-title">Validação Climática</div>
+            <div class="climate-box ${statusClass}">
+                <div class="climate-title">${escapeHtml(climateValidationTitle(validation))}</div>
+                <div class="climate-text">${escapeHtml(climateValidationMessage(validation))}</div>
+                <div class="climate-meta">Região aproximada: ${escapeHtml(formatClimateCoordinates(validation))} • Fonte: Open-Meteo, média dos últimos 7 dias</div>
+            </div>
         </div>
     `;
 }
@@ -130,6 +169,16 @@ function buildReportHtml(analysis: History): string {
             .section-title { font-size: 10.5px; font-weight: bold; color: ${COLORS.darkGray}; margin-bottom: 5px; padding-left: 8px; border-left: 3px solid ${COLORS.primaryGreen}; }
             .section-text { font-size: 9.5px; line-height: 1.5; white-space: pre-wrap; }
             .highlight-box { background-color: ${COLORS.lightGreen}; border-radius: 4px; padding: 12px; border: 1px solid ${COLORS.primaryGreen}55; font-size: 9.5px; line-height: 1.5; white-space: pre-wrap; }
+            .climate-box { border-radius: 4px; padding: 12px; border: 1px solid; }
+            .climate-compatible { background-color: ${COLORS.lightGreen}; border-color: ${COLORS.primaryGreen}55; }
+            .climate-compatible .climate-title { color: ${COLORS.darkGreen}; }
+            .climate-incompatible { background-color: ${COLORS.lightWarning}; border-color: ${COLORS.warning}55; }
+            .climate-incompatible .climate-title { color: ${COLORS.warning}; }
+            .climate-unverified { background-color: ${COLORS.lightGray}; border-color: ${COLORS.border}; }
+            .climate-unverified .climate-title { color: ${COLORS.mediumGray}; }
+            .climate-title { font-size: 10px; font-weight: bold; margin-bottom: 4px; }
+            .climate-text { font-size: 9.5px; line-height: 1.5; }
+            .climate-meta { font-size: 7.5px; color: ${COLORS.mediumGray}; margin-top: 6px; }
             .disclaimer { margin-top: 6px; padding: 10px; border-radius: 4px; background-color: ${COLORS.lightGray}; font-size: 8px; line-height: 1.4; color: ${COLORS.mediumGray}; font-style: italic; }
             .footer { padding: 14px 40px; border-top: 1px solid ${COLORS.border}; display: flex; justify-content: space-between; font-size: 7.5px; color: ${COLORS.mediumGray}; }
         </style>
@@ -174,6 +223,7 @@ function buildReportHtml(analysis: History): string {
                     </div>
                 </div>
             </div>
+            ${climateValidationHtml(analysis)}
             ${sectionHtml('Causas / Sintomas', analysis.causes)}
             ${handlingBlock}
             ${sectionHtml('Precauções', analysis.precautions)}

@@ -114,7 +114,7 @@ describe('PredictUseCase', () => {
             sendMessage: jest.fn(),
         };
         weatherService = {
-            getCurrentWeather: jest.fn(),
+            getRecentWeather: jest.fn(),
         };
         useCase = new PredictUseCase(
             sicknessRepository,
@@ -363,29 +363,38 @@ describe('PredictUseCase', () => {
             });
 
             expect(result.isSuccess()).toBe(true);
-            expect(weatherService.getCurrentWeather).not.toHaveBeenCalled();
+            expect(weatherService.getRecentWeather).not.toHaveBeenCalled();
         });
 
-        it('should fail when the weather is incompatible with the diagnosed sickness', async () => {
-            weatherService.getCurrentWeather.mockResolvedValue(
-                Res.success({ temperature: 35, humidity: 50 }),
+        it('should keep the diagnosis and flag it when the regional climate is incompatible', async () => {
+            weatherService.getRecentWeather.mockResolvedValue(
+                Res.success({ temperature: 35, humidity: 50, season: 'summer' }),
             );
 
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
                 crop: Crop.SOYBEAN,
-                location: { latitude: -23.5, longitude: -46.6 },
+                location: { latitude: -23.5512, longitude: -46.6339 },
             });
 
-            expect(result.isFailure()).toBe(true);
-            expect(result.isFailure() && result.error).toBeInstanceOf(
-                BusinessException,
-            );
+            expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.climateValidation).toEqual({
+                latitude: -23.55,
+                longitude: -46.63,
+                temperature: 35,
+                humidity: 50,
+                season: 'summer',
+                compatible: false,
+                mismatches: ['temperature'],
+            });
+            const savedHistory = historyRepository.save.mock.calls[0][0];
+            expect(savedHistory.climateValidation?.compatible).toBe(false);
+            expect(userRepository.save).toHaveBeenCalled();
         });
 
-        it('should succeed when the weather is compatible with the diagnosed sickness', async () => {
-            weatherService.getCurrentWeather.mockResolvedValue(
+        it('should mark the diagnosis as compatible when the regional climate matches', async () => {
+            weatherService.getRecentWeather.mockResolvedValue(
                 Res.success({ temperature: 20, humidity: 50 }),
             );
 
@@ -397,10 +406,17 @@ describe('PredictUseCase', () => {
             });
 
             expect(result.isSuccess()).toBe(true);
+            expect(
+                result.isSuccess() && result.value.climateValidation?.compatible,
+            ).toBe(true);
+            expect(weatherService.getRecentWeather).toHaveBeenCalledWith({
+                latitude: -23.5,
+                longitude: -46.6,
+            });
         });
 
-        it('should still succeed when the weather service itself fails', async () => {
-            weatherService.getCurrentWeather.mockResolvedValue(
+        it('should succeed without climate validation when the weather service fails', async () => {
+            weatherService.getRecentWeather.mockResolvedValue(
                 Res.failure(new TechnicalException('weather down')),
             );
 
@@ -412,6 +428,28 @@ describe('PredictUseCase', () => {
             });
 
             expect(result.isSuccess()).toBe(true);
+            expect(
+                result.isSuccess() && result.value.climateValidation,
+            ).toBeUndefined();
+        });
+
+        it('should not check the weather for a healthy plant', async () => {
+            predictService.predict.mockResolvedValue(
+                Res.success({
+                    prediction: 'healthy',
+                    predictionConfidence: 0.95,
+                }),
+            );
+
+            const result = await useCase.execute({
+                imagePath: '/tmp/image.jpg',
+                userId: 'user-1',
+                crop: Crop.SOYBEAN,
+                location: { latitude: -23.5, longitude: -46.6 },
+            });
+
+            expect(result.isSuccess()).toBe(true);
+            expect(weatherService.getRecentWeather).not.toHaveBeenCalled();
         });
 
         it('should save the history, increment usage, and publish the image on success', async () => {

@@ -18,6 +18,7 @@ export class HistoryMapper {
             userId: domain.userId,
             causes: domain.causes,
             precautions: domain.precautions,
+            climateValidation: domain.climateValidation,
         });
     }
 
@@ -36,6 +37,7 @@ export class HistoryMapper {
                 userId: model.userId,
                 causes: model.causes,
                 precautions: model.precautions,
+                climateValidation: model.climateValidation ?? undefined,
             },
             model.id,
         );

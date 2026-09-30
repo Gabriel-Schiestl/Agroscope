@@ -16,6 +16,7 @@ export class HistoryAppMapper {
             causes: history.causes,
             explanation: history.explanation,
             precautions: history.precautions,
+            climateValidation: history.climateValidation,
         };
     }
 }

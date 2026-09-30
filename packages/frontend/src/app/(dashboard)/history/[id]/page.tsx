@@ -143,6 +143,7 @@ export default function HistoryDetailsPage({
               explanation={history.explanation}
               causes={history.causes}
               handling={history.handling}
+              climateValidation={history.climateValidation}
               precautions={history.precautions}
             />
           </div>

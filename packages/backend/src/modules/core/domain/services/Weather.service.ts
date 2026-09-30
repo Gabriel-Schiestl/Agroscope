@@ -8,7 +8,11 @@ export interface UserLocation {
 }
 
 export interface WeatherService {
-    getCurrentWeather(
+    /**
+     * Clima recente da região (médias do período de incubação típico das
+     * doenças foliares) e a estação do ano no hemisfério da localização.
+     */
+    getRecentWeather(
         location: UserLocation,
     ): Promise<Result<TechnicalException, WeatherData>>;
 }

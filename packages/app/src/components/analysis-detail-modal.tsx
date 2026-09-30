@@ -15,6 +15,7 @@ import { X, Leaf } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, Spacing, type ThemePalette } from '@/constants/theme';
 import { imageToDataUri } from '@/lib/utils';
+import { ClimateValidationCard } from '@/components/climate-validation-card';
 import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
 import type { History } from '@/models/History';
 
@@ -148,6 +149,9 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
                                                 {analysis.explanation}
                                             </ThemedText>
                                         )}
+                                        <View style={{ marginTop: 10 }}>
+                                            <ClimateValidationCard validation={analysis.climateValidation} />
+                                        </View>
                                     </>
                                 )}
                             </View>

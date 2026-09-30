@@ -4,6 +4,7 @@ import { Res, Result } from 'src/shared/Result';
 
 export type RainfallDependency = 'low' | 'medium' | 'high';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+export type ClimateMismatch = 'temperature' | 'humidity' | 'season';
 
 export interface ClimateConditions {
     temperatureMin?: number;
@@ -59,26 +60,32 @@ export class Sickness extends Agg<SicknessProps> {
     }
 
     isCompatibleWithWeather(weather: WeatherData): boolean {
+        return this.getWeatherMismatches(weather).length === 0;
+    }
+
+    /**
+     * Retorna quais fatores climáticos da região estão fora das condições
+     * favoráveis à doença. Lista vazia significa clima compatível.
+     */
+    getWeatherMismatches(weather: WeatherData): ClimateMismatch[] {
         const cc = this.props.climateConditions;
-        if (!cc) return true;
+        if (!cc) return [];
+
+        const mismatches: ClimateMismatch[] = [];
 
         if (
-            cc.temperatureMin !== undefined &&
-            weather.temperature < cc.temperatureMin
+            (cc.temperatureMin != null &&
+                weather.temperature < cc.temperatureMin) ||
+            (cc.temperatureMax != null &&
+                weather.temperature > cc.temperatureMax)
         ) {
-            return false;
+            mismatches.push('temperature');
         }
         if (
-            cc.temperatureMax !== undefined &&
-            weather.temperature > cc.temperatureMax
+            (cc.humidityMin != null && weather.humidity < cc.humidityMin) ||
+            (cc.humidityMax != null && weather.humidity > cc.humidityMax)
         ) {
-            return false;
-        }
-        if (cc.humidityMin !== undefined && weather.humidity < cc.humidityMin) {
-            return false;
-        }
-        if (cc.humidityMax !== undefined && weather.humidity > cc.humidityMax) {
-            return false;
+            mismatches.push('humidity');
         }
         if (
             weather.season &&
@@ -86,10 +93,10 @@ export class Sickness extends Agg<SicknessProps> {
             cc.favorableSeasons.length > 0 &&
             !cc.favorableSeasons.includes(weather.season)
         ) {
-            return false;
+            mismatches.push('season');
         }
 
-        return true;
+        return mismatches;
     }
 
     get name(): string {

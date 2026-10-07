@@ -7,6 +7,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { SicknessModel } from './Sickness.model';
+import { ClimateValidation } from '../../domain/models/ClimateValidation';
 
 export interface HistoryModelProps {
     id: string;
@@ -22,6 +23,7 @@ export interface HistoryModelProps {
     userId?: string;
     causes?: string;
     precautions?: string;
+    climateValidation?: ClimateValidation;
 }
 
 @Entity('history')
@@ -74,6 +76,9 @@ export class HistoryModel extends BaseEntity {
 
     @Column({ nullable: true, name: 'precautions' })
     precautions?: string;
+
+    @Column({ type: 'jsonb', nullable: true, name: 'climate_validation' })
+    climateValidation?: ClimateValidation;
 
     setProps(props: HistoryModelProps): HistoryModel {
         Object.assign(this, props);

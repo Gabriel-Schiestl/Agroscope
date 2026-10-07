@@ -76,6 +76,8 @@ import {
   MoreVertical,
   ArrowUpDown,
   X,
+  MapPin,
+  MapPinOff,
 } from 'lucide-react';
 import api from '../../../../shared/http/http.config';
 import { toast } from 'react-toastify';
@@ -85,6 +87,7 @@ import { AnalyticsDashboard } from '../../../components/analytics-dashboard';
 import { DiagnosisResult } from '../../../components/diagnosis-result';
 import { useLimit } from '../../../hooks/use-limit';
 import { useHistory } from '../../../hooks/use-history';
+import { useGeolocation } from '../../../hooks/use-geolocation';
 import { toImageSrc } from '../../../lib/utils';
 import { generateAnalysisReportPdf } from '../../../lib/pdf/generate-analysis-report';
 import {
@@ -139,6 +142,7 @@ export default function AnalyticsPage() {
   const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { limit, refetch: refetchLimit } = useLimit();
+  const { coords, status: locationStatus, retry: retryLocation } = useGeolocation();
   const canGenerateReport = hasPlanFeature(limit?.featureFlags, PLAN_FEATURE_REPORT_GENERATION);
   const {
     history: analysisHistory,
@@ -187,6 +191,10 @@ export default function AnalyticsPage() {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('crop', crop);
+    if (coords) {
+      formData.append('latitude', String(coords.latitude));
+      formData.append('longitude', String(coords.longitude));
+    }
     setLoading(true);
 
     try {
@@ -355,6 +363,34 @@ export default function AnalyticsPage() {
                 )}
               </CardContent>
               <CardFooter className="flex-col gap-2 items-stretch">
+                <p
+                  data-testid="location-status"
+                  className={`flex items-center justify-end gap-1 text-xs ${
+                    locationStatus === 'granted' ? 'text-primaryGreen' : 'text-muted-foreground'
+                  }`}
+                >
+                  {locationStatus === 'granted' ? (
+                    <MapPin className="h-3.5 w-3.5" />
+                  ) : (
+                    <MapPinOff className="h-3.5 w-3.5" />
+                  )}
+                  {locationStatus === 'granted'
+                    ? 'Diagnóstico será validado com o clima da sua região'
+                    : locationStatus === 'requesting'
+                      ? 'Obtendo localização...'
+                      : locationStatus === 'denied'
+                        ? 'Localização bloqueada — libere nas configurações do navegador'
+                        : 'Localização indisponível'}
+                  {(locationStatus === 'denied' || locationStatus === 'unavailable') && (
+                    <button
+                      type="button"
+                      onClick={retryLocation}
+                      className="font-medium text-primaryGreen hover:underline"
+                    >
+                      Tentar novamente
+                    </button>
+                  )}
+                </p>
                 {limit && (
                   <p className={`text-xs text-right ${limit.imageRequests >= limit.imageLimit ? 'text-red-500' : 'text-muted-foreground'}`}>
                     Análises: {limit.imageRequests}/{limit.imageLimit}
@@ -423,6 +459,7 @@ export default function AnalyticsPage() {
                       causes={result.causes}
                       handling={result.handling}
                       precautions={result.precautions}
+                      climateValidation={result.climateValidation}
                     />
 
                     <Alert className="mt-6 bg-primaryGreen/10 border-primaryGreen/20">

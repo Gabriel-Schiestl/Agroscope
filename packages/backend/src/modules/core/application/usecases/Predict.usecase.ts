@@ -4,6 +4,10 @@ import { Exception } from 'src/shared/Exception';
 import { Res, Result } from 'src/shared/Result';
 import { History } from '../../domain/models/History';
 import {
+    buildClimateValidation,
+    ClimateValidation,
+} from '../../domain/models/ClimateValidation';
+import {
     Crop,
     CROP_LABELS,
     CROPS_AVAILABLE_FOR_ANALYSIS,
@@ -146,6 +150,12 @@ export class PredictUseCase extends AbstractUseCase<
             return Res.success(HistoryAppMapper.toDto(history));
         }
 
+        // Consulta o clima em paralelo com a geração do manejo (LLM) para não
+        // somar latência à análise. O serviço nunca rejeita: devolve Result.
+        const weatherPromise = location
+            ? this.weatherService.getRecentWeather(location)
+            : undefined;
+
         const handling = await this.predictService.getHandling(
             result.value.prediction,
             crop,
@@ -169,22 +179,24 @@ export class PredictUseCase extends AbstractUseCase<
 
         const sickness = sicknessResult.value;
 
-        if (location) {
-            const weatherResult =
-                await this.weatherService.getCurrentWeather(location);
+        // Cruza o clima recente da região com as condições favoráveis à doença.
+        // Não bloqueia o diagnóstico: o resultado fica salvo no histórico para
+        // o cliente alertar o usuário quando a doença for improvável na região.
+        let climateValidation: ClimateValidation | undefined;
+        if (location && weatherPromise) {
+            const weatherResult = await weatherPromise;
 
             if (weatherResult.isSuccess()) {
-                const compatible = sickness.isCompatibleWithWeather(
+                climateValidation = buildClimateValidation(
+                    sickness,
                     weatherResult.value,
+                    location,
                 );
-
-                if (!compatible) {
-                    return Res.failure(
-                        new BusinessException(
-                            'Não foi possível confirmar o diagnóstico: as condições climáticas da sua região não correspondem ao padrão esperado para esta doença.',
-                        ),
-                    );
-                }
+            } else {
+                console.warn(
+                    '[PredictUseCase] Validação climática ignorada:',
+                    weatherResult.error.message,
+                );
             }
         }
 
@@ -200,6 +212,7 @@ export class PredictUseCase extends AbstractUseCase<
             sicknessConfidence: result.value.predictionConfidence,
             causes: handling.value.causas,
             precautions: handling.value.precautions,
+            climateValidation,
         });
 
         const saveHistoryResult = await this.historyRepository.save(history);

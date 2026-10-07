@@ -1,6 +1,8 @@
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { cropLabel, sicknessLabel } from "../lib/agro-labels";
 import { ConfidenceMeter } from "./confidence-meter";
+import { ClimateValidationNote } from "./climate-validation-note";
+import type { ClimateValidation } from "../models/History";
 import { cn } from "../lib/utils";
 
 export interface DiagnosisResultProps {
@@ -12,6 +14,7 @@ export interface DiagnosisResultProps {
   causes?: string;
   handling?: string;
   precautions?: string;
+  climateValidation?: ClimateValidation;
   className?: string;
 }
 
@@ -35,6 +38,7 @@ export function DiagnosisResult({
   causes,
   handling,
   precautions,
+  climateValidation,
   className,
 }: DiagnosisResultProps) {
   const isHealthy = !sicknessId;
@@ -65,6 +69,8 @@ export function DiagnosisResult({
           <ConfidenceMeter value={sicknessConfidence} className="flex-shrink-0" />
         )}
       </div>
+
+      {!isHealthy && <ClimateValidationNote validation={climateValidation} />}
 
       {/* Content sections, ordered by the question they answer */}
       <div className="space-y-4">

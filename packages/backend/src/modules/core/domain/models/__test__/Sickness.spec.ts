@@ -168,4 +168,48 @@ describe('Sickness Domain', () => {
             ).toBe(true);
         });
     });
+    describe('getWeatherMismatches', () => {
+        const sickness = Sickness.load(
+            {
+                ...validProps,
+                climateConditions: {
+                    temperatureMin: 20,
+                    temperatureMax: 30,
+                    humidityMin: 60,
+                    favorableSeasons: ['summer'],
+                },
+            },
+            'id-1',
+        );
+
+        it('should return an empty list when the weather matches', () => {
+            expect(
+                sickness.getWeatherMismatches({
+                    temperature: 25,
+                    humidity: 80,
+                    season: 'summer',
+                }),
+            ).toEqual([]);
+        });
+
+        it('should list every factor out of range', () => {
+            expect(
+                sickness.getWeatherMismatches({
+                    temperature: 10,
+                    humidity: 40,
+                    season: 'winter',
+                }),
+            ).toEqual(['temperature', 'humidity', 'season']);
+        });
+
+        it('should ignore bounds that are not defined', () => {
+            expect(
+                sickness.getWeatherMismatches({
+                    temperature: 25,
+                    humidity: 100,
+                    season: 'summer',
+                }),
+            ).toEqual([]);
+        });
+    });
 });

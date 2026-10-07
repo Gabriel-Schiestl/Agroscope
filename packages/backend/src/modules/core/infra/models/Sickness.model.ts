@@ -75,25 +75,27 @@ export class SicknessModel extends BaseEntity implements SicknessModelProps {
     histories: HistoryModel[];
 
     get climateConditions(): ClimateConditions | undefined {
+        // Colunas nulas chegam do Postgres como `null` (não `undefined`) e
+        // DECIMAL chega como string — por isso `!= null` + Number().
         const hasAny =
-            this.temperatureMin !== undefined ||
-            this.temperatureMax !== undefined ||
-            this.temperatureOptimal !== undefined ||
-            this.humidityMin !== undefined ||
-            this.humidityMax !== undefined ||
-            this.rainfallDependency !== undefined ||
+            this.temperatureMin != null ||
+            this.temperatureMax != null ||
+            this.temperatureOptimal != null ||
+            this.humidityMin != null ||
+            this.humidityMax != null ||
+            this.rainfallDependency != null ||
             (this.favorableSeasons && this.favorableSeasons.length > 0);
 
         if (!hasAny) return undefined;
 
         return {
-            temperatureMin: this.temperatureMin !== undefined ? Number(this.temperatureMin) : undefined,
-            temperatureMax: this.temperatureMax !== undefined ? Number(this.temperatureMax) : undefined,
-            temperatureOptimal: this.temperatureOptimal !== undefined ? Number(this.temperatureOptimal) : undefined,
-            humidityMin: this.humidityMin !== undefined ? Number(this.humidityMin) : undefined,
-            humidityMax: this.humidityMax !== undefined ? Number(this.humidityMax) : undefined,
-            rainfallDependency: this.rainfallDependency,
-            favorableSeasons: this.favorableSeasons,
+            temperatureMin: this.temperatureMin != null ? Number(this.temperatureMin) : undefined,
+            temperatureMax: this.temperatureMax != null ? Number(this.temperatureMax) : undefined,
+            temperatureOptimal: this.temperatureOptimal != null ? Number(this.temperatureOptimal) : undefined,
+            humidityMin: this.humidityMin != null ? Number(this.humidityMin) : undefined,
+            humidityMax: this.humidityMax != null ? Number(this.humidityMax) : undefined,
+            rainfallDependency: this.rainfallDependency ?? undefined,
+            favorableSeasons: this.favorableSeasons ?? undefined,
         };
     }
 

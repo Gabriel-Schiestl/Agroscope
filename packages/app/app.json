@@ -19,7 +19,9 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -45,6 +47,12 @@
         {
           "photosPermission": "O AgroScope precisa de acesso às suas fotos para selecionar imagens de plantas a analisar.",
           "cameraPermission": "O AgroScope precisa de acesso à câmera para fotografar plantas a analisar."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O AgroScope usa sua localização para comparar o diagnóstico com o clima da sua região."
         }
       ],
       "expo-secure-store",

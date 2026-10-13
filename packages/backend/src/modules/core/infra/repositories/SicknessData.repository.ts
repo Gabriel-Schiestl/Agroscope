@@ -30,10 +30,12 @@ export class SicknessDataRepository implements SicknessRepository {
 
     async getSicknessByName(
         name: string,
+        crop: string,
     ): Promise<Result<SicknessExceptions, Sickness>> {
         try {
             const model = await SicknessModel.createQueryBuilder('sickness')
                 .where('LOWER(sickness.name) = LOWER(:name)', { name })
+                .andWhere('sickness.crop = :crop', { crop })
                 .getOne();
             if (!model)
                 return Res.failure(

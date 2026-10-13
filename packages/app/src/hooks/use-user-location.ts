@@ -17,6 +17,28 @@ export type UserLocationStatus =
 // ponto exato, e evita esperar um fix de GPS a cada análise.
 const LAST_KNOWN_MAX_AGE_MS = 10 * 60 * 1000;
 
+// Sem timeout, um GPS sem fix deixa a tela em "Obtendo localização" para sempre.
+const POSITION_TIMEOUT_MS = 10 * 1000;
+
+function withTimeout<T>(promise: Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(
+            () => reject(new Error('location timeout')),
+            POSITION_TIMEOUT_MS,
+        );
+        promise.then(
+            (value) => {
+                clearTimeout(timer);
+                resolve(value);
+            },
+            (error) => {
+                clearTimeout(timer);
+                reject(error);
+            },
+        );
+    });
+}
+
 /**
  * Solicita a permissão de localização e obtém a posição do usuário, usada
  * para validar o diagnóstico com o clima da região.
@@ -34,14 +56,25 @@ export function useUserLocation() {
                 return;
             }
 
-            const lastKnown = await Location.getLastKnownPositionAsync({
-                maxAge: LAST_KNOWN_MAX_AGE_MS,
-            }).catch(() => null);
+            const lastKnown = await withTimeout(
+                Location.getLastKnownPositionAsync({
+                    maxAge: LAST_KNOWN_MAX_AGE_MS,
+                }),
+            ).catch(() => null);
             const position =
                 lastKnown ??
-                (await Location.getCurrentPositionAsync({
-                    accuracy: Location.Accuracy.Balanced,
-                }));
+                (await withTimeout(
+                    Location.getCurrentPositionAsync({
+                        accuracy: Location.Accuracy.Balanced,
+                    }),
+                ).catch(() =>
+                    // Sem fix de GPS a tempo: aceita uma posição aproximada.
+                    withTimeout(
+                        Location.getCurrentPositionAsync({
+                            accuracy: Location.Accuracy.Lowest,
+                        }),
+                    ),
+                ));
 
             setCoords({
                 latitude: position.coords.latitude,

@@ -164,13 +164,9 @@ export class PredictUseCase extends AbstractUseCase<
             return Res.failure(handling.error);
         }
 
-        console.log(
-            '[PredictUseCase] prediction value para lookup:',
-            JSON.stringify(result.value.prediction),
-        );
-
         const sicknessResult = await this.sicknessRepository.getSicknessByName(
             result.value.prediction,
+            crop,
         );
 
         if (sicknessResult.isFailure()) {

@@ -8,6 +8,7 @@ export class SicknessMapper {
         return new SicknessModel().setProps({
             id: sickness.id,
             name: sickness.name,
+            crop: sickness.crop,
             description: sickness.description,
             symptoms: sickness.symptoms,
             temperatureMin: cc?.temperatureMin,
@@ -24,6 +25,7 @@ export class SicknessMapper {
         return Sickness.load(
             {
                 name: model.name,
+                crop: model.crop ?? undefined,
                 description: model.description,
                 symptoms: model.symptoms,
                 climateConditions: model.climateConditions,

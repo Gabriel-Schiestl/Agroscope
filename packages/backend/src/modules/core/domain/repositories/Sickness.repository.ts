@@ -13,6 +13,7 @@ export interface SicknessRepository {
     getSickness(id: string): Promise<Result<SicknessExceptions, Sickness>>;
     getSicknessByName(
         name: string,
+        crop: string,
     ): Promise<Result<SicknessExceptions, Sickness>>;
     save(sickness: Sickness): Promise<Result<SicknessExceptions, void>>;
 }

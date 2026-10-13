@@ -165,9 +165,14 @@ export class MockPredictService implements PredictService {
     ): Promise<Result<TechnicalException, HandlingServiceResponse>> {
         await this.simulateDelay();
 
-        const scenario = SCENARIOS.find(
+        // Nomes de doença se repetem entre culturas (ex.: 'Rust' no café e na
+        // soja), então prefere o cenário da cultura informada.
+        const byName = SCENARIOS.filter(
             (s) => s.prediction.toLowerCase() === prediction.toLowerCase(),
         );
+        const scenario =
+            byName.find((s) => s.plant === CROP_TO_MOCK_PLANT[crop]) ??
+            byName[0];
 
         if (!scenario) {
             return Res.success({

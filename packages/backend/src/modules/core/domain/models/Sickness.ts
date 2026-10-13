@@ -24,6 +24,7 @@ export interface WeatherData {
 
 export interface SicknessProps {
     name: string;
+    crop?: string;
     description?: string;
     symptoms: string[];
     climateConditions?: ClimateConditions;
@@ -101,6 +102,10 @@ export class Sickness extends Agg<SicknessProps> {
 
     get name(): string {
         return this.props.name;
+    }
+
+    get crop(): string | undefined {
+        return this.props.crop;
     }
 
     get description(): string {

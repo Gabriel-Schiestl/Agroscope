@@ -9,6 +9,7 @@ import {
 interface SicknessModelProps {
     id: string;
     name: string;
+    crop?: string;
     description?: string;
     symptoms: string[];
     temperatureMin?: number;
@@ -27,6 +28,9 @@ export class SicknessModel extends BaseEntity implements SicknessModelProps {
 
     @Column()
     name: string;
+
+    @Column({ type: 'varchar', length: 20, nullable: true })
+    crop?: string;
 
     @Column({ nullable: true })
     description: string;

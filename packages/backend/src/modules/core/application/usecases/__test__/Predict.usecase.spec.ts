@@ -325,6 +325,19 @@ describe('PredictUseCase', () => {
     });
 
     describe('disease flow', () => {
+        it('should look up the sickness by name and crop', async () => {
+            await useCase.execute({
+                imagePath: '/tmp/image.jpg',
+                userId: 'user-1',
+                crop: Crop.SOYBEAN,
+            });
+
+            expect(sicknessRepository.getSicknessByName).toHaveBeenCalledWith(
+                expect.any(String),
+                Crop.SOYBEAN,
+            );
+        });
+
         it('should fail when fetching the handling fails', async () => {
             const error = new TechnicalException('handling error');
             predictService.getHandling.mockResolvedValue(Res.failure(error));

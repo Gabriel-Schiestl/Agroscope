@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 env:
@@ -150,14 +150,14 @@ jobs:
           THROTTLE_LONG_TTL: "3600"
           THROTTLE_LONG_LIMIT: "10000"
           THROTTLE_LOGIN_LIMIT: "1000"
-        run: npx jest --config ./test/jest.config.json --testPathPattern="security/"
+        run: npx jest --config ./test/jest.config.json --testPathPattern="security/" --verbose --json --outputFile=security-report.json
 
       - name: Upload security test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: security-test-report
-          path: packages/backend/coverage/
+          path: packages/backend/security-report.json
           retention-days: 7
 
   system-tests:

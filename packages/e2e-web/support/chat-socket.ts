@@ -44,6 +44,31 @@ export async function seedChatMessages(
   }
 }
 
+/**
+ * Envia UMA mensagem via Socket.IO e devolve o ack do gateway (`{ userMessage,
+ * aiMessage }` ou `{ error }`). Usado pelos testes de segurança para simular
+ * um cliente malicioso que fala direto com o gateway, sem passar pela UI.
+ */
+export async function sendChatMessage(
+  token: string,
+  sessionId: string,
+  content: string,
+): Promise<any> {
+  const socket: Socket = io(`${BASE_URL}/chat`, {
+    path: '/api/socket.io',
+    auth: { token },
+    transports: ['websocket'],
+    reconnection: false,
+  });
+
+  try {
+    await waitForConnect(socket);
+    return await emitWithTimeout(socket, 'send_message', { content, sessionId }, 20_000);
+  } finally {
+    socket.disconnect();
+  }
+}
+
 function waitForConnect(socket: Socket): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(

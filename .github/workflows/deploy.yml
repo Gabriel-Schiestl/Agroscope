@@ -1,0 +1,184 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  IMAGE: ${{ vars.DOCKERHUB_IMAGE || 'gabrielschiestl/agroscope' }}
+
+jobs:
+  build-and-push:
+    name: Build & push (backend)
+    if: >-
+      vars.DEPLOY_ENABLED != 'false' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Image tag
+        id: meta
+        run: echo "tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: packages/backend
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy (EC2)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.API_URL }}
+    env:
+      IMAGE_REF: ${{ vars.DOCKERHUB_IMAGE || 'gabrielschiestl/agroscope' }}:${{ needs.build-and-push.outputs.tag }}
+      DB_URL: ${{ secrets.DB_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      AES_KEY: ${{ secrets.AES_KEY }}
+      RABBITMQ_URL: ${{ secrets.RABBITMQ_URL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
+      CORS_ORIGIN_PATTERNS: ${{ vars.CORS_ORIGIN_PATTERNS }}
+      DB_SSL: ${{ vars.DB_SSL || 'true' }}
+      FLASK_API_URL: ${{ vars.FLASK_API_URL || 'http://ia:5000' }}
+      HANDLING_API_URL: ${{ vars.HANDLING_API_URL || 'http://ia:5000' }}
+      N8N_WEBHOOK_URL: ${{ vars.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/chat' }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-3.1-flash-lite' }}
+      GEMINI_TIMEOUT_MS: ${{ vars.GEMINI_TIMEOUT_MS || '15000' }}
+      TERMS_VERSION: ${{ vars.TERMS_VERSION }}
+      HISTORY_CONTEXT_LIMIT: ${{ vars.HISTORY_CONTEXT_LIMIT }}
+      OPEN_METEO_API_URL: ${{ vars.OPEN_METEO_API_URL }}
+      THROTTLE_SHORT_TTL: ${{ vars.THROTTLE_SHORT_TTL || '1000' }}
+      THROTTLE_SHORT_LIMIT: ${{ vars.THROTTLE_SHORT_LIMIT || '50' }}
+      THROTTLE_MEDIUM_TTL: ${{ vars.THROTTLE_MEDIUM_TTL || '10000' }}
+      THROTTLE_MEDIUM_LIMIT: ${{ vars.THROTTLE_MEDIUM_LIMIT || '200' }}
+      THROTTLE_LONG_TTL: ${{ vars.THROTTLE_LONG_TTL || '60000' }}
+      THROTTLE_LONG_LIMIT: ${{ vars.THROTTLE_LONG_LIMIT || '1000' }}
+      THROTTLE_LOGIN_LIMIT: ${{ vars.THROTTLE_LOGIN_LIMIT || '10' }}
+    steps:
+      - name: Check required configuration
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          missing=()
+          for name in DB_URL JWT_SECRET AES_KEY RABBITMQ_URL GEMINI_API_KEY CORS_ORIGINS \
+            EC2_HOST EC2_USER EC2_SSH_KEY; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Configure no GitHub (Settings → Secrets and variables → Actions): ${missing[*]}"
+            exit 1
+          fi
+          if ! [[ "$AES_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+            echo "::error::AES_KEY precisa ter 64 caracteres hexadecimais (32 bytes, AES-256)"
+            exit 1
+          fi
+
+      - name: Pull new image and restart backend on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: IMAGE_REF,DB_URL,JWT_SECRET,AES_KEY,RABBITMQ_URL,GEMINI_API_KEY,CORS_ORIGINS,CORS_ORIGIN_PATTERNS,DB_SSL,FLASK_API_URL,HANDLING_API_URL,N8N_WEBHOOK_URL,GEMINI_MODEL,GEMINI_TIMEOUT_MS,TERMS_VERSION,HISTORY_CONTEXT_LIMIT,OPEN_METEO_API_URL,THROTTLE_SHORT_TTL,THROTTLE_SHORT_LIMIT,THROTTLE_MEDIUM_TTL,THROTTLE_MEDIUM_LIMIT,THROTTLE_LONG_TTL,THROTTLE_LONG_LIMIT,THROTTLE_LOGIN_LIMIT
+          script: |
+            set -euo pipefail
+
+            ENV_FILE="$(umask 077 && mktemp)"
+            trap 'rm -f "$ENV_FILE"' EXIT
+
+            for name in DB_URL JWT_SECRET AES_KEY RABBITMQ_URL GEMINI_API_KEY \
+              CORS_ORIGINS CORS_ORIGIN_PATTERNS DB_SSL FLASK_API_URL HANDLING_API_URL \
+              N8N_WEBHOOK_URL GEMINI_MODEL GEMINI_TIMEOUT_MS TERMS_VERSION \
+              HISTORY_CONTEXT_LIMIT OPEN_METEO_API_URL THROTTLE_SHORT_TTL \
+              THROTTLE_SHORT_LIMIT THROTTLE_MEDIUM_TTL THROTTLE_MEDIUM_LIMIT \
+              THROTTLE_LONG_TTL THROTTLE_LONG_LIMIT THROTTLE_LOGIN_LIMIT; do
+              value="${!name:-}"
+              if [ -n "$value" ]; then
+                printf '%s=%s\n' "$name" "$value" >> "$ENV_FILE"
+              fi
+            done
+
+            docker network inspect agroscope-net >/dev/null 2>&1 || docker network create agroscope-net
+
+            PREVIOUS_IMAGE="$(docker inspect backend --format '{{.Config.Image}}' 2>/dev/null || true)"
+
+            run_backend() {
+              docker rm -f backend >/dev/null 2>&1 || true
+              docker run -d --name backend --network agroscope-net --restart unless-stopped \
+                -p 127.0.0.1:3001:3001 \
+                --env-file "$ENV_FILE" \
+                "$1"
+            }
+
+            wait_healthy() {
+              for _ in $(seq 1 45); do
+                if curl -fsS http://127.0.0.1:3001/hello >/dev/null 2>&1; then
+                  return 0
+                fi
+                sleep 2
+              done
+              return 1
+            }
+
+            docker pull "$IMAGE_REF"
+            run_backend "$IMAGE_REF"
+
+            if wait_healthy; then
+              echo "Deploy OK: $IMAGE_REF"
+              if [ -n "$PREVIOUS_IMAGE" ] && [ "$PREVIOUS_IMAGE" != "$IMAGE_REF" ]; then
+                docker rmi "$PREVIOUS_IMAGE" >/dev/null 2>&1 || true
+              fi
+              docker image prune -f >/dev/null
+            else
+              echo "Backend não respondeu /hello — logs do container novo:"
+              docker logs --tail 80 backend || true
+              if [ -n "$PREVIOUS_IMAGE" ]; then
+                echo "Rollback para $PREVIOUS_IMAGE"
+                run_backend "$PREVIOUS_IMAGE"
+                wait_healthy || echo "ATENÇÃO: rollback também não respondeu"
+              fi
+              exit 1
+            fi
+
+      - name: Smoke test (URL pública)
+        if: vars.API_URL != ''
+        run: |
+          for _ in $(seq 1 10); do
+            if curl -fsS "${{ vars.API_URL }}/hello"; then exit 0; fi
+            sleep 3
+          done
+          echo "API pública não respondeu em ${{ vars.API_URL }}/hello"
+          exit 1

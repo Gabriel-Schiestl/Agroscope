@@ -89,10 +89,12 @@ jobs:
       THROTTLE_LOGIN_LIMIT: ${{ vars.THROTTLE_LOGIN_LIMIT || '10' }}
     steps:
       - name: Check required configuration
+        id: check-config
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         run: |
           missing=()
           for name in DB_URL JWT_SECRET AES_KEY RABBITMQ_URL GEMINI_API_KEY CORS_ORIGINS \
@@ -107,6 +109,40 @@ jobs:
             echo "::error::AES_KEY precisa ter 64 caracteres hexadecimais (32 bytes, AES-256)"
             exit 1
           fi
+
+          # AWS_ACCESS_KEY_ID/SECRET + AWS_REGION/EC2_SECURITY_GROUP_ID são
+          # opcionais: só habilitam a abertura/fechamento dinâmico da porta 22
+          # no Security Group pro IP deste runner. Sem isso, a porta 22
+          # precisa já estar liberada por fora (ex: IP fixo seu).
+          if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "${{ vars.AWS_REGION }}" ] && [ -n "${{ vars.EC2_SECURITY_GROUP_ID }}" ]; then
+            echo "aws_configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "aws_configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Runners hospedados do GitHub Actions usam IPs efêmeros (mudam a cada
+      # execução) — não dá pra liberar um IP fixo no Security Group. Em vez
+      # de abrir a porta 22 pra internet inteira, liberamos só o IP deste
+      # runner especificamente, e revogamos no fim do job (passo "Close SSH
+      # access"), mesmo se o deploy falhar.
+      - name: Configure AWS credentials
+        if: steps.check-config.outputs.aws_configured == 'true'
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Open SSH access for this runner
+        if: steps.aws-creds.outcome == 'success'
+        id: open-ssh
+        run: |
+          RUNNER_IP="$(curl -fsS https://checkip.amazonaws.com)"
+          aws ec2 authorize-security-group-ingress \
+            --group-id "${{ vars.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "${RUNNER_IP}/32"
+          echo "ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
 
       - name: Pull new image and restart backend on EC2
         uses: appleboy/ssh-action@v1.2.0
@@ -189,3 +225,10 @@ jobs:
           done
           echo "API pública não respondeu em ${{ vars.API_URL }}/hello"
           exit 1
+
+      - name: Close SSH access for this runner
+        if: always() && steps.open-ssh.outcome == 'success'
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id "${{ vars.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "${{ steps.open-ssh.outputs.ip }}/32"

@@ -89,9 +89,14 @@ jobs:
       THROTTLE_LOGIN_LIMIT: ${{ vars.THROTTLE_LOGIN_LIMIT || '10' }}
     steps:
       - name: Check required configuration
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           missing=()
-          for name in DB_URL JWT_SECRET AES_KEY RABBITMQ_URL GEMINI_API_KEY CORS_ORIGINS; do
+          for name in DB_URL JWT_SECRET AES_KEY RABBITMQ_URL GEMINI_API_KEY CORS_ORIGINS \
+            EC2_HOST EC2_USER EC2_SSH_KEY; do
             [ -n "${!name}" ] || missing+=("$name")
           done
           if [ "${#missing[@]}" -gt 0 ]; then
@@ -155,6 +160,14 @@ jobs:
 
             if wait_healthy; then
               echo "Deploy OK: $IMAGE_REF"
+              # docker image prune -f só remove imagens "dangling" (sem tag) —
+              # como cada deploy empurra uma tag nova (:sha), a imagem antiga
+              # continua tagueada e nunca seria removida por aqui, enchendo o
+              # disco da EC2 a cada deploy. Remove explicitamente a imagem
+              # anterior, já que o rollback só é útil dentro deste mesmo run.
+              if [ -n "$PREVIOUS_IMAGE" ] && [ "$PREVIOUS_IMAGE" != "$IMAGE_REF" ]; then
+                docker rmi "$PREVIOUS_IMAGE" >/dev/null 2>&1 || true
+              fi
               docker image prune -f >/dev/null
             else
               echo "Backend não respondeu /hello — logs do container novo:"

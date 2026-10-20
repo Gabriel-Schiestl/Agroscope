@@ -1,0 +1,10 @@
+node_modules
+packages/IA
+packages/e2e-web
+packages/app
+packages/backend
+*.docx
+*.apk
+*.pem
+*.pth
+.git

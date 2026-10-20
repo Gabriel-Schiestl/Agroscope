@@ -50,8 +50,10 @@ export class ChangePasswordUseCase extends AbstractUseCase<
             props.token,
             hash,
         );
-        if (passwordChange.isFailure())
+        if (passwordChange.isFailure()) {
+            await this.authenticationRepository.save(authentication.value);
             return Res.failure(passwordChange.error);
+        }
 
         const saveResult = await this.authenticationRepository.save(
             authentication.value,

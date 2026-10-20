@@ -43,7 +43,10 @@ export class ValidateRecoveryTokenUseCase extends AbstractUseCase<
         const validateToken = authentication.value.validateRecoveryToken(
             props.token,
         );
-        if (validateToken.isFailure()) return Res.failure(validateToken.error);
+        if (validateToken.isFailure()) {
+            await this.authenticationRepository.save(authentication.value);
+            return Res.failure(validateToken.error);
+        }
 
         return Res.success();
     }

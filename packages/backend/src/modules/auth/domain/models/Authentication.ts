@@ -93,8 +93,10 @@ export class Authentication implements AuthenticationProps {
         if (new Date().getTime() > this.#recoveryCodeExpiration.getTime())
             return Res.failure(new BusinessException('Invalid Token'));
 
-        if (this.#recoveryCode !== token)
+        if (this.#recoveryCode !== token) {
+            this.incrementIncorrectRecoveryAttempts();
             return Res.failure(new BusinessException('Invalid Token'));
+        }
 
         this.#incorrectRecoveryAttempts = 0;
         this.#recoveryCodeExpiration = new Date(
@@ -108,8 +110,15 @@ export class Authentication implements AuthenticationProps {
         token: string,
         newPassword: string,
     ): Result<BusinessException, void> {
-        if (this.#recoveryCode !== token)
+        if (this.#incorrectRecoveryAttempts > 4)
+            return Res.failure(
+                new BusinessException('You exceed incorrect attempts limit'),
+            );
+
+        if (this.#recoveryCode !== token) {
+            this.incrementIncorrectRecoveryAttempts();
             return Res.failure(new BusinessException('Invalid token'));
+        }
         if (new Date().getTime() > this.#recoveryCodeExpiration.getTime())
             return Res.failure(
                 new BusinessException(

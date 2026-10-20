@@ -72,7 +72,7 @@ describe('Auth - password recovery (e2e)', () => {
 
     it('troca a senha com o token correto e a nova senha passa a funcionar no login', async () => {
         const token = await requestRecoveryToken();
-        const newPassword = 'N3w-Str0ng-Password!';
+        const newPassword = 'N3w@Str0ng!Pass';
 
         const changeResponse = await request(app.getHttpServer())
             .post('/auth/change-password')
@@ -95,7 +95,7 @@ describe('Auth - password recovery (e2e)', () => {
 
         const changeResponse = await request(app.getHttpServer())
             .post('/auth/change-password')
-            .send({ email, token: '000000', newPassword: 'Another-Str0ng1!' });
+            .send({ email, token: '000000', newPassword: 'Another@Str0ng1!' });
         expect(changeResponse.status).toBe(400);
 
         const stillWorksWithOldPassword = await request(app.getHttpServer())

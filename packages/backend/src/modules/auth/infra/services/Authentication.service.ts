@@ -20,7 +20,12 @@ export class AuthenticationServiceImpl implements AuthenticationService {
     async verify(
         token: string,
     ): Promise<Result<TechnicalException, JwtPayload>> {
-        const payload = this.jwtService.verify(token);
+        let payload: JwtPayload;
+        try {
+            payload = this.jwtService.verify(token);
+        } catch {
+            return Res.failure(new TechnicalException('Invalid token'));
+        }
 
         if (!payload || !payload.email || !payload.sub) {
             return Res.failure(new TechnicalException('Invalid token'));

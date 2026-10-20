@@ -60,6 +60,8 @@ jobs:
     environment:
       name: production
       url: ${{ vars.API_URL }}
+    # Todo o ambiente do container vem daqui (secrets/variables do GitHub);
+    # nada é lido de containers ou arquivos que já estejam na EC2.
     env:
       IMAGE_REF: ${{ vars.DOCKERHUB_IMAGE || 'gabrielschiestl/agroscope' }}:${{ needs.build-and-push.outputs.tag }}
       DB_URL: ${{ secrets.DB_URL }}
@@ -158,6 +160,11 @@ jobs:
 
             if wait_healthy; then
               echo "Deploy OK: $IMAGE_REF"
+              # docker image prune -f só remove imagens "dangling" (sem tag) —
+              # como cada deploy empurra uma tag nova (:sha), a imagem antiga
+              # continua tagueada e nunca seria removida por aqui, enchendo o
+              # disco da EC2 a cada deploy. Remove explicitamente a imagem
+              # anterior, já que o rollback só é útil dentro deste mesmo run.
               if [ -n "$PREVIOUS_IMAGE" ] && [ "$PREVIOUS_IMAGE" != "$IMAGE_REF" ]; then
                 docker rmi "$PREVIOUS_IMAGE" >/dev/null 2>&1 || true
               fi

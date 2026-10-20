@@ -313,9 +313,90 @@ docker run -d --name backend --network agroscope-net --restart unless-stopped \
 RabbitMQ e IA raramente precisam mudar — se precisar recriá-los, repita os
 blocos correspondentes do Passo 3.
 
+## Deploy automático do backend (GitHub Actions)
+
+O workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) faz o
+deploy do **backend** sozinho a cada merge na `main`, mas só depois que o
+workflow `Tests` passar naquele commit:
+
+1. builda a imagem de `packages/backend` e publica no Docker Hub como
+   `:<sha-curto>` e `:latest`;
+2. entra na EC2 via SSH, baixa a imagem e recria o container `backend` com as
+   variáveis definidas **no GitHub** (secrets/variables abaixo). Nada é lido de
+   containers ou arquivos que já existam na EC2: o arquivo de ambiente é
+   montado do zero em um temporário e apagado ao fim do deploy;
+3. espera `/hello` responder (até 90s). Se não responder, volta o container
+   para a imagem anterior e o workflow falha.
+
+A IA continua manual (os modelos PyTorch não estão no git, então o runner não
+consegue buildar a imagem) e o frontend é publicado pela Vercel.
+
+### Configuração (uma vez só)
+
+Em **Settings → Secrets and variables → Actions** do repositório.
+
+**Secrets — acesso** (obrigatórios):
+
+| Nome | Valor |
+|---|---|
+| `DOCKERHUB_USERNAME` | usuário do Docker Hub |
+| `DOCKERHUB_TOKEN` | access token do Docker Hub (Account Settings → Personal access tokens, Read & Write) |
+| `EC2_HOST` | IP público (ou domínio) da EC2 |
+| `EC2_USER` | `ubuntu` |
+| `EC2_SSH_KEY` | conteúdo inteiro do `agroscope.pem` |
+
+**Secrets — ambiente do backend** (obrigatórios; o workflow falha antes do
+deploy se algum estiver vazio):
+
+| Nome | Valor |
+|---|---|
+| `DB_URL` | connection string do pooler do Supabase (Passo 3) |
+| `JWT_SECRET` | `openssl rand -hex 32` |
+| `AES_KEY` | `openssl rand -hex 32` (exatamente 64 caracteres hex) |
+| `RABBITMQ_URL` | `amqp://agroscope:<RABBITMQ_PASS>@rabbitmq:5672` |
+| `GEMINI_API_KEY` | chave do Google AI Studio |
+
+**Variables — ambiente do backend:**
+
+| Nome | Padrão se vazio |
+|---|---|
+| `CORS_ORIGINS` | **obrigatória** — ex.: `https://agroscope-nu.vercel.app,https://<EC2_DOMAIN>` |
+| `CORS_ORIGIN_PATTERNS` | (não enviada) |
+| `DB_SSL` | `true` |
+| `FLASK_API_URL` / `HANDLING_API_URL` | `http://ia:5000` |
+| `N8N_WEBHOOK_URL` | `http://localhost:5678/webhook/chat` |
+| `GEMINI_MODEL` | `gemini-3.1-flash-lite` |
+| `GEMINI_TIMEOUT_MS` | `15000` |
+| `THROTTLE_SHORT_TTL` / `_LIMIT` | `1000` / `50` |
+| `THROTTLE_MEDIUM_TTL` / `_LIMIT` | `10000` / `200` |
+| `THROTTLE_LONG_TTL` / `_LIMIT` | `60000` / `1000` |
+| `THROTTLE_LOGIN_LIMIT` | `10` |
+| `TERMS_VERSION`, `HISTORY_CONTEXT_LIMIT`, `OPEN_METEO_API_URL` | (não enviadas — o backend usa o padrão do código) |
+
+**Variables — controle do workflow:**
+
+| Nome | Uso |
+|---|---|
+| `DEPLOY_ENABLED` | `false` pula o deploy inteiro (ex.: com a EC2 parada para economizar saldo) |
+| `API_URL` | opcional — ex.: `https://<EC2_DOMAIN>/api`, usado no smoke test final |
+| `DOCKERHUB_IMAGE` | opcional — padrão `gabrielschiestl/agroscope` |
+
+Para trocar qualquer variável, altere no GitHub e rode
+**Actions → Deploy → Run workflow**.
+
+O Security Group precisa aceitar SSH (porta 22) vindo do GitHub Actions. Os
+IPs dos runners mudam, então na prática é liberar `0.0.0.0/0` na 22 (só com
+chave, sem senha) ou usar um runner self-hosted.
+
+**EC2 parada:** com a instância desligada o SSH falha, então defina
+`DEPLOY_ENABLED=false` enquanto ela estiver parada. Ao religar sem Elastic IP o
+IP público muda: atualize o secret `EC2_HOST` (e o certificado/`CORS_ORIGINS`,
+ver "Quando o IP público mudar") antes de voltar `DEPLOY_ENABLED` para `true`.
+Os containers `rabbitmq` e `ia` voltam sozinhos (`--restart unless-stopped`).
+
 ## Apêndice — atualizar as imagens (novo código)
 
-Depois de um `git push` com mudanças no backend ou na IA:
+Para o backend, o deploy automático acima já faz isso. Manualmente, ou para a IA:
 
 ```bash
 # local:

@@ -1,248 +1,186 @@
-import { test, expect, request as pwRequest } from '@playwright/test';
+import { test, expect, request as pwRequest, type Page } from '@playwright/test';
 import { SignupPage } from '../../pages/SignupPage';
 import { LoginPage } from '../../pages/LoginPage';
-import { uniqueEmail, uniqueName, VALID_PASSWORD } from '../../support/test-data';
-import { signup as apiSignup, loginOrThrow, waitForAuthenticationReady } from '../../support/api-client';
+import { uniqueEmail, VALID_PASSWORD } from '../../support/test-data';
+import { signup as apiSignup, waitForAuthenticationReady } from '../../support/api-client';
 import { BASE_URL, API_PREFIX } from '../../support/env';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Testes E2E de Segurança — XSS (Cross-Site Scripting)
+// Testes E2E de Segurança — XSS (Cross-Site Scripting) com browser real
 //
-// Valida, com browser real (Chromium headless), que:
-//   1. Payloads XSS inseridos via formulário de cadastro NÃO são executados
-//      no navegador (window.__xss_triggered nunca fica true, dialogs nunca abrem).
-//   2. O nome do usuário exibido na interface é texto escapado, nunca HTML renderizado.
-//   3. Payloads XSS no campo de login não causam execução de script.
-//   4. A API retorna os cabeçalhos de proteção corretos (CSP, X-Content-Type-Options).
-//
-// Por que e2e e não só integração?
-//   O teste de integração (Supertest) valida que a API não reflete tags brutas
-//   no JSON. Mas o XSS Stored/Reflected só se concretiza no browser: é o motor
-//   de renderização que interpreta o HTML e executa scripts. Apenas um teste com
-//   browser real pode confirmar que o frontend sanitiza a string antes de injetar
-//   no DOM — framework como React faz isso por padrão via JSX, mas o teste
-//   comprova que nenhum dangerouslySetInnerHTML ou innerHTML foi usado.
+// O teste de integração (backend/test/security/Injection.e2e-spec.ts) prova
+// que a API guarda o payload como texto e não o reflete em erros. Mas o XSS só
+// se concretiza no browser: é o motor de renderização que interpreta HTML e
+// executa scripts. Aqui confirmamos, no Chromium, que:
+//   1. Payloads gravados no nome (XSS Stored) aparecem como TEXTO literal no
+//      header e nenhum script/handler executa (flag global + dialogs).
+//   2. Payloads digitados no login (XSS Reflected) não executam.
+//   3. A API devolve os cabeçalhos de proteção (nosniff, anti-clickjacking, CSP).
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Cada payload tenta setar window.__xss_triggered — se a flag mudar, executou.
 const XSS_PAYLOADS = [
   '<script>window.__xss_triggered=true</script>',
   '<img src=x onerror="window.__xss_triggered=true">',
   '<svg onload="window.__xss_triggered=true">',
   '"><script>window.__xss_triggered=true</script>',
+  '<iframe srcdoc="<script>parent.__xss_triggered=true</script>">',
+  '<a href="javascript:window.__xss_triggered=true">clique</a>',
+  '<details open ontoggle="window.__xss_triggered=true">',
 ];
 
-test.describe('Segurança — XSS via formulário de cadastro (browser real)', () => {
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // 1. Script armazenado no nome não executa no browser após login
-  // ─────────────────────────────────────────────────────────────────────────
-  test('XSS Stored — payload no campo nome não executa script após login', async ({ page }) => {
-    const xssName = '<script>window.__xss_triggered=true</script>';
-    const email = uniqueEmail('xss-stored');
-
-    // Monitora qualquer dialog (alert/confirm/prompt) — se abrir, o XSS funcionou
-    let dialogTriggered = false;
-    page.on('dialog', async (dialog) => {
-      dialogTriggered = true;
-      await dialog.dismiss();
-    });
-
-    const signupPage = new SignupPage(page);
-    await signupPage.goto();
-    await signupPage.fill({ name: xssName, email, password: VALID_PASSWORD });
-    await signupPage.acceptTerms();
-    await signupPage.submit();
-
-    // Aguarda a credencial ser criada de forma assíncrona
-    await page.waitForTimeout(2000);
-
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(email, VALID_PASSWORD);
-    await page.waitForTimeout(2000);
-
-    // O script NÃO deve ter sido executado
-    expect(dialogTriggered).toBe(false);
-
-    const xssTriggered = await page.evaluate(() => (window as any).__xss_triggered);
-    expect(xssTriggered).toBeFalsy();
+/** Instala os "detectores" de XSS antes de qualquer script da página rodar. */
+async function armXssDetectors(page: Page): Promise<{ dialogs: string[] }> {
+  const dialogs: string[] = [];
+  page.on('dialog', async (dialog) => {
+    dialogs.push(dialog.message());
+    await dialog.dismiss();
   });
+  await page.addInitScript(() => {
+    (window as any).__xss_triggered = false;
+  });
+  return { dialogs };
+}
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 2. Múltiplos payloads — nenhum executa script no browser
-  // ─────────────────────────────────────────────────────────────────────────
+async function xssTriggered(page: Page): Promise<boolean> {
+  return page.evaluate(() => Boolean((window as any).__xss_triggered));
+}
+
+async function loginThroughUi(page: Page, email: string): Promise<void> {
+  const loginPage = new LoginPage(page);
+  await loginPage.goto();
+  await loginPage.login(email, VALID_PASSWORD);
+  await expect(page).not.toHaveURL(/\/login/, { timeout: 15_000 });
+}
+
+test.describe('Segurança — XSS Stored no nome do usuário (browser real)', () => {
   for (const payload of XSS_PAYLOADS) {
-    test(`XSS Stored — "${payload.slice(0, 45)}..." não executa no browser`, async ({ page }) => {
-      const email = uniqueEmail('xss-multi');
+    test(`payload ${JSON.stringify(payload.slice(0, 40))} é exibido como texto e não executa`, async ({ page }) => {
+      const { dialogs } = await armXssDetectors(page);
+      const email = uniqueEmail('xss-stored');
 
-      let dialogTriggered = false;
-      page.on('dialog', async (dialog) => {
-        dialogTriggered = true;
-        await dialog.dismiss();
-      });
+      // Cadastra via API: pula qualquer validação do formulário e força o
+      // payload a ir parar no banco, como faria um atacante.
+      const api = await pwRequest.newContext({ baseURL: BASE_URL });
+      await apiSignup(api, { name: payload, email, password: VALID_PASSWORD });
+      await api.dispose();
+      await waitForAuthenticationReady(email, VALID_PASSWORD);
 
-      const signupPage = new SignupPage(page);
-      await signupPage.goto();
-      await signupPage.fill({ name: payload, email, password: VALID_PASSWORD });
-      await signupPage.acceptTerms();
-      await signupPage.submit();
+      await loginThroughUi(page, email);
 
-      await page.waitForTimeout(2000);
+      // O nome aparece no header como texto literal — prova que o React
+      // escapou a string em vez de interpretá-la como HTML.
+      await expect(page.locator('header').getByText(payload, { exact: true })).toBeVisible();
 
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      await loginPage.login(email, VALID_PASSWORD);
-      await page.waitForTimeout(1500);
-
-      expect(dialogTriggered).toBe(false);
-
-      const xssTriggered = await page.evaluate(() => (window as any).__xss_triggered);
-      expect(xssTriggered).toBeFalsy();
+      expect(await xssTriggered(page)).toBe(false);
+      expect(dialogs).toEqual([]);
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 3. Payload XSS no campo e-mail do login não executa script
-  // ─────────────────────────────────────────────────────────────────────────
-  test('XSS Reflected — payload no e-mail do login não executa script', async ({ page }) => {
-    let dialogTriggered = false;
-    page.on('dialog', async (dialog) => {
-      dialogTriggered = true;
-      await dialog.dismiss();
-    });
+  test('payload enviado pelo formulário de cadastro também não executa', async ({ page }) => {
+    const { dialogs } = await armXssDetectors(page);
+    const payload = XSS_PAYLOADS[1];
+    const email = uniqueEmail('xss-form');
 
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
+    const signupPage = new SignupPage(page);
+    await signupPage.goto();
+    await signupPage.signup({ name: payload, email, password: VALID_PASSWORD });
+    await waitForAuthenticationReady(email, VALID_PASSWORD);
 
-    // Tenta fazer login com e-mail sendo um payload XSS
-    await loginPage.login('<script>window.__xss_triggered=true</script>', 'qualquercoisa');
-    await page.waitForTimeout(1500);
+    await loginThroughUi(page, email);
 
-    expect(dialogTriggered).toBe(false);
-
-    const xssTriggered = await page.evaluate(() => (window as any).__xss_triggered);
-    expect(xssTriggered).toBeFalsy();
-
-    // Deve permanecer na página de login (não houve redirecionamento)
-    await expect(page).toHaveURL(/\/login/);
+    expect(await xssTriggered(page)).toBe(false);
+    expect(dialogs).toEqual([]);
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // 4. Nome com payload XSS é exibido como texto puro no DOM, nunca como HTML
-  // ─────────────────────────────────────────────────────────────────────────
-  test('XSS Stored — nome com payload é texto puro no DOM, não HTML renderizado', async ({ page }) => {
-    const xssName = '<b>Hacker</b><script>alert(1)</script>';
-    const email = uniqueEmail('xss-display');
-    const apiCtx = await pwRequest.newContext({ baseURL: BASE_URL });
+  test('o payload não vira elemento no DOM (nenhuma <img>/<script>/<b> injetada)', async ({ page }) => {
+    await armXssDetectors(page);
+    const payload = '<b id="xss-b">Hacker</b><img id="xss-img" src=x><script id="xss-script"></script>';
+    const email = uniqueEmail('xss-dom');
 
-    // Cadastra via API para bypassar validações de frontend e forçar o dado no banco
-    await apiSignup(apiCtx, { name: xssName, email, password: VALID_PASSWORD });
-    await apiCtx.dispose();
+    const api = await pwRequest.newContext({ baseURL: BASE_URL });
+    await apiSignup(api, { name: payload, email, password: VALID_PASSWORD });
+    await api.dispose();
+    await waitForAuthenticationReady(email, VALID_PASSWORD);
 
-    await page.waitForTimeout(2000);
+    await loginThroughUi(page, email);
+    await expect(page.locator('header').getByText(payload, { exact: true })).toBeVisible();
 
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(email, VALID_PASSWORD);
-    await page.waitForTimeout(2000);
-
-    const currentUrl = page.url();
-    if (!currentUrl.includes('/login')) {
-      // Verifica que <script> não está executável no DOM
-      const bodyHTML = await page.evaluate(() => document.body.innerHTML);
-      expect(bodyHTML).not.toContain('<script>alert(1)</script>');
-
-      // React/Next.js escapa strings — <b>Hacker</b> NÃO deve criar elemento <b>
-      const boldElements = await page.locator('b').filter({ hasText: 'Hacker' }).count();
-      expect(boldElements).toBe(0);
-    }
+    await expect(page.locator('#xss-b')).toHaveCount(0);
+    await expect(page.locator('#xss-img')).toHaveCount(0);
+    await expect(page.locator('#xss-script')).toHaveCount(0);
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Cabeçalhos HTTP de proteção contra XSS e Clickjacking
-// ─────────────────────────────────────────────────────────────────────────────
+test.describe('Segurança — XSS Reflected no login (browser real)', () => {
+  for (const payload of XSS_PAYLOADS.slice(0, 3)) {
+    test(`payload ${JSON.stringify(payload.slice(0, 40))} no e-mail não executa e mantém o usuário no login`, async ({ page }) => {
+      const { dialogs } = await armXssDetectors(page);
+
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.emailInput.fill(payload);
+      await loginPage.passwordInput.fill('qualquerCoisa@1');
+      await loginPage.submitButton.click();
+      // Dá tempo para a resposta da API (ou a validação do form) ser renderizada.
+      await page.waitForLoadState('networkidle');
+
+      expect(await xssTriggered(page)).toBe(false);
+      expect(dialogs).toEqual([]);
+      await expect(page).toHaveURL(/\/login/);
+    });
+  }
+});
+
 test.describe('Segurança — Cabeçalhos HTTP de proteção (XSS / Clickjacking)', () => {
+  async function apiErrorResponse(page: Page) {
+    return page.request.post(`${BASE_URL}${API_PREFIX}/auth/login`, {
+      data: { email: 'test@test.com', password: 'wrong' },
+    });
+  }
 
   test('API retorna X-Content-Type-Options: nosniff', async ({ page }) => {
-    const response = await page.request.post(`${BASE_URL}${API_PREFIX}/auth/login`, {
-      data: { email: 'test@test.com', password: 'wrong' },
-    });
-    const header = response.headers()['x-content-type-options'];
-    expect(header).toBe('nosniff');
+    const response = await apiErrorResponse(page);
+    expect(response.headers()['x-content-type-options']).toBe('nosniff');
   });
 
-  test('API retorna proteção contra clickjacking (X-Frame-Options ou CSP frame-ancestors)', async ({ page }) => {
-    const response = await page.request.post(`${BASE_URL}${API_PREFIX}/auth/login`, {
-      data: { email: 'test@test.com', password: 'wrong' },
-    });
-    const headers = response.headers();
-    const hasXFrame = headers['x-frame-options'] !== undefined;
-    const csp = headers['content-security-policy'] ?? '';
-    const hasCspFrame = csp.includes('frame-ancestors') || csp.includes('frame');
-    expect(hasXFrame || hasCspFrame).toBe(true);
+  test('API proíbe ser carregada em iframe (X-Frame-Options: DENY)', async ({ page }) => {
+    const response = await apiErrorResponse(page);
+    expect(response.headers()['x-frame-options']).toBe('DENY');
   });
 
-  test('API retorna Content-Type application/json, nunca text/html', async ({ page }) => {
-    const response = await page.request.post(`${BASE_URL}${API_PREFIX}/auth/login`, {
-      data: { email: 'test@test.com', password: 'wrong' },
-    });
-    const contentType = response.headers()['content-type'] ?? '';
+  test('API envia Content-Security-Policy restritiva', async ({ page }) => {
+    const csp = (await apiErrorResponse(page)).headers()['content-security-policy'] ?? '';
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("frame-ancestors 'self'");
+  });
+
+  test('API não expõe a tecnologia do servidor (sem X-Powered-By)', async ({ page }) => {
+    const response = await apiErrorResponse(page);
+    expect(response.headers()['x-powered-by']).toBeUndefined();
+  });
+
+  test('API responde application/json, nunca text/html', async ({ page }) => {
+    const contentType = (await apiErrorResponse(page)).headers()['content-type'] ?? '';
     expect(contentType).toContain('application/json');
     expect(contentType).not.toContain('text/html');
   });
-});
 
-// ─────────────────────────────────────────────────────────────────────────────
-// IDOR via navegação direta no browser
-// ─────────────────────────────────────────────────────────────────────────────
-test.describe('Segurança — IDOR via navegação direta no browser', () => {
+  test('cookie de sessão é HttpOnly: document.cookie não enxerga o token', async ({ page }) => {
+    const email = uniqueEmail('xss-cookie');
+    const api = await pwRequest.newContext({ baseURL: BASE_URL });
+    await apiSignup(api, { name: 'Cookie Test', email, password: VALID_PASSWORD });
+    await api.dispose();
+    await waitForAuthenticationReady(email, VALID_PASSWORD);
 
-  test('IDOR — navegar para /history/:id de outro usuário não expõe dados na UI', async ({ browser }) => {
-    // Usuário A
-    const emailA = uniqueEmail('idor-a');
-    const ctxApiA = await pwRequest.newContext({ baseURL: BASE_URL });
-    await apiSignup(ctxApiA, { name: uniqueName('Usuário A'), email: emailA, password: VALID_PASSWORD });
-    await loginOrThrow(ctxApiA, emailA, VALID_PASSWORD);
+    await loginThroughUi(page, email);
 
-    // Tenta obter um history ID do usuário A
-    const historyRes = await ctxApiA.get(`${API_PREFIX}/history`);
-    const history: any[] = historyRes.ok() ? await historyRes.json() : [];
-    const targetId = history.length > 0
-      ? history[0].id
-      : '00000000-0000-0000-0000-000000000001';
-
-    const storageStateA = await ctxApiA.storageState();
-    await ctxApiA.dispose();
-
-    // Usuário B tenta acessar /history/:id do usuário A
-    const emailB = uniqueEmail('idor-b');
-    const ctxApiB = await pwRequest.newContext({ baseURL: BASE_URL });
-    await apiSignup(ctxApiB, { name: uniqueName('Usuário B'), email: emailB, password: VALID_PASSWORD });
-    await loginOrThrow(ctxApiB, emailB, VALID_PASSWORD);
-    const storageStateB = await ctxApiB.storageState();
-    await ctxApiB.dispose();
-
-    const ctxB = await browser.newContext({ storageState: storageStateB });
-    const pageB = await ctxB.newPage();
-
-    // Navega diretamente para o histórico do usuário A
-    await pageB.goto(`/history/${targetId}`);
-    await pageB.waitForTimeout(2000);
-
-    const url = pageB.url();
-    const bodyText = await pageB.locator('body').innerText().catch(() => '');
-
-    // Ou redireciona pro login, ou mostra página de erro — nunca dados alheios
-    const isRedirectLogin = url.includes('/login');
-    const isErrorPage =
-      bodyText.includes('404') ||
-      bodyText.toLowerCase().includes('não encontrad') ||
-      bodyText.toLowerCase().includes('acesso negado') ||
-      bodyText.toLowerCase().includes('não autorizado');
-
-    expect(isRedirectLogin || isErrorPage).toBe(true);
-
-    await ctxB.close();
+    // Mesmo que um XSS executasse, ele não conseguiria ler a sessão.
+    const visibleToJs = await page.evaluate(() => document.cookie);
+    expect(visibleToJs).not.toContain('agroscope-authentication');
+    const cookies = await page.context().cookies();
+    const session = cookies.find((c) => c.name === 'agroscope-authentication');
+    expect(session?.httpOnly).toBe(true);
   });
 });

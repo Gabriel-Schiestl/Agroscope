@@ -1,12 +1,20 @@
-import { Body, Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    Inject,
+    Post,
+    Req,
+    Res,
+    UsePipes,
+    ValidationPipe,
+} from '@nestjs/common';
 import { minutes, Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { Public } from 'PublicRoutes';
 import { ChangePasswordUseCase } from '../application/usecases/ChangePassword.usecase';
-import {
-    LoginUseCase,
-    LoginUseCaseProps,
-} from '../application/usecases/Login.usecase';
+import { LoginUseCase } from '../application/usecases/Login.usecase';
+import { AuthenticationDto } from '../application/dto/Authentication.dto';
 import { PasswordRecoveryUseCase } from '../application/usecases/PasswordRecovery.usecase';
 import { ValidateRecoveryTokenUseCase } from '../application/usecases/ValidateRecoveryToken.usecase';
 import { PasswordRecoveryDto } from '../application/dto/PasswordRecovery.dto';
@@ -20,6 +28,7 @@ const AUTH_THROTTLE_LIMIT = process.env.THROTTLE_LOGIN_LIMIT
     ? Number(process.env.THROTTLE_LOGIN_LIMIT)
     : 10;
 
+@UsePipes(new ValidationPipe({ whitelist: true }))
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -34,7 +43,7 @@ export class AuthController {
     @Public()
     @Throttle({ medium: { limit: AUTH_THROTTLE_LIMIT, ttl: minutes(1) } })
     @Post('login')
-    async login(@Body() body: LoginUseCaseProps, @Res() res: Response) {
+    async login(@Body() body: AuthenticationDto, @Res() res: Response) {
         const result = await this.loginUseCase.execute(body);
 
         if (result.isSuccess()) {

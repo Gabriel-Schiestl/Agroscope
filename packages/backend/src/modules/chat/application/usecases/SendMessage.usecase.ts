@@ -81,6 +81,14 @@ export class SendMessageUseCase extends AbstractUseCase<
             );
         }
 
+        const analysisResult = await this.historyRepository.getById(sessionId);
+        if (
+            analysisResult.isSuccess() &&
+            analysisResult.value.userId !== userId
+        ) {
+            return Res.failure(new BusinessException('Sessão não encontrada'));
+        }
+
         if (initialMessage) {
             const existingResult = await this.chatMessageRepository.getBySession(
                 sessionId,
@@ -145,7 +153,6 @@ export class SendMessageUseCase extends AbstractUseCase<
             }));
 
         let analysisContext: AnalysisContext | undefined;
-        const analysisResult = await this.historyRepository.getById(sessionId);
         if (analysisResult.isSuccess()) {
             const analysis = analysisResult.value;
             analysisContext = {

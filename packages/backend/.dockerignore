@@ -1,2 +1,14 @@
 node_modules
 dist
+coverage
+
+# Segredos: as variáveis vêm do ambiente do container (docker run -e / compose)
+.env
+.env.*
+!.env.example
+
+# Imagens enviadas pelos usuários
+src/modules/core/infra/uploads
+uploads
+
+security-report.json

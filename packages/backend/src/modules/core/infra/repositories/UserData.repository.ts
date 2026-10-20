@@ -68,6 +68,10 @@ export class UserDataRepository implements UserRepository {
     async getByEmail(
         email: string,
     ): Promise<Result<UserRepositoryExceptions, User>> {
+        if (typeof email !== 'string' || !email) {
+            return Res.failure(new RepositoryNoDataFound('User not found'));
+        }
+
         try {
             const model = await UserModel.findOne({
                 where: { email },

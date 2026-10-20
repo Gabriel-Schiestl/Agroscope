@@ -35,6 +35,12 @@ export class AuthenticationDataRepository implements AuthenticationRepository {
     async findByEmail(
         email: string,
     ): Promise<Result<AuthenticationRepositoryExceptions, Authentication>> {
+        if (typeof email !== 'string' || !email) {
+            return Res.failure(
+                new TechnicalException('Authentication not found'),
+            );
+        }
+
         try {
             const model = await AuthenticationModel.findOneBy({ email });
             if (!model) {

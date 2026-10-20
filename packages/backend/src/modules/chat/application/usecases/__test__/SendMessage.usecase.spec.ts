@@ -335,6 +335,39 @@ describe('SendMessageUseCase', () => {
         );
     });
 
+    it('should fail without saving messages or calling the AI when the session belongs to another user', async () => {
+        const analysis = History.load(
+            {
+                createdAt: new Date(),
+                crop: 'Milho',
+                cropConfidence: 0.9,
+                sicknessId: 'sickness-1',
+                sicknessConfidence: 0.8,
+                explanation: 'exp',
+                causes: 'causas',
+                handling: 'manejo',
+                precautions: 'precaucoes',
+                image: 'base64',
+                userId: 'other-user',
+            },
+            'session-1',
+        );
+        historyRepository.getById.mockResolvedValue(Res.success(analysis));
+
+        const result = await useCase.execute({
+            content: 'Olá',
+            userId: 'user-1',
+            sessionId: 'session-1',
+            initialMessage: 'Bem-vindo',
+        });
+
+        expect(result.isFailure()).toBe(true);
+        expect(result.isFailure() && result.error).toBeInstanceOf(BusinessException);
+        expect(chatMessageRepository.save).not.toHaveBeenCalled();
+        expect(aiAgentService.sendMessage).not.toHaveBeenCalled();
+        expect(userRepository.save).not.toHaveBeenCalled();
+    });
+
     it('should persist the initial greeting when it is the first message of a session', async () => {
         chatMessageRepository.getBySession.mockResolvedValue(Res.success([]));
 

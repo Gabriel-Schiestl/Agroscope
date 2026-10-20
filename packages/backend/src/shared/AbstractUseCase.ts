@@ -1,6 +1,14 @@
 import { Logger } from '@nestjs/common';
 import { Result } from './Result';
 
+const SENSITIVE_KEYS = /password|token|secret/i;
+
+function redactSensitive(data: unknown): string {
+    return JSON.stringify(data, (key, value) =>
+        key && SENSITIVE_KEYS.test(key) ? '[REDACTED]' : value,
+    );
+}
+
 export abstract class AbstractUseCase<P, E, R> {
     constructor(
         private readonly logger: Logger = new Logger(AbstractUseCase.name),
@@ -13,7 +21,7 @@ export abstract class AbstractUseCase<P, E, R> {
     async execute(data: P): Promise<Result<E, R>> {
         try {
             this.logger.debug(
-                `[INÍCIO] Executando ${this.constructor.name} com dados: ${JSON.stringify(data)}`,
+                `[INÍCIO] Executando ${this.constructor.name} com dados: ${redactSensitive(data)}`,
             );
 
             const startTime = Date.now();

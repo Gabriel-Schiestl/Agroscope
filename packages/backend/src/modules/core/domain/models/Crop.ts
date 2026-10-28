@@ -1,20 +1,15 @@
-export enum Crop {
-    SOYBEAN = 'SOYBEAN',
-    WHEAT = 'WHEAT',
-    TOMATO = 'TOMATO',
-    COFFEE = 'COFFEE',
+// As culturas não são fixas no código: a IA declara as que tem modelo carregado
+// (GET /cultures) e o backend as lê via CropCatalogService. Uma cultura nova
+// aparece aqui sem mudança no backend, front ou app.
+//
+// Código da cultura (ex.: 'SOYBEAN', 'CORN'), o mesmo salvo em history.crop e
+// sickness.crop.
+export type Crop = string;
+
+export interface AvailableCrop {
+    code: Crop;
+    // Nome exibido ao usuário (ex.: 'Soja')
+    label: string;
+    // Classes que o modelo da cultura reconhece (ex.: 'Healthy', 'Rust')
+    classes: string[];
 }
-
-export const CROP_LABELS: Record<Crop, string> = {
-    [Crop.SOYBEAN]: 'Soja',
-    [Crop.WHEAT]: 'Trigo',
-    [Crop.TOMATO]: 'Tomate',
-    [Crop.COFFEE]: 'Café',
-};
-
-export const CROPS_AVAILABLE_FOR_ANALYSIS: Crop[] = [
-    Crop.SOYBEAN,
-    Crop.WHEAT,
-    Crop.TOMATO,
-    Crop.COFFEE,
-];

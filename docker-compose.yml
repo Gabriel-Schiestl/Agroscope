@@ -1,6 +1,15 @@
 services:
-  # flask:
-  #   build: ./packages/IA
+  # IA (FastAPI). Comentado porque precisa dos modelos em packages/IA/models
+  # (fora do Git) e a imagem tem ~3 GB. Para subir: crie packages/IA/.env a
+  # partir do .env.example e descomente. O backend não precisa esperar a IA:
+  # ele lê as culturas (GET /cultures) quando ela termina de carregar os modelos.
+  # ia:
+  #   build:
+  #     context: ./packages/IA
+  #     dockerfile: dockerfile
+  #   env_file: ./packages/IA/.env
+  #   environment:
+  #     - SERVER_PORT=5000
   #   networks:
   #     - app-network
   #   ports:
@@ -16,12 +25,11 @@ services:
       - ./packages/backend:/app
       - ./packages/backend/uploads:/app/uploads
     environment:
-      - FLASK_API_URL=http://flask:5000
+      - FLASK_API_URL=http://ia:5000
       - NODE_ENV=production
       - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost,http://nginx
     # depends_on:
     #   - db
-    #   - flask
 
   # db:
   #   image: postgres:15-alpine

@@ -48,7 +48,8 @@ import type { History } from '@/models/History';
 import type { AnalyticsGranularity } from '@/models/Analytics';
 import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
 import { hasPlanFeature, PLAN_FEATURE_REPORT_GENERATION } from '@/lib/plan-features';
-import { cropLabel, sicknessLabel, ANALYSIS_CROP_OPTIONS } from '@/lib/agro-labels';
+import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
+import { useAnalysisCrops } from '@/hooks/use-analysis-crops';
 import { showAlert } from '@/lib/alert';
 import { styles } from '@/styles/analytics.styles';
 
@@ -89,6 +90,7 @@ export default function AnalyticsScreen() {
     const router = useRouter();
     const { auth, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const { limit, refetch: refetchLimit } = useLimit();
+    const { crops: analysisCrops, isLoading: cropsLoading, error: cropsError } = useAnalysisCrops();
     const {
         coords,
         status: locationStatus,
@@ -346,7 +348,13 @@ export default function AnalyticsScreen() {
             const message: string =
                 error?.response?.data?.message ?? 'Erro inesperado na análise.';
 
-            const isLowConfidence = message.includes('confiança insuficiente') || message.includes('confiança suficiente');
+            // Baixa confiança do diagnóstico ou foto recusada pela triagem da IA
+            // (não é folha / sem qualidade): nos dois casos a saída é outra foto.
+            const isLowConfidence =
+                message.includes('confiança insuficiente') ||
+                message.includes('confiança suficiente') ||
+                message.includes('Envie uma foto') ||
+                message.includes('Tire outra foto');
             showAlert(
                 isLowConfidence ? 'Imagem insuficiente' : 'Erro',
                 message,
@@ -623,18 +631,18 @@ export default function AnalyticsScreen() {
                                 Cultura <ThemedText style={styles.cropRequired}>*</ThemedText>
                             </ThemedText>
                             <View style={styles.cropRow}>
-                                {ANALYSIS_CROP_OPTIONS.map((option) => {
-                                    const active = crop === option.value;
+                                {analysisCrops.map((option) => {
+                                    const active = crop === option.code;
                                     return (
                                         <TouchableOpacity
-                                            key={option.value}
+                                            key={option.code}
                                             style={[
                                                 styles.cropChip,
                                                 active
                                                     ? { backgroundColor: colors.tint, borderColor: colors.tint }
                                                     : { backgroundColor: colors.backgroundSelected, borderColor: colors.backgroundElement },
                                             ]}
-                                            onPress={() => setCrop(option.value)}
+                                            onPress={() => setCrop(option.code)}
                                             accessibilityRole="radio"
                                             accessibilityState={{ checked: active }}
                                         >
@@ -645,6 +653,11 @@ export default function AnalyticsScreen() {
                                     );
                                 })}
                             </View>
+                            {(cropsLoading || cropsError) && (
+                                <ThemedText style={{ fontSize: 12, marginBottom: 8, color: cropsError ? '#ef4444' : colors.textSecondary }}>
+                                    {cropsError ?? 'Carregando culturas...'}
+                                </ThemedText>
+                            )}
 
                             {/* Preview */}
                             <View
@@ -1180,7 +1193,10 @@ export default function AnalyticsScreen() {
                                 Cultura
                             </ThemedText>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-                                {([{ value: undefined, label: 'Todas' }, ...ANALYSIS_CROP_OPTIONS] as {
+                                {([
+                                    { value: undefined, label: 'Todas' },
+                                    ...analysisCrops.map(({ code, label }) => ({ value: code, label })),
+                                ] as {
                                     value: string | undefined;
                                     label: string;
                                 }[]).map(({ value: c, label }) => {

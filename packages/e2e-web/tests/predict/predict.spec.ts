@@ -39,7 +39,7 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
     );
 
     // A cultura selecionada (Soja) agora fixa qual doença o MockPredictService
-    // devolve (Mancha Alvo) em vez de sortear entre as 3 — mas as asserções
+    // devolve (Crestamento Bacteriano) em vez de sortear entre as 3 — mas as asserções
     // abaixo continuam checando a ESTRUTURA do resultado, não valores fixos.
     await expect(analytics.resultCropTitle).toBeVisible();
     await expect(analytics.resultDiagnosisTitle).toBeVisible();
@@ -142,6 +142,33 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
     await expect(analytics.resultCropTitle).toBeVisible();
   });
 
+  test('CT-25b - culturas do seletor vêm da IA (via GET /crops) e incluem Milho', async ({
+    authedPage,
+  }) => {
+    // As culturas não são mais fixas no front: o backend lê as que a IA tem
+    // carregadas (no ambiente de teste, MockCropCatalogService) e o seletor é
+    // montado a partir de GET /crops. Milho entra sem nenhuma mudança no front.
+    const analytics = new AnalyticsPage(authedPage);
+    const [cropsResponse] = await Promise.all([
+      authedPage.waitForResponse((r) => r.url().includes('/crops') && r.request().method() === 'GET'),
+      analytics.goto(),
+    ]);
+    expect(cropsResponse.status()).toBe(200);
+    const crops: { code: string; label: string }[] = await cropsResponse.json();
+    expect(crops).toContainEqual({ code: 'CORN', label: 'Milho' });
+
+    await analytics.selectCrop('Milho');
+    await analytics.selectImage(IMAGE_FIXTURE_PATH);
+
+    const [response] = await Promise.all([
+      authedPage.waitForResponse((r) => r.url().includes('/predict') && r.request().method() === 'POST'),
+      analytics.analyze(),
+    ]);
+
+    expect(response.status()).toBe(201);
+    expect((await response.json()).crop).toBe('CORN');
+  });
+
   test('CT-18 - análise de imagem de planta saudável', async ({
     authedPage,
   }) => {
@@ -169,17 +196,17 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
   test.fixme(
     'CT-21 - enviar imagem sem planta suportada (bloqueado: mock não simula esse cenário)',
     async ({ authedPage }) => {
-      // O MockPredictService sempre devolve uma das 3 culturas conhecidas
-      // (Tomate/Milho/Soja) com confiança fixa alta — ele ignora completamente
+      // O MockPredictService sempre devolve um diagnóstico da cultura
+      // selecionada com confiança fixa alta — ele ignora completamente
       // o conteúdo da imagem enviada. Não há como, apenas trocando a imagem
-      // de entrada, provocar a resposta "nenhuma cultura identificada": isso
-      // depende do serviço real de IA (Flask), que não está presente neste
-      // ambiente de teste (MOCK_AI=true).
+      // de entrada, provocar a recusa: isso depende da triagem do serviço real
+      // de IA (422 "not_leaf", coberto em packages/IA/tests/test_api.py), que
+      // não está presente neste ambiente de teste (MOCK_AI=true).
       const analytics = new AnalyticsPage(authedPage);
       await analytics.goto();
       await analytics.selectAndAnalyze(IMAGE_FIXTURE_PATH);
       await expect(
-        authedPage.getByText(/n[ãa]o foi poss[íi]vel identificar/i),
+        authedPage.getByText(/n[ãa]o parece ser de uma folha/i),
       ).toBeVisible();
     },
   );

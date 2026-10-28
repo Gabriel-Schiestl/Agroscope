@@ -1,10 +1,10 @@
 import { Res } from 'src/shared/Result';
-import { Crop } from '../../domain/models/Crop';
 import { PredictUseCase } from '../../application/usecases/Predict.usecase';
 import { GetHistoryUseCase } from '../../application/usecases/GetHistory.usecase';
 import { GetHistoryByIdUseCase } from '../../application/usecases/GetHistoryById.usecase';
 import { GetLimitUseCase } from '../../application/usecases/GetLimit.usecase';
 import { GetHistoryAnalyticsQuery } from '../../application/query/GetHistoryAnalytics.query';
+import { GetAvailableCropsQuery } from '../../application/query/GetAvailableCrops.query';
 import { CoreController } from '../core.controller';
 
 describe('CoreController', () => {
@@ -13,6 +13,7 @@ describe('CoreController', () => {
     let getHistoryByIdUseCase: jest.Mocked<GetHistoryByIdUseCase>;
     let getLimitUseCase: jest.Mocked<GetLimitUseCase>;
     let getHistoryAnalyticsQuery: jest.Mocked<GetHistoryAnalyticsQuery>;
+    let getAvailableCropsQuery: jest.Mocked<GetAvailableCropsQuery>;
     let controller: CoreController;
 
     const req = { user: { sub: 'user-1' } } as any;
@@ -23,12 +24,16 @@ describe('CoreController', () => {
         getHistoryByIdUseCase = { execute: jest.fn().mockResolvedValue(Res.success({})) } as any;
         getLimitUseCase = { execute: jest.fn().mockResolvedValue(Res.success({})) } as any;
         getHistoryAnalyticsQuery = { execute: jest.fn().mockResolvedValue(Res.success({})) } as any;
+        getAvailableCropsQuery = {
+            execute: jest.fn().mockResolvedValue(Res.success([{ code: 'CORN', label: 'Milho' }])),
+        } as any;
         controller = new CoreController(
             predictUseCase,
             getHistoryUseCase,
             getHistoryByIdUseCase,
             getLimitUseCase,
             getHistoryAnalyticsQuery,
+            getAvailableCropsQuery,
         );
     });
 
@@ -37,7 +42,7 @@ describe('CoreController', () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
                 {
-                    crop: Crop.SOYBEAN,
+                    crop: 'SOYBEAN',
                     latitude: '-23.5',
                     longitude: '-46.6',
                 },
@@ -47,7 +52,7 @@ describe('CoreController', () => {
             expect(predictUseCase.execute).toHaveBeenCalledWith({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
                 location: { latitude: -23.5, longitude: -46.6 },
             });
         });
@@ -55,7 +60,7 @@ describe('CoreController', () => {
         it('should omit the location when latitude/longitude are missing', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                { crop: Crop.SOYBEAN } as any,
+                { crop: 'SOYBEAN' } as any,
                 req,
             );
 
@@ -67,7 +72,7 @@ describe('CoreController', () => {
         it('should omit the location when coordinates are out of range', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                { crop: Crop.SOYBEAN, latitude: '999', longitude: '999' },
+                { crop: 'SOYBEAN', latitude: '999', longitude: '999' },
                 req,
             );
 
@@ -79,7 +84,7 @@ describe('CoreController', () => {
         it('should omit the location when coordinates are not numeric', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                { crop: Crop.SOYBEAN, latitude: 'abc', longitude: 'def' },
+                { crop: 'SOYBEAN', latitude: 'abc', longitude: 'def' },
                 req,
             );
 
@@ -91,13 +96,22 @@ describe('CoreController', () => {
         it('should forward the selected crop to the use case', async () => {
             await controller.predict(
                 { path: '/tmp/image.jpg' } as any,
-                { crop: Crop.WHEAT } as any,
+                { crop: 'WHEAT' } as any,
                 req,
             );
 
             expect(predictUseCase.execute).toHaveBeenCalledWith(
-                expect.objectContaining({ crop: Crop.WHEAT }),
+                expect.objectContaining({ crop: 'WHEAT' }),
             );
+        });
+    });
+
+    describe('getAvailableCrops', () => {
+        it('should return the crops from GetAvailableCropsQuery', async () => {
+            const result = await controller.getAvailableCrops();
+
+            expect(getAvailableCropsQuery.execute).toHaveBeenCalled();
+            expect(result.isSuccess() && result.value).toEqual([{ code: 'CORN', label: 'Milho' }]);
         });
     });
 

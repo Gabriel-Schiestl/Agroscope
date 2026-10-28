@@ -111,28 +111,42 @@ docker run -d --name rabbitmq --network agroscope-net --restart unless-stopped \
 
 ### IA (interna, sem porta pública — carrega os modelos PyTorch no boot)
 
-A imagem não embute mais um `.env` (deploy via env vars puras) — precisa
-passar os caminhos dos modelos via `-e`, senão o boot quebra com
-`TypeError: stat: path should be string... not NoneType`:
+A imagem não embute um `.env` (deploy via env vars puras) — passe os caminhos
+dos modelos via `-e` (referência: `packages/IA/.env.example`). Cultura sem
+modelo é ignorada; se nenhuma carregar, o boot falha com
+`Nenhum modelo especialista foi carregado`, listando o motivo de cada uma:
 
 ```bash
 docker run -d --name ia --network agroscope-net --restart unless-stopped \
   -e SERVER_HOST=0.0.0.0 \
-  -e SERVER_PORT=8000 \
-  -e GENERALIST='./models/General/generalist.pth' \
-  -e CORN='./models/Corn/corn.pth' \
-  -e TOMATO='./models/Tomato/tomato.pth' \
-  -e WHEAT='./models/Wheat/wheat.pth' \
-  -e SOYBEAN='./models/Soybean/soybean.pth' \
-  -e COFFEE='./models/Coffee/coffee.pth' \
+  -e SERVER_PORT=5000 \
+  -e COFFEE=./models/Coffee/coffee.pth \
+  -e SOYBEAN=./models/Soybean/soybean_v2.pth \
+  -e TOMATO=./models/Tomato/tomato.pth \
+  -e WHEAT=./models/Wheat/wheat.pth \
+  -e CORN=./models/Corn/corn.pth \
+  -e GATE=./models/Gate/gate.pth \
   gabrielschiestl/agroscope-ia:latest
 
-docker ps --filter name=ia   # sem healthcheck configurado — só confirma "Up"
-docker logs ia --tail 20     # confira "Uvicorn running on http://0.0.0.0:5000"
+docker ps --filter name=ia   # healthcheck da imagem (GET /health) — espere "healthy"
+docker logs ia --tail 20     # confira "Culturas: [...] | triagem: modelo" e "Uvicorn running on http://0.0.0.0:5000"
 ```
 
-`GENERALIST`/`CORN` são passados por completude com o `.env` de referência,
-mas o `app.py` atual só carrega de fato TOMATO/WHEAT/SOYBEAN/COFFEE.
+- `SERVER_PORT` precisa ser **5000**: é onde o backend procura a IA
+  (`FLASK_API_URL=http://ia:5000`). A partir da v2.1 a IA respeita essa variável
+  (antes a porta era fixa), então um valor diferente derruba as análises.
+- `SOYBEAN` deve apontar para `soybean_v2.pth`: o `soybean.pth` antigo nem entra
+  na imagem (`.dockerignore`), e as classes do banco já são as do modelo v2.
+- `GATE` liga a triagem: fotos que não são de folha ou sem qualidade são
+  recusadas, e o backend mostra a mensagem ao usuário. Sem ele, a IA só checa a
+  resolução mínima.
+- As culturas oferecidas no front/app são as que têm modelo aqui: o backend lê
+  `GET /cultures` da IA. Para tirar uma cultura do ar, basta não passar a
+  variável dela; para incluir uma nova, ver "Adicionar uma cultura" em
+  `packages/IA/README.md`.
+- A ordem de subida não importa: se o backend subir antes de a IA terminar de
+  carregar os modelos, ele responde "O serviço de análise ainda está iniciando"
+  até a IA ficar pronta e então passa a usar as culturas dela.
 
 ### Backend
 

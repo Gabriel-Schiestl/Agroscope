@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, type ChangeEvent } from 'react';
-import { cropLabel, sicknessLabel, confidenceTone, ANALYSIS_CROP_OPTIONS } from '../../../lib/agro-labels';
+import { cropLabel, sicknessLabel, confidenceTone } from '../../../lib/agro-labels';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { format, isToday, isThisWeek } from 'date-fns';
@@ -86,6 +86,7 @@ import { ChatPanel } from '../../../components/chat-panel';
 import { AnalyticsDashboard } from '../../../components/analytics-dashboard';
 import { DiagnosisResult } from '../../../components/diagnosis-result';
 import { useLimit } from '../../../hooks/use-limit';
+import { useAnalysisCrops } from '../../../hooks/use-analysis-crops';
 import { useHistory } from '../../../hooks/use-history';
 import { useGeolocation } from '../../../hooks/use-geolocation';
 import { toImageSrc } from '../../../lib/utils';
@@ -95,7 +96,6 @@ import {
   PLAN_FEATURE_REPORT_GENERATION,
 } from '../../../lib/plan-features';
 
-const CROP_OPTIONS = ['Todos', 'Soja', 'Milho', 'Café', 'Algodão', 'Trigo'];
 const SORT_OPTIONS = [
   { value: 'date-desc', label: 'Data (mais recente)' },
   { value: 'date-asc', label: 'Data (mais antiga)' },
@@ -142,6 +142,7 @@ export default function AnalyticsPage() {
   const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { limit, refetch: refetchLimit } = useLimit();
+  const { crops: analysisCrops, isLoading: cropsLoading, error: cropsError } = useAnalysisCrops();
   const { coords, status: locationStatus, retry: retryLocation } = useGeolocation();
   const canGenerateReport = hasPlanFeature(limit?.featureFlags, PLAN_FEATURE_REPORT_GENERATION);
   const {
@@ -149,6 +150,17 @@ export default function AnalyticsPage() {
     isLoading: historyLoading,
     refetch: refetchHistory,
   } = useHistory();
+
+  // Filtro do histórico: culturas disponíveis hoje + as que já aparecem no histórico
+  const cropFilterOptions = [
+    'Todos',
+    ...Array.from(
+      new Set([
+        ...analysisCrops.map((c) => c.label),
+        ...analysisHistory.map((h) => cropLabel(h.crop)),
+      ])
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR')),
+  ];
 
   // history tab filter/sort/pagination state
   const [searchQuery, setSearchQuery] = useState('');
@@ -313,18 +325,23 @@ export default function AnalyticsPage() {
                   <Label htmlFor="crop-select">
                     Cultura <span className="text-red-500">*</span>
                   </Label>
-                  <Select value={crop} onValueChange={setCrop}>
+                  <Select value={crop} onValueChange={setCrop} disabled={cropsLoading || analysisCrops.length === 0}>
                     <SelectTrigger id="crop-select" className="w-full">
-                      <SelectValue placeholder="Selecione a cultura" />
+                      <SelectValue
+                        placeholder={cropsLoading ? 'Carregando culturas...' : 'Selecione a cultura'}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {ANALYSIS_CROP_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                      {analysisCrops.map((option) => (
+                        <SelectItem key={option.code} value={option.code}>
                           {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {cropsError && (
+                    <p className="text-xs text-red-500">{cropsError}</p>
+                  )}
                 </div>
 
                 <input
@@ -559,7 +576,7 @@ export default function AnalyticsPage() {
                       <SelectValue placeholder="Cultura" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CROP_OPTIONS.map((crop) => (
+                      {cropFilterOptions.map((crop) => (
                         <SelectItem key={crop} value={crop}>{crop}</SelectItem>
                       ))}
                     </SelectContent>

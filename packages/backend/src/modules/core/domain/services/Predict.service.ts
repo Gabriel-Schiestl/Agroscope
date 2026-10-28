@@ -1,3 +1,4 @@
+import { Exception } from 'src/shared/Exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Result } from 'src/shared/Result';
 
@@ -18,7 +19,7 @@ export interface PredictService {
     predict(
         imagePath: string,
         crop: string,
-    ): Promise<Result<TechnicalException, PredictServiceResponse>>;
+    ): Promise<Result<Exception, PredictServiceResponse>>;
     getImageBase64(
         imagePath: string,
     ): Promise<Result<TechnicalException, string>>;

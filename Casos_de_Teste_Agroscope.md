@@ -2,8 +2,9 @@
 
 > **Projeto:** Agroscope — Plataforma de diagnóstico agrícola com IA  
 > **Autor:** Gabriel Schiestl  
-> **Pacotes cobertos:** Backend (NestJS), Frontend Web (Next.js), App Mobile (Expo), IA (Flask)  
-> **Convenção de ID:** CT-XX por módulo sequencial
+> **Pacotes cobertos:** Backend (NestJS), Frontend Web (Next.js), App Mobile (Expo), IA (FastAPI)  
+> **Convenção de ID:** CT-XX por módulo sequencial  
+> **Casos internos da IA** (API, triagem e modelos, testados com pytest): [`packages/IA/tests/CASOS_DE_TESTE.md`](packages/IA/tests/CASOS_DE_TESTE.md)
 
 ---
 

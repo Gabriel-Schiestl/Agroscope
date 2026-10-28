@@ -18,6 +18,7 @@ import { GetLimitUseCase } from '../application/usecases/GetLimit.usecase';
 import { PredictUseCase } from '../application/usecases/Predict.usecase';
 import { UseFileInterceptor } from '../infra/services/File.interceptor';
 import { GetHistoryAnalyticsQuery } from '../application/query/GetHistoryAnalytics.query';
+import { GetAvailableCropsQuery } from '../application/query/GetAvailableCrops.query';
 import { AnalyticsGranularity } from '../domain/repositories/History.repository';
 import { PredictDto } from '../application/dto/Predict.dto';
 
@@ -48,7 +49,15 @@ export class CoreController {
         private readonly getHistoryByIdUseCase: GetHistoryByIdUseCase,
         private readonly getLimitUseCase: GetLimitUseCase,
         private readonly getHistoryAnalyticsQuery: GetHistoryAnalyticsQuery,
+        private readonly getAvailableCropsQuery: GetAvailableCropsQuery,
     ) {}
+
+    // Culturas que podem ser enviadas no /predict, lidas da IA (front e app
+    // montam o seletor de cultura a partir daqui).
+    @Get('crops')
+    async getAvailableCrops() {
+        return this.getAvailableCropsQuery.execute();
+    }
 
     @Post('predict')
     @UseInterceptors(UseFileInterceptor)

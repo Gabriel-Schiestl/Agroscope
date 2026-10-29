@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import * as fs from 'fs';
 import { Readable } from 'stream';
 import { of, throwError } from 'rxjs';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res } from 'src/shared/Result';
 import { HandlingLlmService } from '../../../domain/services/HandlingLlm.service';
@@ -61,7 +62,7 @@ describe('PredictServiceImpl', () => {
             ).toBe(0.8);
         });
 
-        it('should send the mapped culture name expected by the IA service', async () => {
+        it('should send the crop code as returned by the IA /cultures route', async () => {
             httpService.post.mockReturnValue(
                 of({
                     data: {
@@ -74,7 +75,7 @@ describe('PredictServiceImpl', () => {
 
             await service.predict('/tmp/image.jpg', 'WHEAT');
 
-            expect(appendSpy).toHaveBeenCalledWith('culture', 'Wheat');
+            expect(appendSpy).toHaveBeenCalledWith('culture', 'WHEAT');
         });
 
         it('should fail when the response is incomplete', async () => {
@@ -95,6 +96,59 @@ describe('PredictServiceImpl', () => {
             const result = await service.predict('/tmp/image.jpg', 'SOYBEAN');
 
             expect(result.isFailure()).toBe(true);
+        });
+
+        it('should return a business failure with the IA message when the gate rejects the image', async () => {
+            const message =
+                'A imagem não parece ser de uma folha. Envie uma foto de uma folha da planta.';
+            httpService.post.mockReturnValue(
+                throwError(() => ({
+                    message: 'Request failed with status code 422',
+                    response: {
+                        status: 422,
+                        data: {
+                            status: 'rejected',
+                            reason: 'not_leaf',
+                            message,
+                        },
+                    },
+                })) as any,
+            );
+
+            const result = await service.predict('/tmp/image.jpg', 'SOYBEAN');
+
+            expect(result.isFailure()).toBe(true);
+            expect(result.isFailure() && result.error).toBeInstanceOf(
+                BusinessException,
+            );
+            expect(result.isFailure() && result.error.message).toBe(message);
+        });
+
+        it('should keep a readable technical message when the IA returns a structured error', async () => {
+            httpService.post.mockReturnValue(
+                throwError(() => ({
+                    message: 'Request failed with status code 400',
+                    response: {
+                        status: 400,
+                        data: {
+                            detail: {
+                                message: "Cultura 'CORN' não disponível.",
+                                available: ['coffee'],
+                            },
+                        },
+                    },
+                })) as any,
+            );
+
+            const result = await service.predict('/tmp/image.jpg', 'CORN');
+
+            expect(result.isFailure()).toBe(true);
+            expect(result.isFailure() && result.error).toBeInstanceOf(
+                TechnicalException,
+            );
+            expect(result.isFailure() && result.error.message).toContain(
+                "Cultura 'CORN' não disponível.",
+            );
         });
     });
 

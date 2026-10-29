@@ -2,7 +2,6 @@ import { Res } from 'src/shared/Result';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
-import { Crop } from '../../../domain/models/Crop';
 import { Limit } from '../../../domain/models/Limit';
 import { Plan } from '../../../domain/models/Plan';
 import { Sickness } from '../../../domain/models/Sickness';
@@ -13,6 +12,7 @@ import { PlanRepository } from '../../../domain/repositories/Plan.repository';
 import { UserRepository } from '../../../domain/repositories/User.repository';
 import { PredictService } from '../../../domain/services/Predict.service';
 import { WeatherService } from '../../../domain/services/Weather.service';
+import { CropCatalogService } from '../../../domain/services/CropCatalog.service';
 import { ProducerService } from 'src/shared/domain/services/Producer.service';
 import { PredictUseCase } from '../Predict.usecase';
 
@@ -61,6 +61,7 @@ describe('PredictUseCase', () => {
     let predictService: jest.Mocked<PredictService>;
     let producerService: jest.Mocked<ProducerService>;
     let weatherService: jest.Mocked<WeatherService>;
+    let cropCatalogService: jest.Mocked<CropCatalogService>;
     let useCase: PredictUseCase;
 
     beforeEach(() => {
@@ -116,6 +117,15 @@ describe('PredictUseCase', () => {
         weatherService = {
             getRecentWeather: jest.fn(),
         };
+        cropCatalogService = {
+            getAvailableCrops: jest.fn().mockResolvedValue(
+                Res.success(
+                    ['SOYBEAN', 'WHEAT', 'TOMATO', 'COFFEE', 'CORN'].map(
+                        (code) => ({ code, label: code, classes: [] }),
+                    ),
+                ),
+            ),
+        };
         useCase = new PredictUseCase(
             sicknessRepository,
             historyRepository,
@@ -124,6 +134,7 @@ describe('PredictUseCase', () => {
             predictService,
             producerService,
             weatherService,
+            cropCatalogService,
         );
     });
 
@@ -134,7 +145,7 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'unknown',
-            crop: Crop.SOYBEAN,
+            crop: 'SOYBEAN',
         });
 
         expect(result.isFailure()).toBe(true);
@@ -158,7 +169,7 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.SOYBEAN,
+            crop: 'SOYBEAN',
         });
 
         expect(result.isFailure()).toBe(true);
@@ -175,7 +186,7 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.SOYBEAN,
+            crop: 'SOYBEAN',
         });
 
         expect(result.isFailure()).toBe(true);
@@ -192,7 +203,7 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.SOYBEAN,
+            crop: 'SOYBEAN',
         });
 
         expect(result.isFailure()).toBe(true);
@@ -206,33 +217,87 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.TOMATO,
+            crop: 'TOMATO',
         });
 
         expect(result.isSuccess()).toBe(true);
         expect(predictService.predict).toHaveBeenCalledWith(
             '/tmp/image.jpg',
-            Crop.TOMATO,
+            'TOMATO',
         );
+    });
+
+    it('should allow analysis for corn when the IA reports it as available', async () => {
+        const result = await useCase.execute({
+            imagePath: '/tmp/image.jpg',
+            userId: 'user-1',
+            crop: 'CORN',
+        });
+
+        expect(result.isSuccess()).toBe(true);
+        expect(predictService.predict).toHaveBeenCalledWith(
+            '/tmp/image.jpg',
+            'CORN',
+        );
+    });
+
+    it('should refuse a crop that the IA does not have loaded, without calling the prediction service', async () => {
+        cropCatalogService.getAvailableCrops.mockResolvedValue(
+            Res.success([{ code: 'SOYBEAN', label: 'Soja', classes: [] }]),
+        );
+
+        const result = await useCase.execute({
+            imagePath: '/tmp/image.jpg',
+            userId: 'user-1',
+            crop: 'CORN',
+        });
+
+        expect(result.isFailure()).toBe(true);
+        expect(result.isFailure() && result.error).toBeInstanceOf(
+            BusinessException,
+        );
+        expect(result.isFailure() && result.error.message).toContain(
+            'Cultura indisponível',
+        );
+        expect(predictService.predict).not.toHaveBeenCalled();
+        expect(userRepository.getById).not.toHaveBeenCalled();
+    });
+
+    it('should fail without calling the IA when the crop catalog is unavailable', async () => {
+        const error = new TechnicalException(
+            'O serviço de análise ainda está iniciando. Tente novamente em instantes.',
+        );
+        cropCatalogService.getAvailableCrops.mockResolvedValue(
+            Res.failure(error),
+        );
+
+        const result = await useCase.execute({
+            imagePath: '/tmp/image.jpg',
+            userId: 'user-1',
+            crop: 'SOYBEAN',
+        });
+
+        expect(result.isFailure() && result.error).toBe(error);
+        expect(predictService.predict).not.toHaveBeenCalled();
     });
 
     it('should forward the user-selected crop to the prediction and handling services', async () => {
         await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.WHEAT,
+            crop: 'WHEAT',
         });
 
         expect(predictService.predict).toHaveBeenCalledWith(
             '/tmp/image.jpg',
-            Crop.WHEAT,
+            'WHEAT',
         );
         expect(predictService.getHandling).toHaveBeenCalledWith(
             'Requeima',
-            Crop.WHEAT,
+            'WHEAT',
         );
         const savedHistory = historyRepository.save.mock.calls[0][0];
-        expect(savedHistory.crop).toBe(Crop.WHEAT);
+        expect(savedHistory.crop).toBe('WHEAT');
     });
 
     it('should fail when the prediction service fails', async () => {
@@ -242,7 +307,7 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.SOYBEAN,
+            crop: 'SOYBEAN',
         });
 
         expect(result.isFailure()).toBe(true);
@@ -260,7 +325,7 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.SOYBEAN,
+            crop: 'SOYBEAN',
         });
 
         expect(result.isFailure()).toBe(true);
@@ -273,7 +338,7 @@ describe('PredictUseCase', () => {
         const result = await useCase.execute({
             imagePath: '/tmp/image.jpg',
             userId: 'user-1',
-            crop: Crop.SOYBEAN,
+            crop: 'SOYBEAN',
         });
 
         expect(result.isFailure()).toBe(true);
@@ -294,7 +359,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isSuccess()).toBe(true);
@@ -316,7 +381,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isFailure()).toBe(true);
@@ -329,12 +394,12 @@ describe('PredictUseCase', () => {
             await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(sicknessRepository.getSicknessByName).toHaveBeenCalledWith(
                 expect.any(String),
-                Crop.SOYBEAN,
+                'SOYBEAN',
             );
         });
 
@@ -345,7 +410,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isFailure()).toBe(true);
@@ -361,7 +426,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isFailure()).toBe(true);
@@ -372,7 +437,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isSuccess()).toBe(true);
@@ -387,7 +452,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
                 location: { latitude: -23.5512, longitude: -46.6339 },
             });
 
@@ -414,7 +479,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
                 location: { latitude: -23.5, longitude: -46.6 },
             });
 
@@ -436,7 +501,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
                 location: { latitude: -23.5, longitude: -46.6 },
             });
 
@@ -457,7 +522,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
                 location: { latitude: -23.5, longitude: -46.6 },
             });
 
@@ -469,7 +534,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isSuccess()).toBe(true);
@@ -495,7 +560,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isFailure()).toBe(true);
@@ -509,7 +574,7 @@ describe('PredictUseCase', () => {
             const result = await useCase.execute({
                 imagePath: '/tmp/image.jpg',
                 userId: 'user-1',
-                crop: Crop.SOYBEAN,
+                crop: 'SOYBEAN',
             });
 
             expect(result.isFailure()).toBe(true);

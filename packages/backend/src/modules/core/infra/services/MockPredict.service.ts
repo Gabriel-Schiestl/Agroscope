@@ -16,9 +16,10 @@ interface MockScenario {
 
 const HEALTHY_PLANTS = ['Milho', 'Trigo', 'Soja', 'Tomate', 'Café'];
 
-// Traduz os códigos de `Crop` (domain/models/Crop.ts) para os nomes em
+// Traduz os códigos de cultura (ver MockCropCatalog.service.ts) para os nomes em
 // PT-BR usados nos cenários mockados abaixo.
 const CROP_TO_MOCK_PLANT: Record<string, string> = {
+    CORN: 'Milho',
     SOYBEAN: 'Soja',
     WHEAT: 'Trigo',
     TOMATO: 'Tomate',
@@ -59,16 +60,16 @@ const SCENARIOS: MockScenario[] = [
     },
     {
         plant: 'Soja',
-        prediction: 'Target_Spot',
+        prediction: 'Bacterial_Blight',
         handling: {
             diagnostico:
-                'Mancha-alvo (Corynespora cassiicola) identificada nas folhas da soja.',
+                'Crestamento bacteriano (Pseudomonas savastanoi pv. glycinea) identificado nas folhas da soja.',
             explicacao:
-                'Doença fúngica que causa lesões circulares com anéis concêntricos, semelhantes a um alvo, levando à desfolha precoce.',
-            causas: 'Causada pelo fungo Corynespora cassiicola, favorecida por alta umidade, chuvas frequentes e temperaturas entre 25-30°C.',
-            manejo: 'Aplique fungicidas específicos assim que os primeiros sintomas forem identificados, realize rotação de culturas e utilize sementes de boa procedência.',
+                'Doença bacteriana que forma pequenas manchas angulares encharcadas, depois marrom-escuras e com halo amarelado, que podem coalescer e rasgar o limbo foliar.',
+            causas: 'Causada por Pseudomonas savastanoi pv. glycinea, favorecida por temperaturas amenas (15-28°C) e chuvas com vento no início do ciclo, que disseminam a bactéria e abrem ferimentos nas folhas.',
+            manejo: 'Utilize sementes sadias e cultivares tolerantes, faça rotação de culturas e incorpore ou elimine restos culturais infectados.',
             precautions:
-                'Evite o monocultivo contínuo de soja na mesma área e mantenha boa drenagem do solo.',
+                'Evite operações na lavoura com as folhas molhadas e monitore as áreas após períodos de chuva com vento.',
         },
     },
     {

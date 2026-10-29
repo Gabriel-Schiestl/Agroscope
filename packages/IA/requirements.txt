@@ -1,15 +1,11 @@
 # API
-fastapi[standard]
-uvicorn
+fastapi[standard]        # inclui uvicorn e python-multipart (upload de arquivos)
+python-dotenv
 
-# Tensor and Model
+# Modelos
 torch
-torchaudio
-torchvision
+torchvision              # traz também o pillow
 
-# Image
-pillow
-
-# Data Manipulation
+# Imagem
 numpy
-opencv-python
+opencv-python-headless   # versão sem interface gráfica: funciona em servidor/Docker

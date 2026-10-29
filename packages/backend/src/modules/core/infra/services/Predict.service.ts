@@ -3,6 +3,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { catchError, firstValueFrom } from 'rxjs';
+import { Exception } from 'src/shared/Exception';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
 import { HandlingLlmService } from '../../domain/services/HandlingLlm.service';
@@ -13,21 +15,27 @@ import {
 } from '../../domain/services/Predict.service';
 import FormData = require('form-data');
 
-// Nomes que a API de IA (FastAPI) espera no campo `culture` — diferem da
-// grafia em maiúsculas do enum `Crop` usado no restante do backend.
-const CROP_TO_IA_CULTURE: Record<string, string> = {
-    SOYBEAN: 'Soybean',
-    WHEAT: 'Wheat',
-    TOMATO: 'Tomato',
-    COFFEE: 'Coffee',
-};
-
 interface IaPredictResponse {
     culture: string;
     expert: {
         predict: string;
         predict_confidence: number;
     };
+}
+
+// A triagem da IA recusa fotos que não são de folha ou sem qualidade com 422
+// e uma mensagem já pronta para o usuário (ver packages/IA/README.md).
+interface IaRejectedResponse {
+    status: 'rejected';
+    reason: 'not_leaf' | 'low_quality';
+    message: string;
+}
+
+function describeIaError(data: unknown): string {
+    if (typeof data === 'string') return data;
+    const detail = (data as { detail?: unknown })?.detail ?? data;
+    if (typeof detail === 'string') return detail;
+    return (detail as { message?: string })?.message ?? JSON.stringify(detail);
 }
 
 @Injectable()
@@ -43,7 +51,7 @@ export class PredictServiceImpl implements PredictService {
     async predict(
         imagePath: string,
         crop: string,
-    ): Promise<Result<TechnicalException, PredictServiceResponse>> {
+    ): Promise<Result<Exception, PredictServiceResponse>> {
         const formData = new FormData();
 
         const image = fs.createReadStream(imagePath);
@@ -52,7 +60,8 @@ export class PredictServiceImpl implements PredictService {
             filename: path.basename(imagePath),
             contentType: 'image/*',
         });
-        formData.append('culture', CROP_TO_IA_CULTURE[crop] ?? crop);
+        // A IA aceita o próprio `code` de GET /cultures (ex.: 'SOYBEAN').
+        formData.append('culture', crop);
 
         try {
             const { data } = await firstValueFrom(
@@ -68,8 +77,19 @@ export class PredictServiceImpl implements PredictService {
                     )
                     .pipe(
                         catchError((error) => {
-                            const errorMessage =
-                                error.response?.data || error.message;
+                            const body = error.response?.data as
+                                | IaRejectedResponse
+                                | undefined;
+                            if (
+                                error.response?.status === 422 &&
+                                body?.status === 'rejected'
+                            ) {
+                                throw new BusinessException(body.message);
+                            }
+
+                            const errorMessage = error.response
+                                ? describeIaError(error.response.data)
+                                : error.message;
                             console.error(
                                 `Erro na requisição: ${errorMessage}`,
                             );
@@ -98,6 +118,9 @@ export class PredictServiceImpl implements PredictService {
                 predictionConfidence: data.expert.predict_confidence / 100,
             });
         } catch (error) {
+            if (error instanceof BusinessException) {
+                return Res.failure(error);
+            }
             console.error('Erro ao processar predição:', error);
             return Res.failure(
                 new TechnicalException(`Erro na predição: ${error.message}`),

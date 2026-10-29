@@ -23,11 +23,26 @@ describe('MockPredictService', () => {
                 .mockReturnValueOnce(0.9) // isHealthy check
                 .mockReturnValueOnce(0); // scenario index
 
-            const promise = service.predict('/tmp/some-image.jpg', 'CORN');
+            const promise = service.predict('/tmp/some-image.jpg', 'RICE');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 
             expect(result.isSuccess()).toBe(true);
+            expect(result.isSuccess() && result.value.prediction).toBe(
+                'Rust_Common',
+            );
+        });
+
+        it('should use the corn scenario for the user-selected CORN crop', async () => {
+            randomSpy
+                .mockReturnValueOnce(0) // simulateDelay
+                .mockReturnValueOnce(0.9) // isHealthy check
+                .mockReturnValueOnce(0.99); // scenario index (ignorado: cultura mapeada)
+
+            const promise = service.predict('/tmp/some-image.jpg', 'CORN');
+            await jest.advanceTimersByTimeAsync(1000);
+            const result = await promise;
+
             expect(result.isSuccess() && result.value.prediction).toBe(
                 'Rust_Common',
             );

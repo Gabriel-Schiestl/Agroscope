@@ -12,11 +12,29 @@ import {
     HandlingServiceResponse,
 } from 'src/modules/core/domain/services/Predict.service';
 import { Res, Result } from 'src/shared/Result';
+import { AvailableCrop } from 'src/modules/core/domain/models/Crop';
+import { CropCatalogService } from 'src/modules/core/domain/services/CropCatalog.service';
+import { Exception } from 'src/shared/Exception';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 
 // Seeded by the `SeedRealSicknesses` migration.
 const TARGET_SPOT_SICKNESS_ID = '11111111-0000-0000-0000-000000000006';
 const TARGET_SPOT_SICKNESS_NAME = 'Target_Spot';
+const RUST_COMMON_SICKNESS_ID = '11111111-0000-0000-0000-000000000002';
+
+// Simula o GET /cultures da IA (culturas com modelo carregado).
+class FakeCropCatalogService implements CropCatalogService {
+    crops: AvailableCrop[] = [
+        { code: 'SOYBEAN', label: 'Soja', classes: [] },
+        { code: 'TOMATO', label: 'Tomate', classes: [] },
+        { code: 'CORN', label: 'Milho', classes: [] },
+    ];
+
+    async getAvailableCrops(): Promise<Result<Exception, AvailableCrop[]>> {
+        return Res.success(this.crops);
+    }
+}
 
 const FAKE_IMAGE_BASE64 = 'ZmFrZS1pbWFnZS1jb250ZW50';
 
@@ -25,6 +43,8 @@ class FakePredictService implements PredictService {
         prediction: 'Healthy',
         predictionConfidence: 0.97,
     };
+    // Simula a recusa da triagem da IA (422 not_leaf/low_quality).
+    rejection?: BusinessException;
     handlingResponse: HandlingServiceResponse = {
         diagnostico: 'Planta saudável',
         explicacao: 'Sem sinais de doença',
@@ -32,7 +52,8 @@ class FakePredictService implements PredictService {
         manejo: 'Nenhuma ação necessária',
     };
 
-    async predict(): Promise<Result<TechnicalException, PredictServiceResponse>> {
+    async predict(): Promise<Result<Exception, PredictServiceResponse>> {
+        if (this.rejection) return Res.failure(this.rejection);
         return Res.success(this.predictResponse);
     }
 
@@ -40,7 +61,9 @@ class FakePredictService implements PredictService {
         return Res.success(FAKE_IMAGE_BASE64);
     }
 
-    async getHandling(): Promise<Result<TechnicalException, HandlingServiceResponse>> {
+    async getHandling(): Promise<
+        Result<TechnicalException, HandlingServiceResponse>
+    > {
         return Res.success(this.handlingResponse);
     }
 }
@@ -50,6 +73,7 @@ describe('Core - predict (e2e)', () => {
     let userRepository: UserRepository;
     let historyRepository: HistoryRepository;
     let fakePredictService: FakePredictService;
+    let fakeCropCatalog: FakeCropCatalogService;
     let producerService: { sendMessage: jest.Mock };
 
     const email = 'predict.integration@agroscope.test';
@@ -57,10 +81,12 @@ describe('Core - predict (e2e)', () => {
 
     beforeAll(async () => {
         fakePredictService = new FakePredictService();
+        fakeCropCatalog = new FakeCropCatalogService();
         producerService = { sendMessage: jest.fn() };
 
         app = await createTestApp([
             { token: 'PredictService', value: fakePredictService },
+            { token: 'CropCatalogService', value: fakeCropCatalog },
             { token: 'ProducerService', value: producerService },
         ]);
 
@@ -74,6 +100,7 @@ describe('Core - predict (e2e)', () => {
 
     beforeEach(async () => {
         producerService.sendMessage.mockClear();
+        fakePredictService.rejection = undefined;
         fakePredictService.predictResponse = {
             prediction: 'Healthy',
             predictionConfidence: 0.97,
@@ -174,6 +201,31 @@ describe('Core - predict (e2e)', () => {
         expect(producerService.sendMessage).not.toHaveBeenCalled();
     });
 
+    it('repassa a mensagem da triagem da IA quando a foto é recusada, sem criar histórico nem consumir o limite', async () => {
+        const { user, cookie } = await seedUserWithPlan(5);
+        const message =
+            'A imagem não parece ser de uma folha. Envie uma foto de uma folha da planta.';
+        fakePredictService.rejection = new BusinessException(message);
+
+        const response = await request(app.getHttpServer())
+            .post('/predict')
+            .set('Cookie', cookie)
+            .field('crop', 'SOYBEAN')
+            .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe(message);
+
+        const histories = await historyRepository.getByUserId(user.id);
+        if (histories.isFailure()) throw histories.error;
+        expect(histories.value).toHaveLength(0);
+        expect(producerService.sendMessage).not.toHaveBeenCalled();
+
+        const updated = await userRepository.getById(user.id);
+        if (updated.isFailure()) throw updated.error;
+        expect(updated.value.limit.imageRequests).toBe(0);
+    });
+
     it('recusa a análise quando o limite de imagens do plano foi atingido', async () => {
         const { cookie } = await seedUserWithPlan(1);
 
@@ -219,5 +271,77 @@ describe('Core - predict (e2e)', () => {
         const histories = await historyRepository.getByUserId(user.id);
         if (histories.isFailure()) throw histories.error;
         expect(histories.value).toHaveLength(1);
+    });
+
+    it('lista as culturas disponíveis na IA em GET /crops, ordenadas pelo nome', async () => {
+        const { cookie } = await seedUserWithPlan(5);
+
+        const response = await request(app.getHttpServer())
+            .get('/crops')
+            .set('Cookie', cookie);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual([
+            { code: 'CORN', label: 'Milho' },
+            { code: 'SOYBEAN', label: 'Soja' },
+            { code: 'TOMATO', label: 'Tomate' },
+        ]);
+    });
+
+    it('analisa milho vinculando a doença cadastrada para a cultura', async () => {
+        const { cookie } = await seedUserWithPlan(5);
+
+        fakePredictService.predictResponse = {
+            prediction: 'RUST_COMMON',
+            predictionConfidence: 0.9,
+        };
+
+        const response = await request(app.getHttpServer())
+            .post('/predict')
+            .set('Cookie', cookie)
+            .field('crop', 'CORN')
+            .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
+
+        expect(response.status).toBe(201);
+        expect(response.body.crop).toBe('CORN');
+        expect(response.body.sicknessId).toBe(RUST_COMMON_SICKNESS_ID);
+    });
+
+    it('recusa uma cultura sem modelo carregado na IA, sem consumir o limite', async () => {
+        const { user, cookie } = await seedUserWithPlan(5);
+        const previous = fakeCropCatalog.crops;
+        fakeCropCatalog.crops = [
+            { code: 'SOYBEAN', label: 'Soja', classes: [] },
+        ];
+
+        try {
+            const response = await request(app.getHttpServer())
+                .post('/predict')
+                .set('Cookie', cookie)
+                .field('crop', 'CORN')
+                .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
+
+            expect(response.status).toBe(400);
+            expect(response.body.message).toContain('Cultura indisponível');
+
+            const updated = await userRepository.getById(user.id);
+            if (updated.isFailure()) throw updated.error;
+            expect(updated.value.limit.imageRequests).toBe(0);
+        } finally {
+            fakeCropCatalog.crops = previous;
+        }
+    });
+
+    it('recusa um código de cultura com formato inválido', async () => {
+        const { cookie } = await seedUserWithPlan(5);
+
+        const response = await request(app.getHttpServer())
+            .post('/predict')
+            .set('Cookie', cookie)
+            .field('crop', "soja'; DROP TABLE history;--")
+            .attach('image', Buffer.from('fake-jpg-bytes'), 'leaf.jpg');
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toContain('Cultura inválida');
     });
 });

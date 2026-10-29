@@ -1,3 +1,6 @@
+// Nomes conhecidos de antemão, usados para exibir o histórico antes de
+// GET /crops responder. As culturas disponíveis para análise vêm do backend
+// (useAnalysisCrops), que também registra aqui os nomes de culturas novas.
 export const CROP_LABELS: Record<string, string> = {
   CORN: 'Milho',
   SOYBEAN: 'Soja',
@@ -6,13 +9,17 @@ export const CROP_LABELS: Record<string, string> = {
   COFFEE: 'Café',
 };
 
-/** Culturas disponíveis para seleção obrigatória antes do envio da foto para análise. */
-export const ANALYSIS_CROP_OPTIONS: { value: string; label: string }[] = [
-  { value: 'SOYBEAN', label: 'Soja' },
-  { value: 'WHEAT', label: 'Trigo' },
-  { value: 'TOMATO', label: 'Tomate' },
-  { value: 'COFFEE', label: 'Café' },
-];
+/** Cultura disponível para análise, como devolvida por GET /crops. */
+export interface CropOption {
+  code: string;
+  label: string;
+}
+
+export function registerCropLabels(crops: CropOption[]): void {
+  for (const { code, label } of crops) {
+    CROP_LABELS[code.toUpperCase()] = label;
+  }
+}
 
 export const SICKNESS_LABELS: Record<string, string> = {
   Rust_Blight:     'Ferrugem Polissora',

@@ -7,11 +7,8 @@ import {
     buildClimateValidation,
     ClimateValidation,
 } from '../../domain/models/ClimateValidation';
-import {
-    Crop,
-    CROP_LABELS,
-    CROPS_AVAILABLE_FOR_ANALYSIS,
-} from '../../domain/models/Crop';
+import { Crop } from '../../domain/models/Crop';
+import { CropCatalogService } from '../../domain/services/CropCatalog.service';
 import { HistoryRepository } from '../../domain/repositories/History.repository';
 import { SicknessRepository } from '../../domain/repositories/Sickness.repository';
 import { PlanRepository } from '../../domain/repositories/Plan.repository';
@@ -55,6 +52,8 @@ export class PredictUseCase extends AbstractUseCase<
         private readonly producerService: ProducerService,
         @Inject('WeatherService')
         private readonly weatherService: WeatherService,
+        @Inject('CropCatalogService')
+        private readonly cropCatalogService: CropCatalogService,
     ) {
         super();
     }
@@ -65,10 +64,13 @@ export class PredictUseCase extends AbstractUseCase<
         crop,
         location,
     }: PredictParams): Promise<Result<Exception, HistoryDto>> {
-        if (!CROPS_AVAILABLE_FOR_ANALYSIS.includes(crop)) {
+        const cropsResult = await this.cropCatalogService.getAvailableCrops();
+        if (cropsResult.isFailure()) return Res.failure(cropsResult.error);
+
+        if (!cropsResult.value.some((available) => available.code === crop)) {
             return Res.failure(
                 new BusinessException(
-                    `Análise para ${CROP_LABELS[crop]} ainda não está disponível. Em breve!`,
+                    'Cultura indisponível para análise no momento. Selecione uma das culturas disponíveis.',
                 ),
             );
         }

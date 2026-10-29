@@ -1,9 +1,6 @@
 node_modules
 venv
 
-# Pastas Python
-packages/IA/**/models/
-
 
 __pycache__
 __pycache__/
@@ -12,3 +9,33 @@ __pycache__/
 .DS_Store
 .vercel
 .env*
+!.env.example
+
+# ---------- IA (packages/IA) ----------
+# Modelos (.pth) e dados ficam fora do Git
+packages/IA/models/
+packages/IA/**/models/
+packages/IA/Data/
+packages/IA/Models/
+packages/IA/images/
+packages/IA/Images/
+packages/IA/OldProject/
+packages/IA/ImgTest/
+
+# Imagens e dados soltos; as fotos de referência dos testes são versionadas
+packages/IA/**/*.png
+packages/IA/**/*.jpg
+packages/IA/**/*.jpeg
+packages/IA/**/*.bmp
+packages/IA/**/*.tiff
+packages/IA/**/*.gif
+packages/IA/**/*.csv
+!packages/IA/tests/fixtures/*.jpg
+
+# Ambiente local, cache do pytest e notebooks do laboratório
+packages/IA/env/
+packages/IA/.pytest_cache/
+packages/IA/**/*.ipynb
+
+# Instruções locais do Copilot
+packages/IA/.github/

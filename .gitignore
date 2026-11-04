@@ -31,6 +31,7 @@ packages/IA/**/*.tiff
 packages/IA/**/*.gif
 packages/IA/**/*.csv
 !packages/IA/tests/fixtures/*.jpg
+!packages/IA/tests/manual/imagens/FONTES.csv
 
 # Ambiente local, cache do pytest e notebooks do laboratório
 packages/IA/env/

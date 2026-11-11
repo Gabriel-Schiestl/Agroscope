@@ -12,7 +12,19 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Não roda como root (arquivos já copiados com o dono certo, sem duplicar a camada dos modelos)
 RUN useradd --create-home agroscope
-COPY --chown=agroscope:agroscope . .
+
+# Código e modelos em camadas separadas (uma por cultura) em vez de um único
+# COPY . . — um blob de ~1.2GB numa camada só é frágil demais pra dar push
+# em conexões instáveis (qualquer soluço de rede derruba o upload inteiro e
+# tem que recomeçar do zero). Camadas menores retomam independentemente.
+COPY --chown=agroscope:agroscope app.py .
+COPY --chown=agroscope:agroscope core/ ./core/
+COPY --chown=agroscope:agroscope models/Coffee ./models/Coffee
+COPY --chown=agroscope:agroscope models/Corn ./models/Corn
+COPY --chown=agroscope:agroscope models/Gate ./models/Gate
+COPY --chown=agroscope:agroscope models/Soybean ./models/Soybean
+COPY --chown=agroscope:agroscope models/Tomato ./models/Tomato
+COPY --chown=agroscope:agroscope models/Wheat ./models/Wheat
 USER agroscope
 
 ENV SERVER_PORT=5000

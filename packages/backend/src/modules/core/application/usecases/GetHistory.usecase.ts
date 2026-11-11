@@ -10,6 +10,7 @@ import {
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { HistoryDto } from '../dto/History.dto';
 import { HistoryAppMapper } from '../mappers/History.mapper';
+import { HistoryVisibilityService } from '../services/HistoryVisibility.service';
 
 export type GetHistoryUseCaseExceptions =
     | RepositoryNoDataFound
@@ -30,6 +31,7 @@ export class GetHistoryUseCase extends AbstractUseCase<
     constructor(
         @Inject('HistoryRepository')
         private readonly historyRepository: HistoryRepository,
+        private readonly historyVisibility: HistoryVisibilityService,
     ) {
         super();
     }
@@ -46,6 +48,16 @@ export class GetHistoryUseCase extends AbstractUseCase<
             return Res.failure(history.error);
         }
 
-        return Res.success(history.value.map(HistoryAppMapper.toDto));
+        const visible = await this.historyVisibility.getVisibleIds(userId);
+        if (visible.isFailure()) {
+            return Res.failure(visible.error);
+        }
+
+        const visibleIds = visible.value;
+        const items = visibleIds
+            ? history.value.filter((h) => visibleIds.includes(h.id))
+            : history.value;
+
+        return Res.success(items.map(HistoryAppMapper.toDto));
     }
 }

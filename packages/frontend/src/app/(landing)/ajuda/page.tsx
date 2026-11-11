@@ -33,7 +33,7 @@ const FAQ = [
   },
   {
     q: 'Quantas análises posso fazer?',
-    a: 'O plano Gratuito permite 10 análises de imagem e 50 mensagens à Íris por mês. Os planos PRO e PREMIUM aumentam esses limites e liberam o relatório em PDF de cada análise. Os limites são renovados todo dia 1º.',
+    a: 'O plano Gratuito permite 1 análise de imagem por mês e guarda apenas a análise mais recente, sem o chat com a Íris. O plano PRO permite 10 análises por mês e o PREMIUM, 30; os dois guardam o histórico completo, liberam o relatório em PDF e o chat com a Íris (10 mensagens por análise no PRO e 30 no PREMIUM). Os limites de análises são renovados todo dia 1º.',
   },
   {
     q: 'Onde vejo as análises anteriores?',

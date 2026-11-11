@@ -36,7 +36,7 @@ const FEATURES = [
   {
     icon: MessageCircle,
     title: 'Assistente Íris',
-    desc: 'Tire dúvidas sobre o diagnóstico, as causas e o manejo em uma conversa com a Íris, a assistente virtual do AgroScope.',
+    desc: 'Nos planos pagos, tire dúvidas sobre o diagnóstico, as causas e o manejo em uma conversa com a Íris, a assistente virtual do AgroScope.',
   },
   {
     icon: History,

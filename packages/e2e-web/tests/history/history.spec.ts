@@ -1,7 +1,14 @@
 import { test, expect } from '../../fixtures';
 import { HistoryPage } from '../../pages/HistoryPage';
 import { HistoryDetailPage } from '../../pages/HistoryDetailPage';
-import { predictOnce, predictNTimes, getHistory, signup, loginOrThrow } from '../../support/api-client';
+import {
+  predictOnce,
+  predictNTimes,
+  getHistory,
+  signup,
+  loginOrThrow,
+  subscribePlan,
+} from '../../support/api-client';
 import { request as pwRequest } from '@playwright/test';
 import { BASE_URL } from '../../support/env';
 import { uniqueEmail, uniqueName, VALID_PASSWORD } from '../../support/test-data';
@@ -16,14 +23,15 @@ const SEED_CROPS = ['SOYBEAN', 'WHEAT'];
 const CROP_LABELS: Record<string, string> = { SOYBEAN: 'Soja', WHEAT: 'Trigo' };
 
 test.describe('Módulo: Histórico', () => {
-  test.beforeEach(async ({ authedUser }) => {
+  test.beforeEach(async ({ proUser }) => {
     for (let i = 0; i < SEED_COUNT; i++) {
-      await predictOnce(authedUser.apiContext, undefined, SEED_CROPS[i % SEED_CROPS.length]);
+      const response = await predictOnce(proUser.apiContext, undefined, SEED_CROPS[i % SEED_CROPS.length]);
+      expect(response.status(), await response.text()).toBe(201);
     }
   });
 
-  test('CT-26 - visualizar histórico de análises', async ({ authedPage }) => {
-    const historyPage = new HistoryPage(authedPage);
+  test('CT-26 - visualizar histórico de análises', async ({ proPage }) => {
+    const historyPage = new HistoryPage(proPage);
     await historyPage.goto();
 
     await expect(historyPage.resultsSummary).toContainText(`de ${SEED_COUNT} análises`);
@@ -38,13 +46,13 @@ test.describe('Módulo: Histórico', () => {
     await expect(firstItem.getByText(/Cultura:/)).toBeVisible();
   });
 
-  test('CT-27 - filtrar histórico por cultura', async ({ authedPage, authedUser }) => {
-    const seeded = await getHistory(authedUser.apiContext);
+  test('CT-27 - filtrar histórico por cultura', async ({ proPage, proUser }) => {
+    const seeded = await getHistory(proUser.apiContext);
     const targetCropCode = SEED_CROPS[0];
     const targetCropLabel = CROP_LABELS[targetCropCode];
     const expectedCount = seeded.filter((h: any) => h.crop === targetCropCode).length;
 
-    const historyPage = new HistoryPage(authedPage);
+    const historyPage = new HistoryPage(proPage);
     await historyPage.goto();
     await historyPage.filterByCrop(targetCropLabel);
 
@@ -55,25 +63,25 @@ test.describe('Módulo: Histórico', () => {
     }
   });
 
-  test('CT-28 - visualizar detalhes de uma análise', async ({ authedPage }) => {
-    const historyPage = new HistoryPage(authedPage);
+  test('CT-28 - visualizar detalhes de uma análise', async ({ proPage }) => {
+    const historyPage = new HistoryPage(proPage);
     await historyPage.goto();
 
     const firstItem = historyPage.itemByIndex(0);
     await historyPage.viewDetailsButtonForItem(firstItem).click();
 
-    await expect(authedPage).toHaveURL(/\/history\/.+/);
-    const detailPage = new HistoryDetailPage(authedPage);
+    await expect(proPage).toHaveURL(/\/history\/.+/);
+    const detailPage = new HistoryDetailPage(proPage);
     await expect(detailPage.title).toBeVisible();
     await expect(detailPage.diagnosisHeading).toBeVisible();
     await expect(detailPage.cropHeading).toBeVisible();
     // "O que fazer agora" é a única seção do DiagnosisResult garantida em
     // ambos os cenários (saudável e doente) — nos demais (explicação,
     // causas, precauções) o mock só preenche o texto quando há doença.
-    await expect(authedPage.getByRole('heading', { name: 'O que fazer agora' })).toBeVisible();
+    await expect(proPage.getByRole('heading', { name: 'O que fazer agora' })).toBeVisible();
   });
 
-  test('CT-30 - isolamento de histórico entre usuários', async ({ authedPage, browser }) => {
+  test('CT-30 - isolamento de histórico entre usuários', async ({ proPage, browser }) => {
     // Usuário A já tem SEED_COUNT análises (seedadas no beforeEach). Cria um
     // usuário B, isolado, com uma quantidade diferente de análises, e confirma
     // que cada um só enxerga as próprias.
@@ -81,6 +89,7 @@ test.describe('Módulo: Histórico', () => {
     const apiContextB = await pwRequest.newContext({ baseURL: BASE_URL });
     await signup(apiContextB, userB);
     await loginOrThrow(apiContextB, userB.email, userB.password);
+    await subscribePlan(apiContextB, 'PRO');
     const userBSeedCount = 2;
     await predictNTimes(apiContextB, userBSeedCount);
 
@@ -88,7 +97,7 @@ test.describe('Módulo: Histórico', () => {
     const contextB = await browser.newContext({ storageState: storageStateB });
     const pageB = await contextB.newPage();
 
-    const historyPageA = new HistoryPage(authedPage);
+    const historyPageA = new HistoryPage(proPage);
     await historyPageA.goto();
     await expect(historyPageA.resultsSummary).toContainText(`de ${SEED_COUNT} análises`);
 
@@ -98,5 +107,29 @@ test.describe('Módulo: Histórico', () => {
 
     await contextB.close();
     await apiContextB.dispose();
+  });
+
+  test('CT-30b - plano gratuito mostra só a análise mais recente (as anteriores ficam ocultas)', async ({
+    proPage,
+    proUser,
+  }) => {
+    const all = await getHistory(proUser.apiContext);
+    const newest = all[0];
+    const older = all[all.length - 1];
+    await subscribePlan(proUser.apiContext, 'FREE');
+
+    const visible = await getHistory(proUser.apiContext);
+    expect(visible.map((h: { id: string }) => h.id)).toEqual([newest.id]);
+
+    const hidden = await proUser.apiContext.get(`/api/history/${older.id}`);
+    expect(hidden.status()).toBe(404);
+
+    const historyPage = new HistoryPage(proPage);
+    await historyPage.goto();
+    await expect(historyPage.resultsSummary).toContainText('de 1 análise');
+    await expect(proPage.getByText('Seu plano guarda apenas a análise mais recente')).toBeVisible();
+
+    await subscribePlan(proUser.apiContext, 'PRO');
+    expect(await getHistory(proUser.apiContext)).toHaveLength(SEED_COUNT);
   });
 });

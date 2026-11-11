@@ -48,7 +48,11 @@ import api from '@/shared/http/http.config';
 import type { History } from '@/models/History';
 import type { AnalyticsGranularity } from '@/models/Analytics';
 import { generateAnalysisReportPdf } from '@/lib/pdf/generate-analysis-report';
-import { hasPlanFeature, PLAN_FEATURE_REPORT_GENERATION } from '@/lib/plan-features';
+import {
+    hasPlanFeature,
+    PLAN_FEATURE_FULL_HISTORY,
+    PLAN_FEATURE_REPORT_GENERATION,
+} from '@/lib/plan-features';
 import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
 import { useAnalysisCrops } from '@/hooks/use-analysis-crops';
 import { showAlert } from '@/lib/alert';
@@ -97,6 +101,7 @@ export default function AnalyticsScreen() {
         status: locationStatus,
         retry: retryLocation,
     } = useUserLocation();
+    const hasFullHistory = hasPlanFeature(limit?.featureFlags, PLAN_FEATURE_FULL_HISTORY);
     const canGenerateReport = hasPlanFeature(
         limit?.featureFlags,
         PLAN_FEATURE_REPORT_GENERATION,
@@ -1209,6 +1214,12 @@ export default function AnalyticsScreen() {
                             <ThemedText style={styles.cardTitle}>
                                 Histórico de Análises
                             </ThemedText>
+                            {limit && !hasFullHistory && (
+                                <ThemedText style={[styles.filterLabel, { color: colors.textSecondary }]}>
+                                    Seu plano guarda apenas a análise mais recente. Assine um plano pago
+                                    para manter o histórico completo.
+                                </ThemedText>
+                            )}
 
                             {/* Filtro por cultura */}
                             <ThemedText style={[styles.filterLabel, { color: colors.textSecondary }]}>

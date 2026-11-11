@@ -11,6 +11,7 @@ import {
     DiseasePeriodSeriesDto,
     HistoryAnalyticsDto,
 } from '../dto/Analytics.dto';
+import { HistoryVisibilityService } from '../services/HistoryVisibility.service';
 
 const TOP_DISEASES_LIMIT = 5;
 const OTHER_DISEASES_ID = 'other';
@@ -28,6 +29,7 @@ export class GetHistoryAnalyticsQuery {
     constructor(
         @Inject('HistoryRepository')
         private readonly historyRepository: HistoryRepository,
+        private readonly historyVisibility: HistoryVisibilityService,
     ) {}
 
     async execute({
@@ -38,9 +40,17 @@ export class GetHistoryAnalyticsQuery {
     }: GetHistoryAnalyticsParams): Promise<
         Result<HistoryExceptions, HistoryAnalyticsDto>
     > {
+        const visible = await this.historyVisibility.getVisibleIds(userId);
+        if (visible.isFailure()) return Res.failure(visible.error);
+
         const result = await this.historyRepository.getAnalyticsByUserId(
             userId,
-            { startDate, endDate, granularity },
+            {
+                startDate,
+                endDate,
+                granularity,
+                historyIds: visible.value ?? undefined,
+            },
         );
 
         if (result.isFailure()) return Res.failure(result.error);

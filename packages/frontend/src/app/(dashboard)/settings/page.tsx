@@ -37,6 +37,7 @@ import { useAuth } from "../../../contexts/auth-context";
 import { useLimit } from "../../../hooks/use-limit";
 import {
   hasPlanFeature,
+  PLAN_FEATURE_FULL_HISTORY,
   PLAN_FEATURE_REPORT_GENERATION,
 } from "../../../lib/plan-features";
 import { cn } from "../../../lib/utils";
@@ -123,6 +124,10 @@ export default function SettingsPage() {
   const canGenerateReport = hasPlanFeature(
     limit?.featureFlags,
     PLAN_FEATURE_REPORT_GENERATION
+  );
+  const hasFullHistory = hasPlanFeature(
+    limit?.featureFlags,
+    PLAN_FEATURE_FULL_HISTORY
   );
 
   useEffect(() => setMounted(true), []);
@@ -252,11 +257,22 @@ export default function SettingsPage() {
                     used={limit.imageRequests}
                     total={limit.imageLimit}
                   />
-                  <UsageBar
-                    label="Mensagens à Íris"
-                    used={limit.chatRequests}
-                    total={limit.chatLimit}
-                  />
+                  <p className="text-sm text-muted-foreground">
+                    Chat com a Íris:{" "}
+                    <span className={limit.chatLimit > 0 ? "text-primaryGreen font-medium" : ""}>
+                      {limit.chatLimit > 0
+                        ? `até ${limit.chatLimit} mensagens por análise`
+                        : "disponível nos planos pagos"}
+                    </span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Histórico:{" "}
+                    <span className={hasFullHistory ? "text-primaryGreen font-medium" : ""}>
+                      {hasFullHistory
+                        ? "completo"
+                        : "apenas a análise mais recente (completo nos planos pagos)"}
+                    </span>
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     Relatório em PDF:{" "}
                     <span className={canGenerateReport ? "text-primaryGreen font-medium" : ""}>

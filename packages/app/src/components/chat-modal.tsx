@@ -148,11 +148,12 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
         }),
     );
 
-    const hasNoChatAccess = limit != null && limit.chatLimit === 0;
-    const hasReachedLimit = limit != null && limit.chatLimit > 0 && limit.chatRequests >= limit.chatLimit;
+    const sentInAnalysis = messages.filter((m) => m.role === 'user').length;
+    const hasNoChatAccess = limit != null && limit.chatLimit <= 0;
+    const hasReachedLimit = limit != null && limit.chatLimit > 0 && sentInAnalysis >= limit.chatLimit;
     const isChatBlocked = hasNoChatAccess || hasReachedLimit;
     const remainingMessages = limit != null && limit.chatLimit > 0
-        ? Math.max(0, limit.chatLimit - limit.chatRequests)
+        ? Math.max(0, limit.chatLimit - sentInAnalysis)
         : null;
 
     useEffect(() => {
@@ -461,8 +462,8 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                                         <Lock size={18} color="#ef4444" />
                                         <ThemedText style={[styles.blockedText, { color: '#ef4444' }]}>
                                             {hasNoChatAccess
-                                                ? 'Seu plano não inclui acesso ao chat. Faça upgrade para usar o assistente.'
-                                                : `Limite de ${limit!.chatLimit} mensagens atingido. Faça upgrade para continuar.`}
+                                                ? 'Seu plano não inclui o chat com a Íris. Assine um plano pago para tirar dúvidas sobre suas análises.'
+                                                : `Limite de ${limit!.chatLimit} mensagens por análise atingido. Faça upgrade para continuar.`}
                                         </ThemedText>
                                     </View>
                                 ) : (

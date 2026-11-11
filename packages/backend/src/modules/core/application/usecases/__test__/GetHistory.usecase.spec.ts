@@ -22,7 +22,9 @@ describe('GetHistoryUseCase', () => {
     };
 
     it('should return plain DTOs whose fields survive JSON serialization', async () => {
-        const useCase = new GetHistoryUseCase(historyRepository);
+        const useCase = new GetHistoryUseCase(historyRepository, {
+            getVisibleIds: jest.fn().mockResolvedValue(Res.success(null)),
+        } as any);
 
         const result = await useCase.execute({ userId: 'user-1' });
 
@@ -42,6 +44,33 @@ describe('GetHistoryUseCase', () => {
                 handling: 'Pulverização',
                 image: 'base64-image-data',
             }),
+        ]);
+    });
+
+    it('returns only the visible analysis on plans without full history', async () => {
+        const older = History.create({
+            handling: 'Nenhuma',
+            crop: 'Soja',
+            cropConfidence: 0.9,
+            image: 'img',
+            userId: 'user-1',
+        });
+        const repo: HistoryRepository = {
+            ...historyRepository,
+            getByUserId: jest
+                .fn()
+                .mockResolvedValue(Res.success([history, older])),
+        };
+        const useCase = new GetHistoryUseCase(repo, {
+            getVisibleIds: jest
+                .fn()
+                .mockResolvedValue(Res.success([history.id])),
+        } as any);
+
+        const result = await useCase.execute({ userId: 'user-1' });
+
+        expect(result.isSuccess() && result.value.map((h) => h.id)).toEqual([
+            history.id,
         ]);
     });
 });

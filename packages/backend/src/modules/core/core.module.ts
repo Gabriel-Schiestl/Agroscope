@@ -2,6 +2,7 @@ import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { queries } from './application/query';
+import { applicationServices } from './application/services';
 import { useCases } from './application/usecases';
 import { controllers } from './controllers';
 import { repositories } from './infra/repositories';
@@ -15,6 +16,7 @@ import { SharedModule } from 'src/shared/shared.module';
     providers: [
         ...useCases,
         ...queries,
+        ...applicationServices,
         ...repositories,
         ...services,
         ...jobs,

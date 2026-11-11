@@ -1,7 +1,7 @@
 import { test, expect, request as pwRequest, type Page } from '@playwright/test';
 import { SignupPage } from '../../pages/SignupPage';
 import { LoginPage } from '../../pages/LoginPage';
-import { uniqueEmail, VALID_PASSWORD } from '../../support/test-data';
+import { formatPersonName, uniqueEmail, VALID_PASSWORD } from '../../support/test-data';
 import { signup as apiSignup, waitForAuthenticationReady } from '../../support/api-client';
 import { BASE_URL, API_PREFIX } from '../../support/env';
 
@@ -70,7 +70,9 @@ test.describe('Segurança — XSS Stored no nome do usuário (browser real)', ()
 
       // O nome aparece no header como texto literal — prova que o React
       // escapou a string em vez de interpretá-la como HTML.
-      await expect(page.locator('header').getByText(payload, { exact: true })).toBeVisible();
+      await expect(
+        page.locator('header').getByText(formatPersonName(payload), { exact: true }),
+      ).toBeVisible();
 
       expect(await xssTriggered(page)).toBe(false);
       expect(dialogs).toEqual([]);
@@ -104,7 +106,9 @@ test.describe('Segurança — XSS Stored no nome do usuário (browser real)', ()
     await waitForAuthenticationReady(email, VALID_PASSWORD);
 
     await loginThroughUi(page, email);
-    await expect(page.locator('header').getByText(payload, { exact: true })).toBeVisible();
+      await expect(
+        page.locator('header').getByText(formatPersonName(payload), { exact: true }),
+      ).toBeVisible();
 
     await expect(page.locator('#xss-b')).toHaveCount(0);
     await expect(page.locator('#xss-img')).toHaveCount(0);

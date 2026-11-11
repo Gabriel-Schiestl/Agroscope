@@ -10,6 +10,7 @@ export class ChatPanel {
   readonly sendButton: Locator;
   readonly limitReachedMessage: Locator;
   readonly usageCounter: Locator;
+  readonly noChatAccessMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -18,8 +19,9 @@ export class ChatPanel {
     this.connectedBadge = page.getByText('● Conectado');
     this.messageInput = page.getByPlaceholder('Escreva sua dúvida... (Enter para enviar)');
     this.sendButton = this.panel.locator('button:has(svg.lucide-send)');
-    this.limitReachedMessage = page.getByText(/Limite de \d+ mensagens atingido/);
-    this.usageCounter = page.getByText(/Mensagens: \d+\/\d+/);
+    this.limitReachedMessage = page.getByText(/Limite de \d+ mensagens por análise atingido/);
+    this.noChatAccessMessage = page.getByText('Seu plano não inclui o chat com a Íris', { exact: false });
+    this.usageCounter = page.getByText(/Mensagens nesta análise: \d+\/\d+/);
   }
 
   async waitForConnected(): Promise<void> {

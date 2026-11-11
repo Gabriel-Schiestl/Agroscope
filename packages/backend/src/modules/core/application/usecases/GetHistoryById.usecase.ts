@@ -8,6 +8,7 @@ import { History } from '../../domain/models/History';
 import { HistoryRepository } from '../../domain/repositories/History.repository';
 import { HistoryDto } from '../dto/History.dto';
 import { HistoryAppMapper } from '../mappers/History.mapper';
+import { HistoryVisibilityService } from '../services/HistoryVisibility.service';
 
 export type GetHistoryByIdExceptions =
     | RepositoryNoDataFound
@@ -28,6 +29,7 @@ export class GetHistoryByIdUseCase extends AbstractUseCase<
     constructor(
         @Inject('HistoryRepository')
         private readonly historyRepository: HistoryRepository,
+        private readonly historyVisibility: HistoryVisibilityService,
     ) {
         super();
     }
@@ -46,6 +48,19 @@ export class GetHistoryByIdUseCase extends AbstractUseCase<
         if (history.userId !== userId) {
             return Res.failure(
                 new BusinessException('Análise não encontrada'),
+            );
+        }
+
+        const visible = await this.historyVisibility.getVisibleIds(userId);
+        if (visible.isFailure()) {
+            return Res.failure(visible.error);
+        }
+
+        if (visible.value && !visible.value.includes(history.id)) {
+            return Res.failure(
+                new BusinessException(
+                    'Seu plano guarda apenas a análise mais recente. Assine um plano pago para acessar o histórico completo.',
+                ),
             );
         }
 

@@ -46,7 +46,6 @@ export class HistoryRepositoryImpl implements HistoryRepository {
         }
     }
 
-    // history.user_id não tem FK para user, então a exclusão é explícita.
     async deleteByUserId(
         userId: string,
     ): Promise<Result<HistoryExceptions, void>> {
@@ -255,12 +254,25 @@ export class HistoryRepositoryImpl implements HistoryRepository {
 
     private scopedQuery(
         userId: string,
-        filters: Pick<HistoryAnalyticsFilters, 'startDate' | 'endDate'>,
+        filters: Pick<
+            HistoryAnalyticsFilters,
+            'startDate' | 'endDate' | 'historyIds'
+        >,
     ): SelectQueryBuilder<HistoryModel> {
         const qb = HistoryModel.createQueryBuilder('history').where(
             'history.userId = :userId',
             { userId },
         );
+
+        if (filters.historyIds) {
+            if (filters.historyIds.length === 0) {
+                qb.andWhere('1 = 0');
+            } else {
+                qb.andWhere('history.id IN (:...historyIds)', {
+                    historyIds: filters.historyIds,
+                });
+            }
+        }
 
         if (filters.startDate) {
             qb.andWhere('history.createdAt >= :startDate', {

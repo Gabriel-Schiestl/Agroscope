@@ -8,14 +8,11 @@ test.describe('Módulo: Planos', () => {
     authedPage,
     authedUser,
   }) => {
-    // Consome parte do limite para que os contadores de uso (só visíveis na
-    // página de Análises, não em /plans — ver hooks/use-limit.ts) mostrem
-    // algo além de "0/N".
-    await predictNTimes(authedUser.apiContext, 2);
+    await predictNTimes(authedUser.apiContext, 1);
 
     const analytics = new AnalyticsPage(authedPage);
     await analytics.goto();
-    await expect(analytics.usageCounter).toHaveText('Análises: 2/10');
+    await expect(analytics.usageCounter).toHaveText('Análises: 1/1');
 
     const plansPage = new PlansPage(authedPage);
     await plansPage.goto();
@@ -24,8 +21,15 @@ test.describe('Módulo: Planos', () => {
     // seus limites e o badge "Em uso".
     await expect(plansPage.planHeading('FREE')).toBeVisible();
     await expect(plansPage.inUseBadge).toBeVisible();
-    const limits = plansPage.limitsText(10, 50);
-    await expect(limits.images).toBeVisible();
-    await expect(limits.chat).toBeVisible();
+    const free = plansPage.limitsText(1, 0);
+    await expect(free.images).toBeVisible();
+    await expect(free.chat).toBeVisible();
+
+    const pro = plansPage.limitsText(10, 10);
+    await expect(pro.images).toBeVisible();
+    await expect(pro.chat).toBeVisible();
+    const premium = plansPage.limitsText(30, 30);
+    await expect(premium.images).toBeVisible();
+    await expect(premium.chat).toBeVisible();
   });
 });

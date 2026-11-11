@@ -126,6 +126,30 @@ export async function predictNTimes(
   return responses;
 }
 
+export async function subscribePlan(
+  request: APIRequestContext,
+  type: 'FREE' | 'PRO' | 'PREMIUM',
+): Promise<void> {
+  const plansResponse = await request.get(`${API_PREFIX}/plan`);
+  if (!plansResponse.ok()) {
+    throw new Error(`[api-client] listar planos falhou (${plansResponse.status()})`);
+  }
+  const plans: { id: string; type: string }[] = await plansResponse.json();
+  const plan = plans.find((p) => p.type === type);
+  if (!plan) {
+    throw new Error(`[api-client] plano ${type} não encontrado`);
+  }
+
+  const response = await request.patch(`${API_PREFIX}/user/plan`, {
+    data: { planId: plan.id },
+  });
+  if (!response.ok()) {
+    throw new Error(
+      `[api-client] assinar ${type} falhou (${response.status()}): ${await response.text()}`,
+    );
+  }
+}
+
 export async function getHistory(request: APIRequestContext): Promise<any[]> {
   const response = await request.get(`${API_PREFIX}/history`);
   if (!response.ok()) {

@@ -91,6 +91,7 @@ import { toImageSrc } from '../../../lib/utils';
 import { generateAnalysisReportPdf } from '../../../lib/pdf/generate-analysis-report';
 import {
   hasPlanFeature,
+  PLAN_FEATURE_FULL_HISTORY,
   PLAN_FEATURE_REPORT_GENERATION,
 } from '../../../lib/plan-features';
 
@@ -145,6 +146,7 @@ export default function AnalyticsPage() {
   const { crops: analysisCrops, isLoading: cropsLoading, error: cropsError } = useAnalysisCrops();
   const { coords, status: locationStatus, retry: retryLocation } = useGeolocation();
   const canGenerateReport = hasPlanFeature(limit?.featureFlags, PLAN_FEATURE_REPORT_GENERATION);
+  const hasFullHistory = hasPlanFeature(limit?.featureFlags, PLAN_FEATURE_FULL_HISTORY);
   const {
     history: analysisHistory,
     isLoading: historyLoading,
@@ -440,7 +442,7 @@ export default function AnalyticsPage() {
                 </Button>
                 {limit !== null && limit.imageRequests >= limit.imageLimit && (
                   <p className="text-xs text-red-500 text-center">
-                    Limite de {limit.imageLimit} análises atingido. Faça upgrade do seu plano para continuar analisando imagens.
+                    Limite de {limit.imageLimit} {limit.imageLimit === 1 ? 'análise' : 'análises'} atingido. Faça upgrade do seu plano para continuar analisando imagens.
                   </p>
                 )}
               </CardFooter>
@@ -556,6 +558,12 @@ export default function AnalyticsPage() {
 
         {/* ── Histórico tab with full filter/sort/pagination UI ── */}
         <TabsContent value="history" className="space-y-4">
+          {limit && !hasFullHistory && (
+            <p className="text-sm text-muted-foreground rounded-md border border-primaryGreen/30 bg-primaryGreen/5 px-4 py-3">
+              Seu plano guarda apenas a análise mais recente. Assine um plano pago
+              para manter o histórico completo.
+            </p>
+          )}
           {/* Filters */}
           <Card>
             <CardContent className="pt-6">

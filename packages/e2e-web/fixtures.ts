@@ -6,7 +6,12 @@ import {
   type Page,
 } from '@playwright/test';
 import { BASE_URL } from './support/env';
-import { signup, loginOrThrow, waitForAuthenticationReady } from './support/api-client';
+import {
+  signup,
+  loginOrThrow,
+  subscribePlan,
+  waitForAuthenticationReady,
+} from './support/api-client';
 import { uniqueEmail, uniqueName, VALID_PASSWORD } from './support/test-data';
 
 export interface TestUser {
@@ -27,6 +32,10 @@ type Fixtures = {
 
   /** Página de browser já autenticada (cookie de sessão injetado), pronta a partir de about:blank — o teste decide para onde navegar. */
   authedPage: Page;
+
+  proUser: { user: TestUser; apiContext: APIRequestContext };
+
+  proPage: Page;
 };
 
 export const test = base.extend<Fixtures>({
@@ -59,6 +68,19 @@ export const test = base.extend<Fixtures>({
 
   authedPage: async ({ browser, authedUser }, use) => {
     const storageState = await authedUser.apiContext.storageState();
+    const context = await browser.newContext({ storageState });
+    const page = await context.newPage();
+    await use(page);
+    await context.close();
+  },
+
+  proUser: async ({ authedUser }, use) => {
+    await subscribePlan(authedUser.apiContext, 'PRO');
+    await use(authedUser);
+  },
+
+  proPage: async ({ browser, proUser }, use) => {
+    const storageState = await proUser.apiContext.storageState();
     const context = await browser.newContext({ storageState });
     const page = await context.newPage();
     await use(page);

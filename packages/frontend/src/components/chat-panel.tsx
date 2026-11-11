@@ -152,8 +152,10 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
   const socketRef = useRef<Socket | null>(null);
   const pendingGreetingRef = useRef<string | null>(null);
 
+  const sentInAnalysis = messages.filter((m) => m.role === 'user').length;
+  const hasNoChatAccess = limit !== null && limit.chatLimit <= 0;
   const chatLimitReached =
-    limit !== null && limit.chatRequests >= limit.chatLimit;
+    limit !== null && (hasNoChatAccess || sentInAnalysis >= limit.chatLimit);
 
   // Connect socket and load history when panel opens
   useEffect(() => {
@@ -386,20 +388,22 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
 
         {/* Input */}
         <div className="px-4 py-3 flex flex-col gap-1.5">
-          {limit && (
+          {limit && !hasNoChatAccess && (
             <p
               className={cn(
                 'text-xs text-right',
                 chatLimitReached ? 'text-red-500' : 'text-muted-foreground'
               )}
             >
-              Mensagens: {limit.chatRequests}/{limit.chatLimit}
+              Mensagens nesta análise: {Math.min(sentInAnalysis, limit.chatLimit)}/
+              {limit.chatLimit}
             </p>
           )}
           {chatLimitReached && (
             <p className="text-xs text-red-500 text-center py-1">
-              Limite de {limit?.chatLimit} mensagens atingido. Faça upgrade do
-              seu plano para continuar conversando.
+              {hasNoChatAccess
+                ? 'Seu plano não inclui o chat com a Íris. Assine um plano pago para tirar dúvidas sobre suas análises.'
+                : `Limite de ${limit?.chatLimit} mensagens por análise atingido. Faça upgrade do seu plano para continuar conversando.`}
             </p>
           )}
           {!chatLimitReached && limitError && (

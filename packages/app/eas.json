@@ -11,7 +11,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://3-239-101-139.nip.io/api"
+        "EXPO_PUBLIC_API_URL": "https://13-221-55-173.nip.io/api"
       }
     },
     "preview": {
@@ -23,13 +23,13 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://3-239-101-139.nip.io/api"
+        "EXPO_PUBLIC_API_URL": "https://13-221-55-173.nip.io/api"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://3-239-101-139.nip.io/api"
+        "EXPO_PUBLIC_API_URL": "https://13-221-55-173.nip.io/api"
       }
     }
   },

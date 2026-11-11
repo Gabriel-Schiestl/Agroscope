@@ -26,7 +26,11 @@ export async function seedVictimAndAttacker(
     app: INestApplication,
     prefix: string,
 ): Promise<{ victim: SeededActor; attacker: SeededActor; planId: string }> {
-    const plan = await seedPlan(app, { type: `${prefix}-free`, chatLimit: 50 });
+    const plan = await seedPlan(app, {
+        type: `${prefix}-free`,
+        chatLimit: 50,
+        featureFlags: ['FULL_HISTORY'],
+    });
 
     const victimEmail = `${prefix}.victim@agroscope.test`;
     const attackerEmail = `${prefix}.attacker@agroscope.test`;

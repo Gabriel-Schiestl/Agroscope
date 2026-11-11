@@ -1,7 +1,3 @@
-// Mesmas regras do backend (core/domain/models/UserProfileRules.ts), RF01 do
-// Documento de Requisitos: nome com até 100 caracteres e iniciais em
-// maiúscula; e-mail não pode ser institucional.
-
 export const NAME_MAX_LENGTH = 100;
 
 const NAME_PARTICLES = new Set(["da", "das", "de", "di", "do", "dos", "e"]);

@@ -71,7 +71,9 @@ describe('GetHistoryAnalyticsQuery', () => {
             ),
         });
 
-        const query = new GetHistoryAnalyticsQuery(repository);
+        const query = new GetHistoryAnalyticsQuery(repository, {
+            getVisibleIds: jest.fn().mockResolvedValue(Res.success(null)),
+        } as any);
         const result = await query.execute({ userId: 'user-1' });
 
         expect(result.isFailure()).toBe(false);
@@ -152,7 +154,9 @@ describe('GetHistoryAnalyticsQuery', () => {
             ),
         });
 
-        const query = new GetHistoryAnalyticsQuery(repository);
+        const query = new GetHistoryAnalyticsQuery(repository, {
+            getVisibleIds: jest.fn().mockResolvedValue(Res.success(null)),
+        } as any);
         const result = await query.execute({ userId: 'user-1' });
 
         expect(result.isFailure()).toBe(false);
@@ -187,7 +191,9 @@ describe('GetHistoryAnalyticsQuery', () => {
             ),
         });
 
-        const query = new GetHistoryAnalyticsQuery(repository);
+        const query = new GetHistoryAnalyticsQuery(repository, {
+            getVisibleIds: jest.fn().mockResolvedValue(Res.success(null)),
+        } as any);
         const result = await query.execute({ userId: 'user-1' });
 
         expect(result.isFailure()).toBe(false);
@@ -197,5 +203,35 @@ describe('GetHistoryAnalyticsQuery', () => {
         expect(result.value.byDisease).toEqual([]);
         expect(result.value.peakPeriod).toBeNull();
         expect(result.value.diseaseIncidenceByPeriod).toEqual([]);
+    });
+
+    it('restricts the aggregates to the visible analyses on plans without full history', async () => {
+        const getAnalyticsByUserId = jest.fn().mockResolvedValue(
+            Res.success({
+                totals: {
+                    total: 0,
+                    diseasedCount: 0,
+                    averageCropConfidence: null,
+                    averageSicknessConfidence: null,
+                    distinctCropsCount: 0,
+                    distinctDiseasesCount: 0,
+                },
+                byDisease: [],
+                byCrop: [],
+                byPeriod: [],
+                byDiseaseAndPeriod: [],
+            }),
+        );
+        const repository = buildRepository({ getAnalyticsByUserId });
+        const query = new GetHistoryAnalyticsQuery(repository, {
+            getVisibleIds: jest.fn().mockResolvedValue(Res.success(['h-1'])),
+        } as any);
+
+        await query.execute({ userId: 'user-1' });
+
+        expect(getAnalyticsByUserId).toHaveBeenCalledWith(
+            'user-1',
+            expect.objectContaining({ historyIds: ['h-1'] }),
+        );
     });
 });

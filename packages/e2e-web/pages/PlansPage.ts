@@ -26,7 +26,9 @@ export class PlansPage {
   limitsText(imageLimit: number, chatLimit: number): { images: Locator; chat: Locator } {
     return {
       images: this.page.getByText(`Até ${imageLimit} diagnósticos de imagem por mês`),
-      chat: this.page.getByText(`Até ${chatLimit} interações no chat por mês`),
+      chat: this.page.getByText(
+        chatLimit > 0 ? `Até ${chatLimit} mensagens à Íris por análise` : 'Sem chat com a Íris',
+      ),
     };
   }
 }

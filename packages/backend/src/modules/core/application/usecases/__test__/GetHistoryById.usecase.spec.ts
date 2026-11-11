@@ -16,6 +16,7 @@ describe('GetHistoryByIdUseCase', () => {
 
     let historyRepository: jest.Mocked<HistoryRepository>;
     let useCase: GetHistoryByIdUseCase;
+    let historyVisibility: { getVisibleIds: jest.Mock };
 
     beforeEach(() => {
         historyRepository = {
@@ -26,7 +27,13 @@ describe('GetHistoryByIdUseCase', () => {
             deleteByUserId: jest.fn(),
             getAnalyticsByUserId: jest.fn(),
         };
-        useCase = new GetHistoryByIdUseCase(historyRepository);
+        historyVisibility = {
+            getVisibleIds: jest.fn().mockResolvedValue(Res.success(null)),
+        };
+        useCase = new GetHistoryByIdUseCase(
+            historyRepository,
+            historyVisibility as any,
+        );
     });
 
     it('should return the history DTO when it belongs to the user', async () => {
@@ -63,5 +70,21 @@ describe('GetHistoryByIdUseCase', () => {
 
         expect(result.isFailure()).toBe(true);
         expect(result.isFailure() && result.error).toBe(error);
+    });
+
+    it('should block an analysis hidden by a plan without full history', async () => {
+        historyVisibility.getVisibleIds.mockResolvedValue(
+            Res.success(['another-analysis']),
+        );
+
+        const result = await useCase.execute({
+            id: history.id,
+            userId: 'user-1',
+        });
+
+        expect(result.isFailure()).toBe(true);
+        expect(result.isFailure() && result.error.message).toContain(
+            'apenas a análise mais recente',
+        );
     });
 });

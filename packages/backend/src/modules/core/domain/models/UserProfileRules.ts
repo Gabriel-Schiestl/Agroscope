@@ -1,9 +1,5 @@
-// Regras de perfil do RF01 (Documento de Requisitos): nome com até 100
-// caracteres e iniciais em maiúscula; e-mail não pode ser institucional.
-
 export const NAME_MAX_LENGTH = 100;
 
-// Preposições/conectivos de nomes próprios que permanecem em minúsculo.
 const NAME_PARTICLES = new Set(['da', 'das', 'de', 'di', 'do', 'dos', 'e']);
 
 export function formatPersonName(name: string): string {
@@ -19,7 +15,6 @@ export function formatPersonName(name: string): string {
         .join(' ');
 }
 
-// Domínios de instituições de ensino, governo e órgãos públicos.
 const INSTITUTIONAL_SUFFIXES = [
     '.edu',
     '.edu.br',

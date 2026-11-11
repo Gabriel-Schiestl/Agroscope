@@ -26,11 +26,11 @@ describe('SendMessageUseCase', () => {
             'user-1',
         );
 
-    const buildPlan = () => {
+    const buildPlan = (chatLimit = 5) => {
         const result = Plan.create({
-            type: 'FREE',
+            type: 'PRO',
             imageLimit: 10,
-            chatLimit: 5,
+            chatLimit,
             features: [],
             featureFlags: [],
             price: 0,
@@ -61,7 +61,7 @@ describe('SendMessageUseCase', () => {
     beforeEach(() => {
         chatMessageRepository = {
             save: jest.fn().mockResolvedValue(Res.success(undefined)),
-            getBySession: jest.fn(),
+            getBySession: jest.fn().mockResolvedValue(Res.success([])),
             getLastBySession: jest
                 .fn()
                 .mockResolvedValue(Res.success([buildPastMessage('old-1')])),
@@ -158,8 +158,15 @@ describe('SendMessageUseCase', () => {
         );
     });
 
-    it('should fail when the chat message limit has been reached', async () => {
-        userRepository.getById.mockResolvedValue(Res.success(buildUser(5)));
+    it('should fail when the per-analysis message limit has been reached', async () => {
+        userRepository.getById.mockResolvedValue(Res.success(buildUser(0)));
+        chatMessageRepository.getBySession.mockResolvedValue(
+            Res.success(
+                ['m1', 'm2', 'm3', 'm4', 'm5'].map((id) =>
+                    buildPastMessage(id),
+                ),
+            ),
+        );
 
         const result = await useCase.execute({
             content: 'Olá',
@@ -170,8 +177,69 @@ describe('SendMessageUseCase', () => {
         expect(result.isFailure()).toBe(true);
         expect(
             result.isFailure() && (result.error as BusinessException).message,
-        ).toContain('Limite de 5 mensagens');
+        ).toContain('Limite de 5 mensagens por análise');
         expect(chatMessageRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should not count AI messages towards the per-analysis limit', async () => {
+        chatMessageRepository.getBySession.mockResolvedValue(
+            Res.success(
+                ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'].map((id) =>
+                    ChatMessage.load(
+                        {
+                            content: 'resposta',
+                            sender: 'ai',
+                            userId: 'user-1',
+                            sessionId: 'session-1',
+                            createdAt: new Date('2026-01-01'),
+                        },
+                        id,
+                    ),
+                ),
+            ),
+        );
+
+        const result = await useCase.execute({
+            content: 'Olá',
+            userId: 'user-1',
+            sessionId: 'session-1',
+        });
+
+        expect(result.isSuccess()).toBe(true);
+    });
+
+    it('should reject a foreign session before checking the plan', async () => {
+        planRepository.getById.mockResolvedValue(Res.success(buildPlan(0)));
+        historyRepository.getById.mockResolvedValue(
+            Res.success({ userId: 'someone-else' } as any),
+        );
+
+        const result = await useCase.execute({
+            content: 'Olá',
+            userId: 'user-1',
+            sessionId: 'session-1',
+        });
+
+        expect(result.isFailure() && result.error.message).toBe(
+            'Sessão não encontrada',
+        );
+        expect(userRepository.getById).not.toHaveBeenCalled();
+    });
+
+    it('should block the chat on plans without chat access', async () => {
+        planRepository.getById.mockResolvedValue(Res.success(buildPlan(0)));
+
+        const result = await useCase.execute({
+            content: 'Olá',
+            userId: 'user-1',
+            sessionId: 'session-1',
+        });
+
+        expect(result.isFailure()).toBe(true);
+        expect(
+            result.isFailure() && (result.error as BusinessException).message,
+        ).toContain('não inclui o chat');
+        expect(aiAgentService.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should fail when the human message is invalid', async () => {

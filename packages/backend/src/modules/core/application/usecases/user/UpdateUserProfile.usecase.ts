@@ -21,7 +21,6 @@ export type UpdateUserProfileUseCaseExceptions =
     | BusinessException
     | TechnicalException;
 
-// RF07: alterar dados do perfil.
 @Injectable()
 export class UpdateUserProfileUseCase extends AbstractUseCase<
     UpdateUserProfileUseCaseProps,

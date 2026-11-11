@@ -22,6 +22,7 @@ export interface HistoryAnalyticsFilters {
     startDate?: Date;
     endDate?: Date;
     granularity: AnalyticsGranularity;
+    historyIds?: string[];
 }
 
 export interface HistoryAnalyticsTotals {

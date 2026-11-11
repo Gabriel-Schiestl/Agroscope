@@ -5,14 +5,12 @@ import { IMAGE_FIXTURE_PATH, NOT_IMAGE_FIXTURE_PATH } from '../../support/test-d
 
 test.describe('Módulo: Análise de Imagem / Predição', () => {
   test('CT-17 - análise de imagem de planta doente — fluxo completo', async ({
-    authedPage,
+    proPage,
   }) => {
     // O MockPredictService (MOCK_AI=true) sorteia ~40% de chance de devolver
     // uma planta saudável a cada chamada — tenta algumas vezes até cair num
     // cenário de doença (mesma estratégia do CT-18 para o caminho saudável).
-    // Plano FREE tem imageLimit = 10 (ver migration SeedFreePlan), então o
-    // número de tentativas fica limitado a isso.
-    const analytics = new AnalyticsPage(authedPage);
+    const analytics = new AnalyticsPage(proPage);
     const maxAttempts = 10;
     let body: { sicknessId?: string; crop?: string; handling?: string; causes?: string } | undefined;
 
@@ -26,7 +24,7 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
       await expect(analytics.analyzeButton).toBeEnabled();
 
       const [response] = await Promise.all([
-        authedPage.waitForResponse((r) => r.url().includes('/predict') && r.request().method() === 'POST'),
+        proPage.waitForResponse((r) => r.url().includes('/predict') && r.request().method() === 'POST'),
         analytics.analyze(),
       ]);
       expect(response.status()).toBe(201);
@@ -105,14 +103,12 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
     authedPage,
     authedUser,
   }) => {
-    // Plano FREE (atribuído automaticamente no cadastro) tem imageLimit = 10
-    // (ver migration SeedFreePlan). Esgota via API antes de abrir a UI.
-    await predictNTimes(authedUser.apiContext, 10);
+    await predictNTimes(authedUser.apiContext, 1);
 
     const analytics = new AnalyticsPage(authedPage);
     await analytics.goto();
 
-    await expect(analytics.usageCounter).toHaveText('Análises: 10/10');
+    await expect(analytics.usageCounter).toHaveText('Análises: 1/1');
     await analytics.selectCrop('Soja');
     await analytics.selectImage(IMAGE_FIXTURE_PATH);
     await expect(analytics.analyzeButton).toBeDisabled();
@@ -170,13 +166,11 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
   });
 
   test('CT-18 - análise de imagem de planta saudável', async ({
-    authedPage,
+    proPage,
   }) => {
     // MockPredictService sorteia ~25% de chance de devolver uma planta
     // saudável a cada chamada — tenta algumas vezes até cair nesse cenário.
-    // Plano FREE tem imageLimit = 10 (ver migration SeedFreePlan), então o
-    // número de tentativas fica limitado a isso.
-    const analytics = new AnalyticsPage(authedPage);
+    const analytics = new AnalyticsPage(proPage);
     const maxAttempts = 10;
     let sawHealthy = false;
 
@@ -184,7 +178,7 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
       await analytics.goto();
       await analytics.selectAndAnalyze(IMAGE_FIXTURE_PATH);
       await expect(analytics.resultCropTitle).toBeVisible();
-      sawHealthy = await authedPage.getByText(/saud[aá]vel/i).isVisible();
+      sawHealthy = await proPage.getByText(/saud[aá]vel/i).isVisible();
     }
 
     test.skip(
@@ -195,50 +189,50 @@ test.describe('Módulo: Análise de Imagem / Predição', () => {
 
   test.fixme(
     'CT-21 - enviar imagem sem planta suportada (bloqueado: mock não simula esse cenário)',
-    async ({ authedPage }) => {
+    async ({ proPage }) => {
       // O MockPredictService sempre devolve um diagnóstico da cultura
       // selecionada com confiança fixa alta — ele ignora completamente
       // o conteúdo da imagem enviada. Não há como, apenas trocando a imagem
       // de entrada, provocar a recusa: isso depende da triagem do serviço real
       // de IA (422 "not_leaf", coberto em packages/IA/tests/test_api.py), que
       // não está presente neste ambiente de teste (MOCK_AI=true).
-      const analytics = new AnalyticsPage(authedPage);
+      const analytics = new AnalyticsPage(proPage);
       await analytics.goto();
       await analytics.selectAndAnalyze(IMAGE_FIXTURE_PATH);
       await expect(
-        authedPage.getByText(/n[ãa]o parece ser de uma folha/i),
+        proPage.getByText(/n[ãa]o parece ser de uma folha/i),
       ).toBeVisible();
     },
   );
 
   test.fixme(
     'CT-22 - enviar imagem corrompida (bloqueado: mock não valida bytes da imagem)',
-    async ({ authedPage }) => {
+    async ({ proPage }) => {
       // MockPredictService.predict() nunca lê o arquivo (getImageBase64 só é
       // chamado depois, para repassar a imagem à fila — e fs.readFile aceita
       // qualquer sequência de bytes sem validar se é um JPEG/PNG válido).
       // Não há, portanto, um caminho determinístico para provocar "arquivo
       // corrompido" nesse ambiente mockado.
-      const analytics = new AnalyticsPage(authedPage);
+      const analytics = new AnalyticsPage(proPage);
       await analytics.goto();
       await analytics.selectAndAnalyze(IMAGE_FIXTURE_PATH); // trocar por fixture de imagem corrompida
-      await expect(authedPage.getByText(/n[ãa]o p[oô]de ser processado/i)).toBeVisible();
+      await expect(proPage.getByText(/n[ãa]o p[oô]de ser processado/i)).toBeVisible();
     },
   );
 
   test.fixme(
     'CT-23 - enviar imagem de baixa qualidade (bloqueado: mock sempre retorna confiança alta fixa)',
-    async ({ authedPage }) => {
+    async ({ proPage }) => {
       // MockPredictService sempre devolve predictionConfidence = 0.92 e
       // plantConfidence = 0.96, independente da imagem. O caminho de baixa
       // confiança (testado no backend em Predict.e2e-spec.ts com um
       // FakePredictService customizado) não é alcançável pela UI neste
       // ambiente sem o serviço real de IA.
-      const analytics = new AnalyticsPage(authedPage);
+      const analytics = new AnalyticsPage(proPage);
       await analytics.goto();
       await analytics.selectAndAnalyze(IMAGE_FIXTURE_PATH);
       await expect(
-        authedPage.getByText(/confian[çc]a insuficiente/i),
+        proPage.getByText(/confian[çc]a insuficiente/i),
       ).toBeVisible();
     },
   );

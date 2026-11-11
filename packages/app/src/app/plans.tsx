@@ -153,7 +153,9 @@ export default function PlansScreen() {
                                             <ThemedText
                                                 style={[styles.featureText, { color: colors.textSecondary }]}
                                             >
-                                                Até {plan.chatLimit} interações no chat por mês
+                                                {plan.chatLimit > 0
+                                                    ? `Até ${plan.chatLimit} mensagens à Íris por análise`
+                                                    : 'Sem chat com a Íris'}
                                             </ThemedText>
                                         </View>
                                         {plan.features.map((feature, index) => (

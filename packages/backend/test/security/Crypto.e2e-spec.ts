@@ -17,6 +17,7 @@ import {
     findSetCookie,
     forgeSessionCookie,
 } from './security-helpers';
+import { resetRateLimit } from '../setup/rate-limit';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Segurança — Criptografia / Senhas
@@ -53,6 +54,7 @@ describe('Segurança — Criptografia / Senhas (e2e)', () => {
     });
 
     beforeEach(async () => {
+        resetRateLimit(app);
         emailProducer.sendMessage.mockClear();
         await clearTables(app, ['authentication', 'user']);
     });

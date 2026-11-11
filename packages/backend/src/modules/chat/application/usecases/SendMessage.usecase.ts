@@ -53,6 +53,14 @@ export class SendMessageUseCase extends AbstractUseCase<
         sessionId,
         initialMessage,
     }: SendMessageProps): Promise<Result<Exception, SendMessageResult>> {
+        const analysisResult = await this.historyRepository.getById(sessionId);
+        if (
+            analysisResult.isSuccess() &&
+            analysisResult.value.userId !== userId
+        ) {
+            return Res.failure(new BusinessException('Sessão não encontrada'));
+        }
+
         const userResult = await this.userRepository.getById(userId);
         if (userResult.isFailure()) {
             return Res.failure(userResult.error);
@@ -73,20 +81,31 @@ export class SendMessageUseCase extends AbstractUseCase<
 
         const plan = planResult.value;
 
-        if (user.limit.chatRequests >= plan.chatLimit) {
+        if (plan.chatLimit <= 0) {
             return Res.failure(
                 new BusinessException(
-                    `Limite de ${plan.chatLimit} mensagens atingido`,
+                    'Seu plano não inclui o chat com a Íris. Assine um plano pago para tirar dúvidas sobre suas análises.',
                 ),
             );
         }
 
-        const analysisResult = await this.historyRepository.getById(sessionId);
-        if (
-            analysisResult.isSuccess() &&
-            analysisResult.value.userId !== userId
-        ) {
-            return Res.failure(new BusinessException('Sessão não encontrada'));
+        const sessionMessages = await this.chatMessageRepository.getBySession(
+            sessionId,
+            userId,
+        );
+        if (sessionMessages.isFailure()) {
+            return Res.failure(sessionMessages.error);
+        }
+
+        const sentInAnalysis = sessionMessages.value.filter(
+            (m) => m.sender === 'human',
+        ).length;
+        if (sentInAnalysis >= plan.chatLimit) {
+            return Res.failure(
+                new BusinessException(
+                    `Limite de ${plan.chatLimit} mensagens por análise atingido`,
+                ),
+            );
         }
 
         if (initialMessage) {

@@ -98,7 +98,7 @@ export class PredictUseCase extends AbstractUseCase<
         if (user.limit.imageRequests >= plan.imageLimit) {
             return Res.failure(
                 new BusinessException(
-                    `Limite de ${plan.imageLimit} análises de imagens atingido`,
+                    `Limite de ${plan.imageLimit} ${plan.imageLimit === 1 ? 'análise' : 'análises'} de imagem atingido`,
                 ),
             );
         }

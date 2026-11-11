@@ -29,7 +29,7 @@ export class AnalyticsPage {
     this.analyzeButton = page.getByRole('button', { name: /Analisar Imagem|Analisando/ });
     this.selectedFileLabel = page.getByText(/Arquivo selecionado:/);
     this.usageCounter = page.getByText(/Análises: \d+\/\d+/);
-    this.limitReachedMessage = page.getByText(/Limite de \d+ análises atingido/);
+    this.limitReachedMessage = page.getByText(/Limite de \d+ análises? atingido/);
     // DiagnosisResult (components/diagnosis-result.tsx): o <h2> do
     // diagnóstico não é único na página (o logotipo "AgroScope" no
     // header/sidebar também é um <h2>), por isso usa data-testid; cultura

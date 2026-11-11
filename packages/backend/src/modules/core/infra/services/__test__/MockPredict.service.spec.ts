@@ -29,7 +29,7 @@ describe('MockPredictService', () => {
 
             expect(result.isSuccess()).toBe(true);
             expect(result.isSuccess() && result.value.prediction).toBe(
-                'Rust_Common',
+                'Common_Rust',
             );
         });
 
@@ -44,7 +44,7 @@ describe('MockPredictService', () => {
             const result = await promise;
 
             expect(result.isSuccess() && result.value.prediction).toBe(
-                'Rust_Common',
+                'Common_Rust',
             );
         });
 
@@ -87,7 +87,7 @@ describe('MockPredictService', () => {
 
             expect(result.isSuccess()).toBe(true);
             expect(result.isSuccess() && result.value.prediction).toBe(
-                'Brown_Rust',
+                'Rust_Common',
             );
         });
 
@@ -122,7 +122,7 @@ describe('MockPredictService', () => {
 
     describe('getHandling', () => {
         it('should return the catalogued handling for a known prediction', async () => {
-            const promise = service.getHandling('Rust_Common', 'Milho');
+            const promise = service.getHandling('Common_Rust', 'Milho');
             await jest.advanceTimersByTimeAsync(1000);
             const result = await promise;
 

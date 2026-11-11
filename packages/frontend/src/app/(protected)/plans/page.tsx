@@ -123,7 +123,9 @@ export default function PlansPage() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primaryGreen shrink-0" />
-                      Até {plan.chatLimit} interações no chat por mês
+                      {plan.chatLimit > 0
+                        ? `Até ${plan.chatLimit} mensagens à Íris por análise`
+                        : "Sem chat com a Íris"}
                     </li>
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-center gap-2">

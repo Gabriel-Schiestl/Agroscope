@@ -15,6 +15,7 @@ import {
     seedVictimAndAttacker,
 } from './security-helpers';
 import { formatPersonName } from 'src/modules/core/domain/models/UserProfileRules';
+import { resetRateLimit } from '../setup/rate-limit';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Segurança — Injeção de código
@@ -70,6 +71,7 @@ describe('Segurança — Injeção de código (e2e)', () => {
     });
 
     beforeEach(async () => {
+        resetRateLimit(app);
         await clearTables(app, ['history', 'authentication', 'user']);
     });
 
@@ -215,8 +217,6 @@ describe('Segurança — Injeção de código (e2e)', () => {
             expect(response.status).toBe(201);
             const user = await userRepository.getByEmail(email);
             if (user.isFailure()) throw user.error;
-            // O nome só passa pela capitalização das iniciais (RF01); o conteúdo é
-            // guardado como texto, sem execução nem sanitização parcial.
             expect(user.value.name).toBe(formatPersonName(payload));
             expect(await countRows('user')).toBe(1);
         });
@@ -378,8 +378,6 @@ describe('Segurança — Injeção de código (e2e)', () => {
 
             // Texto literal, sem ser "meio sanitizado" (ex.: tag removida mas
             // atributo mantido), o que poderia gerar um bypass na renderização.
-            // O nome só passa pela capitalização das iniciais (RF01); o conteúdo é
-            // guardado como texto, sem execução nem sanitização parcial.
             expect(user.value.name).toBe(formatPersonName(payload));
         });
 

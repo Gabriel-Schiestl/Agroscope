@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { createTestApp } from '../setup/test-app';
 import { clearTables } from '../setup/db-cleanup';
-import { seedUserWithAuthentication } from '../setup/seed';
+import { seedPlan, seedUserWithAuthentication } from '../setup/seed';
 import { loginAndGetCookie } from '../setup/auth-helper';
 import { History } from 'src/modules/core/domain/models/History';
 import { HistoryRepository } from 'src/modules/core/domain/repositories/History.repository';
@@ -32,9 +32,14 @@ describe('Core - history analytics (e2e)', () => {
     });
 
     it('agrega o histórico do usuário por doença, cultura e período', async () => {
+        const plan = await seedPlan(app, {
+            type: 'ANALYTICS_FULL_HISTORY',
+            featureFlags: ['FULL_HISTORY'],
+        });
         const { user } = await seedUserWithAuthentication(app, {
             email,
             password,
+            planId: plan.id,
         });
 
         await historyRepository.save(

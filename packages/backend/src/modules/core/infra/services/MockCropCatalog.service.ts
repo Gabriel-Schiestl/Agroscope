@@ -16,7 +16,7 @@ const MOCK_CROPS: AvailableCrop[] = [
     {
         code: 'WHEAT',
         label: 'Trigo',
-        classes: ['Brown_Rust', 'Healthy', 'Yellow_Rust'],
+        classes: ['Blight', 'Healthy', 'Rust_Common'],
     },
     {
         code: 'TOMATO',
@@ -26,7 +26,7 @@ const MOCK_CROPS: AvailableCrop[] = [
     {
         code: 'CORN',
         label: 'Milho',
-        classes: ['Healthy', 'Rust_Blight', 'Rust_Common'],
+        classes: ['Blight', 'Common_Rust', 'Healthy'],
     },
 ];
 

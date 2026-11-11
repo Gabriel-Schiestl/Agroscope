@@ -29,3 +29,18 @@ export const NOT_IMAGE_FIXTURE_PATH = path.resolve(
   'images',
   'not-an-image.txt',
 );
+
+const NAME_PARTICLES = new Set(['da', 'das', 'de', 'di', 'do', 'dos', 'e']);
+
+export function formatPersonName(name: string): string {
+  return name
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map((word, index) => {
+      const lower = word.toLocaleLowerCase('pt-BR');
+      if (index > 0 && NAME_PARTICLES.has(lower)) return lower;
+      return lower.charAt(0).toLocaleUpperCase('pt-BR') + lower.slice(1);
+    })
+    .join(' ');
+}

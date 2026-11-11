@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import { ThrottlerStorage } from '@nestjs/throttler';
+import { resetRateLimit as resetSharedRateLimit } from '../setup/rate-limit';
 import * as request from 'supertest';
 import { clearTables } from '../setup/db-cleanup';
 import { seedUserWithAuthentication } from '../setup/seed';
@@ -52,10 +52,6 @@ const BOT_USER_AGENTS = [
 describe('Segurança — Bots (e2e)', () => {
     let app: INestApplication;
     let authenticationRepository: AuthenticationRepository;
-    let throttlerStorage: ThrottlerStorage & {
-        storage: Map<string, unknown>;
-        onApplicationShutdown(): void;
-    };
     const originalEnv: Record<string, string | undefined> = {};
     const emailProducer = { sendMessage: jest.fn() };
 
@@ -72,7 +68,6 @@ describe('Segurança — Bots (e2e)', () => {
             { token: 'EmailProducerService', value: emailProducer },
         ]);
         authenticationRepository = app.get('AuthenticationRepository');
-        throttlerStorage = app.get(ThrottlerStorage);
     });
 
     afterAll(async () => {
@@ -90,12 +85,8 @@ describe('Segurança — Bots (e2e)', () => {
         await seedUserWithAuthentication(app, { email, password: STRONG_PASSWORD });
     });
 
-    // Zera os contadores do throttler (storage em memória) para que um teste
-    // não herde as requisições do anterior. Os timers de expiração precisam
-    // ser cancelados junto, senão disparam sobre chaves que já não existem.
     function resetRateLimit() {
-        throttlerStorage.onApplicationShutdown();
-        throttlerStorage.storage.clear();
+        resetSharedRateLimit(app);
     }
 
     function login(password: string, headers: Record<string, string> = {}) {

@@ -12,6 +12,12 @@ export default function Root({ children }: PropsWithChildren) {
                     content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
                 />
 
+                <title>AgroScope - Diagnóstico de Doenças em Plantas</title>
+                <meta
+                    name="description"
+                    content="Diagnóstico de doenças em folhas de café, soja, tomate, trigo e milho por foto, com inteligência artificial, para o pequeno produtor rural."
+                />
+
                 <link rel="manifest" href="/manifest.json" />
                 <meta name="theme-color" content="#FFFFFF" />
 

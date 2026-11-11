@@ -1,7 +1,7 @@
 {
     "name": "AgroScope",
     "short_name": "AgroScope",
-    "description": "Análise inteligente de plantas por imagem",
+    "description": "Diagnóstico de doenças em folhas de café, soja, tomate, trigo e milho por foto, com inteligência artificial, para o pequeno produtor rural.",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",

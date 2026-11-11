@@ -28,13 +28,13 @@ export default function HowItWorks() {
                 step: '02',
                 icon: Zap,
                 title: 'Análise com IA',
-                desc: 'Nosso algoritmo processa e identifica possiveis doenças em segundos.',
+                desc: 'Escolha a cultura e a IA verifica se a foto é de uma folha e identifica possíveis doenças em segundos.',
               },
               {
                 step: '03',
                 icon: CheckCircle2,
                 title: 'Receba Resultados',
-                desc: 'Obtenha diagnóstico detalhado com recomendações de tratamento.',
+                desc: 'Veja o diagnóstico com o grau de confiança, as causas e as recomendações de manejo.',
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
@@ -62,15 +62,15 @@ export default function HowItWorks() {
             Comece agora gratuitamente
           </h2>
           <p className="text-[#a2a8a2] mb-6 max-w-md mx-auto">
-            Junte-se a milhares de produtores que ja utilizam o AgroScope para
-            proteger suas lavouras.
+            Crie sua conta gratuita e faça as primeiras análises das folhas da
+            sua lavoura.
           </p>
           <Button
             size="lg"
             className="bg-[#4dae50] hover:bg-[#334f36] text-primary-foreground"
             onClick={openSignup}
           >
-            Criar Conta Gratis
+            Criar Conta Grátis
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>

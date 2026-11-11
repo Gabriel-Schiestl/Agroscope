@@ -13,6 +13,8 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/termos",
+  "/sobre",
+  "/ajuda",
   "/recursos-detalhes",
   "/landing-dashboard",
   "/landing-settings",

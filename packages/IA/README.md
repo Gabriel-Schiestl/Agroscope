@@ -62,7 +62,7 @@ Modelo pronto em [`.env.example`](.env.example).
 | `GATE` | Modelo de triagem. Sem ele, só a regra de resolução mínima é verificada | — |
 | `SERVER_HOST`, `SERVER_PORT` | Endereço e porta | `0.0.0.0`, `5000` |
 | `CORS_ORIGINS` | Endereços do front, separados por vírgula (ex.: `https://agroscope-nu.vercel.app`) | `localhost:3000` e `:5173` |
-| `MAX_UPLOAD_MB` (ou `MAX_UPLOAD_BYTES`) | Tamanho máximo da foto | 8 MB |
+| `MAX_UPLOAD_MB` (ou `MAX_UPLOAD_BYTES`) | Tamanho máximo da foto (o mesmo exibido no web/app e aplicado pelo backend) | 5 MB |
 | `DEVICE` | Força `cpu` ou `cuda` | automático |
 | `REVIEW_THRESHOLD`, `CONFIDENT_THRESHOLD` | Certeza abaixo da qual o resultado é "revisar" / a partir da qual é "confiante" | `0.6`, `0.8` |
 | `GATE_NOT_LEAF_THRESHOLD`, `GATE_POOR_THRESHOLD` | Sensibilidade da triagem | `0.5`, `0.5` |

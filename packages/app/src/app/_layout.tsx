@@ -20,7 +20,13 @@ export default function RootLayout() {
                 <AuthProvider>
                     <ToastProvider>
                         <AnimatedSplashOverlay />
-                        <Stack screenOptions={{ headerShown: false }} />
+                        {/* title: nome exibido na aba do navegador (versão web); o cabeçalho nativo fica oculto */}
+                        <Stack
+                            screenOptions={{
+                                headerShown: false,
+                                title: 'AgroScope - Diagnóstico de Doenças em Plantas',
+                            }}
+                        />
                         <AlertHost />
                     </ToastProvider>
                 </AuthProvider>

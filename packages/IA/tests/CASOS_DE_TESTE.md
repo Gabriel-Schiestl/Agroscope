@@ -98,7 +98,7 @@ Usam redes minúsculas no lugar dos modelos reais, com resposta fixa (ex.: sempr
 ### 1.6 Configuração
 | ID | Caso | Esperado |
 |---|---|---|
-| API-50 | Sem variáveis definidas | Limite de 8 MB, `0.0.0.0:5000`, origens locais de desenvolvimento |
+| API-50 | Sem variáveis definidas | Limite de 5 MB, `0.0.0.0:5000`, origens locais de desenvolvimento |
 | API-51 | `MAX_UPLOAD_MB=2` | Limite de 2 MB (`MAX_UPLOAD_BYTES` tem prioridade, se definido) |
 | API-52 | Nenhum modelo especialista configurado | A API **não sobe** (erro claro em vez de responder errado) |
 | API-53 | Caminhos dos modelos entre aspas no `.env` (`COFFEE='./models/...'`), como chegam pelo `docker run --env-file` | Modelos carregados normalmente |

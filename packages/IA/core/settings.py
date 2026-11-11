@@ -17,7 +17,7 @@ def _float(name :str, default :float) -> float:
 class Settings:
     device :torch.device
     cors_origins :list = field(default_factory=list)
-    max_upload_bytes :int = 8 * 1024 * 1024
+    max_upload_bytes :int = 5 * 1024 * 1024  # mesmo limite exibido no web/app e aplicado pelo backend
     host :str = "0.0.0.0"
     port :int = 5000
     gate_path :str = None
@@ -34,7 +34,7 @@ class Settings:
         if os.getenv("MAX_UPLOAD_BYTES"):
             max_bytes = int(os.getenv("MAX_UPLOAD_BYTES"))
         else:
-            max_bytes = int(_float("MAX_UPLOAD_MB", 8) * 1024 * 1024)
+            max_bytes = int(_float("MAX_UPLOAD_MB", 5) * 1024 * 1024)
 
         return cls(
             device=torch.device(device),

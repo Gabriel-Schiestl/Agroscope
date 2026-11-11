@@ -94,6 +94,12 @@ descrevem não é alcançável no sistema atual:
 | CT-25 — sem plano ativo | `CreateUser.usecase.ts` atribui o plano FREE automaticamente a **todo** cadastro novo, e não existe rota para remover o plano de um usuário — esse estado simplesmente não é alcançável hoje pelo sistema real |
 | CT-29 — confirmar/contestar diagnóstico | Não existe essa funcionalidade nem na UI (`/history`, `/history/[id]`) nem na API (`core.controller.ts` só expõe leitura de histórico) |
 
+> **Atualização (nov/2026):** em `Casos_de_Teste_Agroscope.md`, o CT-25 passou a ser
+> "Selecionar imagem maior que 5 MB" e o CT-29 passou a ser "Gerar relatório PDF de
+> uma análise", porque os cenários antigos não existem no produto. Os testes
+> Playwright desses dois IDs ainda descrevem os cenários antigos e precisam ser
+> reescritos para os novos.
+
 Nenhum desses é um problema do Playwright ou da suíte — são lacunas reais entre
 o que `Casos_de_Teste_Agroscope.md` descreve e o que o produto faz hoje. Rodar
 `npx playwright test` mostra esses 6 como "fixme" no relatório, não como

@@ -27,6 +27,7 @@ export const UseFileInterceptor = FileInterceptor('image', {
     callback(null, true);
   },
   limits: {
-    fileSize: 50 * 1024 * 1024,
+    // Mesmo limite exibido ao usuário (web e app) e aplicado pela IA: 5 MB.
+    fileSize: 5 * 1024 * 1024,
   },
 });

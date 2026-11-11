@@ -28,7 +28,7 @@ const FEATURES = [
     {
         icon: Leaf,
         title: 'Diagnóstico Preciso',
-        desc: 'Nossa IA foi treinada com milhares de imagens para identificar com precisão mais de 50 doenças em plantas.',
+        desc: 'Modelos de IA treinados com milhares de fotos de folhas identificam 10 doenças em 5 culturas (café, soja, tomate, trigo e milho), além de reconhecer folhas saudáveis.',
     },
     {
         icon: Check,
@@ -37,8 +37,8 @@ const FEATURES = [
     },
     {
         icon: BarChart2,
-        title: 'Histórico Completo',
-        desc: 'Acompanhe todas as suas análises anteriores e visualize tendências ao longo do tempo.',
+        title: 'Histórico e Assistente Íris',
+        desc: 'Consulte o histórico e as estatísticas das suas análises e tire dúvidas sobre cada diagnóstico com a Íris, nossa assistente virtual.',
     },
 ];
 
@@ -53,13 +53,13 @@ const STEPS = [
         step: '02',
         icon: Zap,
         title: 'Análise com IA',
-        desc: 'Nosso algoritmo processa e identifica possíveis doenças em segundos.',
+        desc: 'Escolha a cultura e a IA verifica se a foto é de uma folha e identifica possíveis doenças em segundos.',
     },
     {
         step: '03',
         icon: CheckCircle2,
         title: 'Receba Resultados',
-        desc: 'Obtenha diagnóstico detalhado com recomendações de tratamento.',
+        desc: 'Veja o diagnóstico com o grau de confiança, as causas e as recomendações de manejo.',
     },
 ];
 
@@ -109,9 +109,9 @@ export default function HomeScreen() {
                         </ThemedText>
                     </ThemedText>
                     <ThemedText style={styles.heroSubtitle}>
-                        Identifique doenças em suas plantas instantaneamente com
-                        nossa tecnologia avançada de IA. Obtenha recomendações
-                        precisas para tratamento e prevenção.
+                        Tire uma foto da folha e descubra em segundos se sua
+                        lavoura de café, soja, tomate, trigo ou milho tem sinais
+                        de doença, com recomendações de manejo e prevenção.
                     </ThemedText>
 
                     <View style={styles.heroActions}>
@@ -192,15 +192,15 @@ export default function HomeScreen() {
                         Comece agora gratuitamente
                     </ThemedText>
                     <ThemedText style={styles.ctaSubtitle}>
-                        Junte-se a milhares de produtores que já utilizam o
-                        AgroScope para proteger suas lavouras.
+                        Crie sua conta gratuita e faça as primeiras análises
+                        das folhas da sua lavoura.
                     </ThemedText>
                     <TouchableOpacity
                         style={styles.primaryBtn}
                         onPress={() => router.push('/signup')}
                     >
                         <ThemedText style={styles.primaryBtnText}>
-                            Criar Conta Gratis →
+                            Criar Conta Grátis →
                         </ThemedText>
                     </TouchableOpacity>
                 </View>
@@ -208,7 +208,7 @@ export default function HomeScreen() {
                 {/* Footer */}
                 <View style={styles.footer}>
                     <ThemedText style={styles.footerText}>
-                        © 2024 AgroScope. Todos os direitos reservados.
+                        AgroScope - Diagnóstico de doenças em plantas com IA
                     </ThemedText>
                 </View>
             </ScrollView>

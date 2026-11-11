@@ -14,8 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AgroScope - Gestão Agronômica",
-  description: "Plataforma de gestão para agrônomos",
+  title: "AgroScope - Diagnóstico de Doenças em Plantas",
+  description:
+    "Diagnóstico de doenças em folhas de café, soja, tomate, trigo e milho por foto, com inteligência artificial, para o pequeno produtor rural.",
 };
 
 export default function RootLayout({

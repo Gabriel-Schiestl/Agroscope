@@ -313,7 +313,7 @@ export default function AnalyticsScreen() {
         if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
             showAlert(
                 'Imagem muito grande',
-                'O tamanho máximo permitido é 5MB. Por favor, selecione uma imagem menor.',
+                'O tamanho máximo permitido é 5 MB. Por favor, selecione uma imagem menor.',
             );
             return;
         }
@@ -747,6 +747,15 @@ export default function AnalyticsScreen() {
                                 </TouchableOpacity>
                             </View>
 
+                            <ThemedText
+                                style={[
+                                    styles.fileName,
+                                    { color: colors.textSecondary },
+                                ]}
+                            >
+                                Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB)
+                            </ThemedText>
+
                             {/* Localização (validação climática) */}
                             <View style={styles.locationRow}>
                                 {locationStatus === 'granted' ? (
@@ -1083,7 +1092,7 @@ export default function AnalyticsScreen() {
                                         <View style={styles.btnRow}>
                                             <MessageCircle size={15} color="#fff" />
                                             <ThemedText style={styles.chatBtnText}>
-                                                Tirar dúvidas sobre esta análise
+                                                Perguntar à Íris
                                             </ThemedText>
                                         </View>
                                     </TouchableOpacity>

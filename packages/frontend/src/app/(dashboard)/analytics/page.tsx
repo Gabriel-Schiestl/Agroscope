@@ -47,7 +47,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../../components/ui/dropdown-menu';
 import {
@@ -72,7 +71,6 @@ import {
   Filter,
   Grid,
   List,
-  Trash2,
   MoreVertical,
   ArrowUpDown,
   X,
@@ -103,6 +101,8 @@ const SORT_OPTIONS = [
   { value: 'confidence-asc', label: 'Confiança (menor)' },
 ];
 const ITEMS_PER_PAGE = 5;
+// Mesmo limite do app mobile, do backend e da IA.
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ANALYSIS_STEPS = [
   'Identificando a cultura...',
   'Detectando sintomas...',
@@ -177,6 +177,11 @@ export default function AnalyticsPage() {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
+    if (selectedFile && selectedFile.size > MAX_FILE_SIZE) {
+      toast.error('O tamanho máximo permitido é 5 MB. Por favor, selecione uma imagem menor.');
+      e.target.value = '';
+      return;
+    }
     if (selectedFile) {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
@@ -346,7 +351,7 @@ export default function AnalyticsPage() {
 
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={handleFileChange}
                   ref={fileInputRef}
                   className="hidden"
@@ -358,6 +363,9 @@ export default function AnalyticsPage() {
                   <Upload className="mr-2 h-4 w-4" />
                   Selecionar Imagem
                 </Button>
+                <p className="text-xs text-muted-foreground">
+                  Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB)
+                </p>
 
                 {file && (
                   <p className="text-sm text-muted-foreground">
@@ -784,14 +792,6 @@ export default function AnalyticsPage() {
                                     <FileText className="mr-2 h-4 w-4" />
                                     {generatingReportId === h.id ? 'Gerando relatório...' : 'Gerar relatório'}
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-red-600"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Excluir
-                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
@@ -871,14 +871,6 @@ export default function AnalyticsPage() {
                           >
                             <FileText className="mr-2 h-4 w-4" />
                             {generatingReportId === h.id ? 'Gerando relatório...' : 'Gerar relatório'}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

@@ -7,8 +7,14 @@ export function VoltarButton() {
 
   const handleClick = () => {
     window.close();
+    // Aberto em outra aba (a partir do cadastro), a aba é fechada; aberto pelo
+    // menu ou rodapé, volta para a página anterior (ou para o início).
     if (!window.closed) {
-      router.push("/signup");
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push("/");
+      }
     }
   };
 

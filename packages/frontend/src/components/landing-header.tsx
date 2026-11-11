@@ -34,6 +34,18 @@ export default function LandingHeader() {
         </div>
 
         <div className="flex items-center gap-2">
+          <nav className="hidden md:flex items-center gap-5 mr-3 text-sm text-[#f4fff4]">
+            <Link href="/#como-funciona" className="hover:text-[#4dae50] transition-colors">
+              Como funciona
+            </Link>
+            <Link href="/sobre" className="hover:text-[#4dae50] transition-colors">
+              Sobre Nós
+            </Link>
+            <Link href="/ajuda" className="hover:text-[#4dae50] transition-colors">
+              Ajuda
+            </Link>
+          </nav>
+
           <ThemeToggle className="text-[#f4fff4] hover:bg-white/10" />
 
           <Button

@@ -8,7 +8,7 @@ export default function WhyChoose() {
 
   return (
     <>
-      {/* SEÇÃO 3 - Como funciona */}
+      {/* SEÇÃO 2 - Por que escolher */}
       <section className="py-12 px-4 ">
         <div className="max-w-[1400px] mx-auto">
           <h2 className="text-5xl font-bold mb-8 text-center text-[#f4fff4]">
@@ -26,8 +26,9 @@ export default function WhyChoose() {
                   Diagnóstico Preciso
                 </h3>
                 <p className="text-mediumGray">
-                  Nossa IA foi treinada com milhares de imagens para identificar
-                  com precisão mais de 50 doenças em plantas.
+                  Modelos de IA treinados com milhares de fotos de folhas
+                  identificam 10 doenças em 5 culturas (café, soja, tomate,
+                  trigo e milho), além de reconhecer folhas saudáveis.
                 </p>
               </CardContent>
             </Card>
@@ -52,12 +53,13 @@ export default function WhyChoose() {
                 <div className="w-12 h-12 rounded-full bg-primaryGreen/10 flex items-center justify-center text-primaryGreen mb-4">
                   <ArrowRight size={24} />
                 </div>
-                <h3 className="text-lg font-medium mb-2 text-white">
-                  Gestão Completa
+                <h3 className="text-lg font-medium mb-2 text-[#f4fff4]">
+                  Histórico e Assistente Íris
                 </h3>
-                <p className="text-gray-400">
-                  Além do diagnóstico, nossa plataforma oferece ferramentas
-                  completas para gestão agronômica.
+                <p className="text-mediumGray">
+                  Consulte o histórico e as estatísticas das suas análises e
+                  tire dúvidas sobre cada diagnóstico com a Íris, nossa
+                  assistente virtual.
                 </p>
               </CardContent>
             </Card>

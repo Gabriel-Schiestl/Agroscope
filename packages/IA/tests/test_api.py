@@ -300,7 +300,7 @@ def test_settings_defaults(monkeypatch):
     for var in ("MAX_UPLOAD_BYTES", "MAX_UPLOAD_MB", "SERVER_PORT", "SERVER_HOST", "CORS_ORIGINS", "DEVICE"):
         monkeypatch.delenv(var, raising=False)
     s = Settings.from_env()
-    assert s.max_upload_bytes == 8 * 1024 * 1024
+    assert s.max_upload_bytes == 5 * 1024 * 1024
     assert (s.host, s.port) == ("0.0.0.0", 5000)
     assert "http://localhost:5173" in s.cors_origins
 

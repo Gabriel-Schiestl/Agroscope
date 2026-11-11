@@ -21,8 +21,6 @@ export default function FirstHero() {
       reader.onload = (e) => {
         if (e.target?.result) {
           setPreviewUrl(e.target.result as string);
-
-          setTimeout(() => setUploadStatus('success'), 1500);
         }
       };
       reader.readAsDataURL(file);
@@ -38,7 +36,7 @@ export default function FirstHero() {
     <>
       <section className=" py-12 md:py-20 px-4">
         <div className="max-w-[1400px] mx-auto gap-8 flex flex-col items-center">
-          <div className="flex w-1/2 items-center justify-center text-center">
+          <div className="flex w-full md:w-2/3 lg:w-1/2 items-center justify-center text-center">
             <div className="flex flex-col items-center justify-center text-center w-full">
               <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold text-[#f4fff4] mb-4">
                 Diagnóstico de Plantas com{' '}
@@ -47,9 +45,9 @@ export default function FirstHero() {
                 </span>
               </h1>
               <p className="text-lg text-[#f4fff4] mb-6">
-                Identifique doenças em suas plantas instantaneamente com nossa
-                tecnologia avançada de IA. Obtenha recomendações precisas para
-                tratamento e prevenção.
+                Tire uma foto da folha e descubra em segundos se sua lavoura de
+                café, soja, tomate, trigo ou milho tem sinais de doença, com
+                recomendações de manejo e prevenção.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
@@ -76,7 +74,7 @@ export default function FirstHero() {
             </div> */}
           </div>
           <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center flex flex-col w-1/2 ${
+            className={`border-2 border-dashed rounded-lg p-6 text-center flex flex-col w-full md:w-2/3 lg:w-1/2 ${
               previewUrl
                 ? 'border-primaryGreen'
                 : 'border-mediumGray/50 hover:border-primaryGreen/50'
@@ -90,9 +88,9 @@ export default function FirstHero() {
                   </div>
                 </div>
                 <h3 className="text-lg font-medium mb-2 text-[#f4fff4]">
-                  Arraste e solte sua imagem aqui
+                  Envie uma foto da folha
                 </h3>
-                <p className="text-[#f4fff4] mb-4">ou</p>
+                <p className="text-[#a2a8a2] text-sm mb-4">Veja como é simples. Para receber o diagnóstico, crie sua conta grátis.</p>
                 <Button
                   className="bg-[#4dae50] hover:bg-[#334f36] relative"
                   onClick={() =>
@@ -103,13 +101,13 @@ export default function FirstHero() {
                   <input
                     id="file-upload"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     onChange={handleFileChange}
                   />
                 </Button>
                 <p className="text-sm text-[#f4fff4] mt-4">
-                  Formatos suportados: JPG, PNG, GIF (máx. 10MB)
+                  Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB)
                 </p>
               </>
             ) : (

@@ -32,8 +32,6 @@ def test_health(real_api):
 def test_cultures_mostra_tipo_de_modelo(real_api):
     r = real_api.get("/cultures").json()
     by = {c["culture"]: c for c in r["cultures"]}
-    # Desde a IA v2 todos os modelos reais (inclusive o trigo) recortam a folha antes
-    # da rede; o pipeline legado segue coberto em test_api.py com modelo falso.
     for culture in ("coffee", "soybean", "wheat"):
         assert "LeafCrop" in by[culture]["preprocessing"]
     assert "tomato" in r["unavailable"]
@@ -75,7 +73,7 @@ def test_trigo_usa_modelo_v2(real_api):
     d = r.json()["diagnosis"]
     assert d["model"]["legacy_preprocessing"] is False
     assert d["model"]["version"].startswith("2")
-    assert d["leaf_bbox"] is not None  # folha recortada antes do modelo
+    assert d["leaf_bbox"] is not None
 
 
 def test_mapa_de_calor(real_api):

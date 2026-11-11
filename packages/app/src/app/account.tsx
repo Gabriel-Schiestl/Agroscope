@@ -21,7 +21,6 @@ import { showAlert } from '@/lib/alert';
 import { formatPersonName, NAME_MAX_LENGTH } from '@/lib/user-profile';
 import api from '@/shared/http/http.config';
 
-// RF07 (Documento de Requisitos): alterar dados do perfil e excluir a conta.
 export default function AccountScreen() {
     const router = useRouter();
     const colorScheme = useColorScheme();

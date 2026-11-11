@@ -35,7 +35,6 @@ async function bootstrap() {
         }),
     );
 
-    // RNF09: documentação pública da API REST em /docs (JSON em /docs-json).
     const swaggerConfig = new DocumentBuilder()
         .setTitle('AgroScope API')
         .setDescription(

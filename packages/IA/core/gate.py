@@ -14,7 +14,7 @@ from torchvision import transforms
 from core import nets
 from core.imaging import UploadedImage, Quality_Metrics
 
-MIN_SIDE_PX = 300  # RF/2.4 do Documento de Requisitos: fotos com menos de 300 px de altura ou largura não são aceitas
+MIN_SIDE_PX = 300  # abaixo disso não há detalhe suficiente de lesão
 
 
 class Gate:

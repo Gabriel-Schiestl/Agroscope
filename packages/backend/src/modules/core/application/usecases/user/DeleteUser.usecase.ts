@@ -17,10 +17,6 @@ export type DeleteUserUseCaseExceptions =
     | BusinessException
     | TechnicalException;
 
-// RF07 / RNF11 (LGPD): o usuário pode excluir a conta e os dados pessoais.
-// Remove o histórico de análises (com as imagens), o usuário (limite e
-// mensagens do chat saem por cascata) e, via evento, as credenciais no
-// AuthModule.
 @Injectable()
 export class DeleteUserUseCase extends AbstractUseCase<
     DeleteUserUseCaseProps,

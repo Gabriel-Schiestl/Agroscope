@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -33,7 +33,6 @@ export default function HistoryDetailsPage({
   params: { id: string };
 }) {
   const { history: historyEntries, isLoading } = useHistory();
-  const [history, setHistory] = useState<History | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const { limit } = useLimit();
@@ -42,15 +41,13 @@ export default function HistoryDetailsPage({
     PLAN_FEATURE_REPORT_GENERATION
   );
 
-  useEffect(() => {
-    if (isLoading) return;
-    const found = historyEntries.find((entry) => entry.id === params.id);
-    if (!found) {
-      notFound();
-      return;
-    }
-    setHistory(found);
-  }, [historyEntries, isLoading, params.id]);
+  const history: History | null = isLoading
+    ? null
+    : historyEntries.find((entry) => entry.id === params.id) ?? null;
+
+  if (!isLoading && !history) {
+    notFound();
+  }
 
   const handleGenerateReport = async () => {
     if (!history) return;

@@ -32,7 +32,7 @@ const CROP_TO_MOCK_PLANT: Record<string, string> = {
 const SCENARIOS: MockScenario[] = [
     {
         plant: 'Milho',
-        prediction: 'Rust_Common',
+        prediction: 'Common_Rust',
         handling: {
             diagnostico:
                 'Ferrugem comum do milho (Puccinia sorghi) identificada nas folhas.',
@@ -46,7 +46,7 @@ const SCENARIOS: MockScenario[] = [
     },
     {
         plant: 'Trigo',
-        prediction: 'Brown_Rust',
+        prediction: 'Rust_Common',
         handling: {
             diagnostico:
                 'Ferrugem da folha do trigo (Puccinia triticina) identificada nas folhas.',

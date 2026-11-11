@@ -17,11 +17,12 @@ import { CropCatalogService } from 'src/modules/core/domain/services/CropCatalog
 import { Exception } from 'src/shared/Exception';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
+import { resetRateLimit } from '../setup/rate-limit';
 
 // Seeded by the `SeedRealSicknesses` migration.
 const TARGET_SPOT_SICKNESS_ID = '11111111-0000-0000-0000-000000000006';
 const TARGET_SPOT_SICKNESS_NAME = 'Target_Spot';
-const RUST_COMMON_SICKNESS_ID = '11111111-0000-0000-0000-000000000002';
+const CORN_COMMON_RUST_SICKNESS_ID = '11111111-0000-0000-0000-000000000002';
 
 // Simula o GET /cultures da IA (culturas com modelo carregado).
 class FakeCropCatalogService implements CropCatalogService {
@@ -99,6 +100,7 @@ describe('Core - predict (e2e)', () => {
     });
 
     beforeEach(async () => {
+        resetRateLimit(app);
         producerService.sendMessage.mockClear();
         fakePredictService.rejection = undefined;
         fakePredictService.predictResponse = {
@@ -292,7 +294,7 @@ describe('Core - predict (e2e)', () => {
         const { cookie } = await seedUserWithPlan(5);
 
         fakePredictService.predictResponse = {
-            prediction: 'RUST_COMMON',
+            prediction: 'Common_Rust',
             predictionConfidence: 0.9,
         };
 
@@ -304,7 +306,7 @@ describe('Core - predict (e2e)', () => {
 
         expect(response.status).toBe(201);
         expect(response.body.crop).toBe('CORN');
-        expect(response.body.sicknessId).toBe(RUST_COMMON_SICKNESS_ID);
+        expect(response.body.sicknessId).toBe(CORN_COMMON_RUST_SICKNESS_ID);
     });
 
     it('recusa uma cultura sem modelo carregado na IA, sem consumir o limite', async () => {

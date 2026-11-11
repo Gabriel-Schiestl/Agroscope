@@ -32,8 +32,10 @@ def test_health(real_api):
 def test_cultures_mostra_tipo_de_modelo(real_api):
     r = real_api.get("/cultures").json()
     by = {c["culture"]: c for c in r["cultures"]}
-    assert "LeafCrop" in by["coffee"]["preprocessing"]
-    assert "legacy" in by["wheat"]["preprocessing"]
+    # Desde a IA v2 todos os modelos reais (inclusive o trigo) recortam a folha antes
+    # da rede; o pipeline legado segue coberto em test_api.py com modelo falso.
+    for culture in ("coffee", "soybean", "wheat"):
+        assert "LeafCrop" in by[culture]["preprocessing"]
     assert "tomato" in r["unavailable"]
 
 
@@ -67,11 +69,13 @@ def test_campos_antigos_para_o_front(real_api):
     assert body["expert"]["predict_confidence"] == pytest.approx(body["diagnosis"]["confidence"] * 100, abs=0.01)
 
 
-def test_modelo_antigo_trigo(real_api):
+def test_trigo_usa_modelo_v2(real_api):
     r = predict(real_api, "trigo", jpeg_bytes(fixture("wheat_leaf.jpg")))
     assert r.status_code == 200, r.text
     d = r.json()["diagnosis"]
-    assert d["model"]["legacy_preprocessing"] is True and d["leaf_bbox"] is None
+    assert d["model"]["legacy_preprocessing"] is False
+    assert d["model"]["version"].startswith("2")
+    assert d["leaf_bbox"] is not None  # folha recortada antes do modelo
 
 
 def test_mapa_de_calor(real_api):

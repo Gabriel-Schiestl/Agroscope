@@ -11,6 +11,7 @@ describe('GetHistoryAnalyticsQuery', () => {
         getById: jest.fn(),
         getByUserId: jest.fn(),
         getAnalyticsByUserId: jest.fn(),
+        deleteByUserId: jest.fn(),
         ...overrides,
     });
 

@@ -80,7 +80,8 @@ export class AuthController {
             isEngineer: req.user.engineer,
             isAdmin: req.user.admin,
             email: req.user.email,
-            name: req.user.name,
+            // Lido do banco para refletir alterações de perfil sem novo login.
+            name: user.isSuccess() ? user.value.name : req.user.name,
             planId: user.isSuccess() ? user.value.planId : undefined,
         });
     }

@@ -26,6 +26,7 @@ describe('PasswordRecoveryUseCase', () => {
 
     beforeEach(() => {
         authenticationRepository = {
+            deleteByEmail: jest.fn(),
             findByEmail: jest
                 .fn()
                 .mockResolvedValue(Res.success(buildAuthentication())),

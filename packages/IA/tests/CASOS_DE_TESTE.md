@@ -30,7 +30,7 @@ As fotos de referência ficam em `tests/fixtures/`. Foram tiradas dos conjuntos 
 | `coffee_rust.jpg` | Café | Rust |
 | `soy_rust.jpg` | Soja | Rust |
 | `soy_blight.jpg` | Soja | Bacterial_Blight |
-| `wheat_leaf.jpg` | Trigo | LeafBlight (classe que o modelo antigo não tem; usada só para testar o funcionamento) |
+| `wheat_leaf.jpg` | Trigo | LeafBlight (classe fora das ferrugens do modelo v2; usada só para testar o funcionamento) |
 
 ---
 
@@ -66,7 +66,7 @@ Usam redes minúsculas no lugar dos modelos reais, com resposta fixa (ex.: sempr
 | API-20 | Imagem válida para "Tomato" | 200; `culture="Tomato"` (como enviado), `culture_key="tomato"`, `expert.predict="DISEASED"` |
 | API-21 | Campos da resposta | `diagnosis` completo; probabilidades somam 1; `expert.predict_confidence` = certeza × 100 |
 | API-22 | Nomes em português, maiúsculas e acentos (`Café`, `SOJA`, `trigo`, `Tomate`) | Reconhecidos |
-| API-23 | Cultura com modelo antigo (trigo) | `legacy_preprocessing=true` e sem recorte da folha |
+| API-23 | Cultura com modelo antigo (v1, simulado) | `legacy_preprocessing=true` e sem recorte da folha |
 | API-24 | `explain=true` | Mapa de calor em PNG válido (base64) |
 | API-25 | PNG com transparência | 200 |
 | API-26 | Foto enviada como `application/octet-stream` (comum em apps mobile) | 200 |
@@ -87,7 +87,7 @@ Usam redes minúsculas no lugar dos modelos reais, com resposta fixa (ex.: sempr
 ### 1.5 `/predict`: triagem
 | ID | Caso | Esperado |
 |---|---|---|
-| API-40 | Sem modelo de triagem, imagem 32×32 | 422 `low_quality` (regra de resolução mínima: 128 px) |
+| API-40 | Sem modelo de triagem, imagem 32×32 | 422 `low_quality` (regra de resolução mínima: 300 px) |
 | API-41 | Triagem diz "não é folha" | 422 `not_leaf`, com mensagem pronta para o usuário e **sem** diagnóstico |
 | API-42 | "Não é folha" + `force=true` | Continua 422 (o `force` nunca libera não-folha) |
 | API-43 | Triagem diz "qualidade ruim" | 422 `low_quality` |
@@ -112,11 +112,11 @@ API completa com os **modelos reais**, simulando o que o usuário faz no aplicat
 | ID | Caso de uso | Esperado |
 |---|---|---|
 | UC-01 | API no ar | `/health` lista café, soja e trigo; triagem ativa |
-| UC-02 | Consultar os modelos | Café usa recorte da folha; trigo usa o preparo antigo; tomate aparece como indisponível |
+| UC-02 | Consultar os modelos | Café, soja e trigo usam recorte da folha (modelos v2); tomate aparece como indisponível |
 | UC-03 a 07 | Foto de folha de café (saudável / Phoma / ferrugem) e de soja (ferrugem / crestamento) | Diagnóstico correto, triagem `ok` e folha recortada |
 | UC-08 | Front envia "Soja" ou "Café" | Reconhecido |
 | UC-09 | Front antigo lê `expert.predict` e `expert.predict_confidence` | Mesmos valores do diagnóstico novo |
-| UC-10 | Cultura com modelo antigo (trigo) | Funciona, com o preparo antigo |
+| UC-10 | Trigo com o modelo v2 | Funciona, com recorte da folha (`legacy_preprocessing=false`) |
 | UC-11 | Pedir o mapa de calor | PNG válido; ponto principal dentro da imagem |
 | UC-12 | Foto do celular salva "deitada" com marcação EXIF de rotação | Mesmo diagnóstico da foto na posição certa |
 | UC-13 | PNG com transparência | 200 |

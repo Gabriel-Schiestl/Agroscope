@@ -21,6 +21,12 @@ import { Label } from "../../../components/ui/label";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
 import CreateUserAPI from "@/api/user/CreateUser";
+import {
+  formatPersonName,
+  INSTITUTIONAL_EMAIL_MESSAGE,
+  isInstitutionalEmail,
+  NAME_MAX_LENGTH,
+} from "@/lib/user-profile";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -38,6 +44,11 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
 
+    if (isInstitutionalEmail(email)) {
+      setError(INSTITUTIONAL_EMAIL_MESSAGE);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("As senhas não coincidem");
       return;
@@ -53,7 +64,7 @@ export default function SignupPage() {
     try {
       const result = await CreateUserAPI({
         email,
-        name,
+        name: formatPersonName(name),
         password,
         acceptedTerms,
       });
@@ -94,6 +105,9 @@ export default function SignupPage() {
                 placeholder="Seu nome completo"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                onBlur={() => setName(formatPersonName(name))}
+                maxLength={NAME_MAX_LENGTH}
+                autoCapitalize="words"
                 required
               />
             </div>

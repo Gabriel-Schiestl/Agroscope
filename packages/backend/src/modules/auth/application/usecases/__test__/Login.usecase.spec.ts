@@ -39,6 +39,7 @@ describe('LoginUseCase', () => {
             getById: jest.fn(),
         };
         authenticationRepository = {
+            deleteByEmail: jest.fn(),
             findByEmail: jest
                 .fn()
                 .mockResolvedValue(Res.success(buildAuthentication())),

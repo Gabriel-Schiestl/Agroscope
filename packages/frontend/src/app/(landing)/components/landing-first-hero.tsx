@@ -107,7 +107,7 @@ export default function FirstHero() {
                   />
                 </Button>
                 <p className="text-sm text-[#f4fff4] mt-4">
-                  Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB)
+                  Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB, mín. 300 px)
                 </p>
               </>
             ) : (

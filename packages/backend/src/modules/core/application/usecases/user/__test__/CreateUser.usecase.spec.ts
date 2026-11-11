@@ -33,6 +33,7 @@ describe('CreateUserUseCase', () => {
             getByEmail: jest
                 .fn()
                 .mockResolvedValue(Res.failure(new RepositoryNoDataFound('not found'))),
+            delete: jest.fn(),
             resetAllLimits: jest.fn(),
         };
         planRepository = {

@@ -12,7 +12,7 @@ from core.settings import Settings
 from helpers import jpeg_bytes, png_bytes, solid_image
 
 
-def _image_bytes(size=(256, 256), color=(120, 180, 90), fmt="PNG"):
+def _image_bytes(size=(320, 320), color=(120, 180, 90), fmt="PNG"):
     buffer = io.BytesIO()
     Image.new("RGB", size, color).save(buffer, format=fmt)
     return buffer.getvalue()
@@ -167,7 +167,7 @@ def test_predict_response_fields(fake_api):
     assert d["ranking"][0] == d["predicted_class"]
     assert body["expert"]["predict_confidence"] == round(d["confidence"] * 100, 2)
     assert body["gate"]["verdict"] == "ok" and body["gate"]["method"] == "rules"
-    assert body["image"]["width"] == 256 and body["metadata"]["api_version"] == app_module.API_VERSION
+    assert body["image"]["width"] == 320 and body["metadata"]["api_version"] == app_module.API_VERSION
 
 
 def test_predict_culture_aliases(fake_api):
@@ -188,7 +188,7 @@ def test_predict_explain_returns_png(fake_api):
 
 
 def test_predict_png_with_alpha(fake_api):
-    data = png_bytes(Image.new("RGBA", (256, 256), (100, 160, 80, 128)))
+    data = png_bytes(Image.new("RGBA", (320, 320), (100, 160, 80, 128)))
     assert _post(fake_api, data=data).status_code == 200
 
 
@@ -247,7 +247,7 @@ def test_predict_missing_file_is_rejected(fake_api):
 # --- /predict: triagem ------------------------------------------------------
 
 def test_rules_gate_rejects_tiny_image(fake_api):
-    """Sem modelo de triagem, ainda assim imagens minúsculas (< 128px) são recusadas."""
+    """Sem modelo de triagem, ainda assim imagens pequenas (< 300px) são recusadas."""
     r = _post(fake_api, data=_image_bytes(size=(32, 32)))
     assert r.status_code == 422
     assert r.json()["reason"] == "low_quality"

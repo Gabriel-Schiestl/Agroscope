@@ -76,4 +76,5 @@ export interface HistoryRepository {
         userId: string,
         filters: HistoryAnalyticsFilters,
     ): Promise<Result<HistoryExceptions, HistoryAnalyticsRaw>>;
+    deleteByUserId(userId: string): Promise<Result<HistoryExceptions, void>>;
 }

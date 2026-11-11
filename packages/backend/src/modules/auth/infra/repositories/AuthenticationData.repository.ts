@@ -32,6 +32,18 @@ export class AuthenticationDataRepository implements AuthenticationRepository {
         }
     }
 
+    async deleteByEmail(
+        email: string,
+    ): Promise<Result<AuthenticationRepositoryExceptions, void>> {
+        try {
+            await AuthenticationModel.delete({ email });
+
+            return Res.success();
+        } catch (e) {
+            return Res.failure(new TechnicalException(e.message));
+        }
+    }
+
     async findByEmail(
         email: string,
     ): Promise<Result<AuthenticationRepositoryExceptions, Authentication>> {

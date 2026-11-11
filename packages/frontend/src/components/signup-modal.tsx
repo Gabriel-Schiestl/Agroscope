@@ -19,6 +19,12 @@ import { Alert, AlertDescription } from "../components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import CreateUserAPI from "@/api/user/CreateUser";
 import Link from "next/link";
+import {
+  formatPersonName,
+  INSTITUTIONAL_EMAIL_MESSAGE,
+  isInstitutionalEmail,
+  NAME_MAX_LENGTH,
+} from "@/lib/user-profile";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -45,6 +51,11 @@ export default function SignupModal({
     e.preventDefault();
     setError("");
 
+    if (isInstitutionalEmail(email)) {
+      setError(INSTITUTIONAL_EMAIL_MESSAGE);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("As senhas não coincidem");
       return;
@@ -59,7 +70,7 @@ export default function SignupModal({
 
     try {
       const result = await CreateUserAPI({
-        name,
+        name: formatPersonName(name),
         email,
         password,
         acceptedTerms,
@@ -119,6 +130,9 @@ export default function SignupModal({
                 placeholder="Seu nome completo"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                onBlur={() => setName(formatPersonName(name))}
+                maxLength={NAME_MAX_LENGTH}
+                autoCapitalize="words"
                 required
               />
             </div>

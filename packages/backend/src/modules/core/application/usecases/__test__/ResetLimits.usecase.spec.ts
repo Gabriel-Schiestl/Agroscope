@@ -13,6 +13,7 @@ describe('ResetLimitsUseCase', () => {
             getAll: jest.fn(),
             getById: jest.fn(),
             getByEmail: jest.fn(),
+            delete: jest.fn(),
             resetAllLimits: jest.fn().mockResolvedValue(Res.success(undefined)),
         };
         useCase = new ResetLimitsUseCase(userRepository);

@@ -16,4 +16,7 @@ export interface AuthenticationRepository {
     findByEmail(
         email: string,
     ): Promise<Result<AuthenticationRepositoryExceptions, Authentication>>;
+    deleteByEmail(
+        email: string,
+    ): Promise<Result<AuthenticationRepositoryExceptions, void>>;
 }

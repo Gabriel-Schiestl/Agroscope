@@ -2,6 +2,13 @@ import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 import { v4 as uuid } from 'uuid';
 import { Limit } from './Limit';
+import {
+    formatPersonName,
+    INSTITUTIONAL_EMAIL_MESSAGE,
+    isInstitutionalEmail,
+    NAME_LENGTH_MESSAGE,
+    NAME_MAX_LENGTH,
+} from './UserProfileRules';
 
 export interface UserProps {
     name: string;
@@ -54,11 +61,23 @@ export class User implements UserProps {
                 ),
             );
         }
+        if (isInstitutionalEmail(props.email)) {
+            return Res.failure(
+                new BusinessException(INSTITUTIONAL_EMAIL_MESSAGE),
+            );
+        }
+
+        const name = formatPersonName(props.name);
+        if (name.length > NAME_MAX_LENGTH) {
+            return Res.failure(new BusinessException(NAME_LENGTH_MESSAGE));
+        }
+
         const limit = Limit.create();
 
         return Res.success(
             new User({
                 ...props,
+                name,
                 limit,
                 termsAcceptedAt: new Date(),
             }),
@@ -95,6 +114,19 @@ export class User implements UserProps {
 
     get termsVersion() {
         return this.#termsVersion;
+    }
+
+    changeName(name: string): Result<BusinessException, void> {
+        const formatted = formatPersonName(name ?? '');
+        if (formatted.length < 2) {
+            return Res.failure(new BusinessException('Name is required'));
+        }
+        if (formatted.length > NAME_MAX_LENGTH) {
+            return Res.failure(new BusinessException(NAME_LENGTH_MESSAGE));
+        }
+        this.#name = formatted;
+
+        return Res.success();
     }
 
     changePlan(planId: string): Result<BusinessException, void> {

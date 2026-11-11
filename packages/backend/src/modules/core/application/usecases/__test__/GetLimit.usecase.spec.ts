@@ -45,6 +45,7 @@ describe('GetLimitUseCase', () => {
                 .fn()
                 .mockResolvedValue(Res.success(buildUser('plan-1'))),
             getByEmail: jest.fn(),
+            delete: jest.fn(),
             resetAllLimits: jest.fn(),
         };
         planRepository = {

@@ -77,6 +77,7 @@ describe('SendMessageUseCase', () => {
             getAll: jest.fn(),
             getById: jest.fn().mockResolvedValue(Res.success(buildUser())),
             getByEmail: jest.fn(),
+            delete: jest.fn(),
             resetAllLimits: jest.fn(),
         };
         planRepository = {
@@ -91,6 +92,7 @@ describe('SendMessageUseCase', () => {
                 Res.failure(new RepositoryNoDataFound('not found')),
             ),
             getByUserId: jest.fn(),
+            deleteByUserId: jest.fn(),
             getAnalyticsByUserId: jest.fn(),
         };
         useCase = new SendMessageUseCase(

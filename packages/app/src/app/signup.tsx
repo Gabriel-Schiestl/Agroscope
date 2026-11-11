@@ -18,6 +18,12 @@ import { ThemedText } from '@/components/themed-text';
 import { useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
+import {
+    formatPersonName,
+    INSTITUTIONAL_EMAIL_MESSAGE,
+    isInstitutionalEmail,
+    NAME_MAX_LENGTH,
+} from '@/lib/user-profile';
 
 const TERMS_TEXT = `Termos de Uso e Consentimento para Tratamento de Dados (LGPD)
 
@@ -93,6 +99,10 @@ export default function SignupScreen() {
             setError('Preencha todos os campos.');
             return;
         }
+        if (isInstitutionalEmail(email)) {
+            setError(INSTITUTIONAL_EMAIL_MESSAGE);
+            return;
+        }
         if (!PASSWORD_REGEX.test(password)) {
             setError(PASSWORD_MESSAGE);
             return;
@@ -104,7 +114,9 @@ export default function SignupScreen() {
             return;
         }
         setError('');
-        const result = await signup(name, email, password, acceptedTerms);
+        const formattedName = formatPersonName(name);
+        setName(formattedName);
+        const result = await signup(formattedName, email, password, acceptedTerms);
         if (result.success) {
             router.replace('/analytics');
         } else {
@@ -195,6 +207,8 @@ export default function SignupScreen() {
                                 ]}
                                 value={name}
                                 onChangeText={setName}
+                                onBlur={() => setName(formatPersonName(name))}
+                                maxLength={NAME_MAX_LENGTH}
                                 placeholder="Seu nome completo"
                                 placeholderTextColor={colors.textSecondary}
                                 autoCapitalize="words"

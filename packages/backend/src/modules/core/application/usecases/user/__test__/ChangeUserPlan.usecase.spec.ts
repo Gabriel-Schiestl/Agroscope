@@ -44,6 +44,7 @@ describe('ChangeUserPlanUseCase', () => {
             getAll: jest.fn(),
             getById: jest.fn().mockResolvedValue(Res.success(buildUser())),
             getByEmail: jest.fn(),
+            delete: jest.fn(),
             resetAllLimits: jest.fn(),
         };
         planRepository = {

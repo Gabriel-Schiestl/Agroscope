@@ -3,6 +3,8 @@ import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { UserController } from '../User.controller';
 import { CreateUserUseCase } from '../../application/usecases/user/CreateUser.usecase';
 import { ChangeUserPlanUseCase } from '../../application/usecases/user/ChangeUserPlan.usecase';
+import { UpdateUserProfileUseCase } from '../../application/usecases/user/UpdateUserProfile.usecase';
+import { DeleteUserUseCase } from '../../application/usecases/user/DeleteUser.usecase';
 
 describe('UserController', () => {
     const createUserUseCase = {
@@ -13,6 +15,14 @@ describe('UserController', () => {
         execute: jest.fn(),
     } as unknown as ChangeUserPlanUseCase;
 
+    const updateUserProfileUseCase = {
+        execute: jest.fn(),
+    } as unknown as UpdateUserProfileUseCase;
+
+    const deleteUserUseCase = {
+        execute: jest.fn(),
+    } as unknown as DeleteUserUseCase;
+
     let controller: UserController;
 
     beforeEach(() => {
@@ -20,6 +30,8 @@ describe('UserController', () => {
         controller = new UserController(
             createUserUseCase,
             changeUserPlanUseCase,
+            updateUserProfileUseCase,
+            deleteUserUseCase,
         );
     });
 
@@ -79,6 +91,72 @@ describe('UserController', () => {
                 planId: 'plan-1',
             });
             expect(result.isSuccess()).toBe(true);
+        });
+    });
+
+    describe('updateProfile', () => {
+        it('should call UpdateUserProfileUseCase with userId from the request', async () => {
+            (updateUserProfileUseCase.execute as jest.Mock).mockResolvedValue(
+                Res.success({ name: 'Maria Silva', email: 'maria@email.com' }),
+            );
+            const req = { user: { sub: 'user-1' } } as any;
+
+            const result = await controller.updateProfile(
+                { name: 'maria silva' },
+                req,
+            );
+
+            expect(updateUserProfileUseCase.execute).toHaveBeenCalledWith({
+                userId: 'user-1',
+                name: 'maria silva',
+            });
+            expect(result.isSuccess()).toBe(true);
+        });
+    });
+
+    describe('deleteAccount', () => {
+        const buildRes = () => {
+            const res: any = {};
+            res.status = jest.fn().mockReturnValue(res);
+            res.json = jest.fn().mockReturnValue(res);
+            res.clearCookie = jest.fn().mockReturnValue(res);
+            return res;
+        };
+
+        it('should delete the account and clear the auth cookie', async () => {
+            (deleteUserUseCase.execute as jest.Mock).mockResolvedValue(
+                Res.success(undefined),
+            );
+            const res = buildRes();
+
+            await controller.deleteAccount(
+                { user: { sub: 'user-1' } } as any,
+                res,
+            );
+
+            expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
+                userId: 'user-1',
+            });
+            expect(res.clearCookie).toHaveBeenCalledWith(
+                'agroscope-authentication',
+                expect.any(Object),
+            );
+            expect(res.status).toHaveBeenCalledWith(200);
+        });
+
+        it('should keep the cookie and return 400 when deletion fails', async () => {
+            (deleteUserUseCase.execute as jest.Mock).mockResolvedValue(
+                Res.failure(new BusinessException('falhou')),
+            );
+            const res = buildRes();
+
+            await controller.deleteAccount(
+                { user: { sub: 'user-1' } } as any,
+                res,
+            );
+
+            expect(res.clearCookie).not.toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(400);
         });
     });
 });

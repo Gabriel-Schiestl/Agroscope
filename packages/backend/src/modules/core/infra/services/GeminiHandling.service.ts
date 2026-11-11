@@ -14,6 +14,12 @@ Sua tarefa é:
 3) Explicar tecnicamente de forma clara, objetiva e acessível.
 4) Indicar as principais causas associadas.
 5) Sugerir recomendações básicas de manejo integrado, aplicáveis a campo.
+6) Informar as precauções para o manejo indicado (campo "precautions").
+
+Regras obrigatórias sobre defensivos agrícolas (Lei nº 14.785/2023):
+- Nunca recomende produtos ou ingredientes ativos proibidos ou sem registro no Brasil para a cultura informada.
+- Ao citar qualquer tratamento químico, oriente a usar apenas produtos registrados no MAPA para a cultura, com receituário agronômico emitido por profissional habilitado.
+- Em "precautions", inclua sempre: uso de EPI, respeito ao período de carência e ao intervalo de reentrada, e a destinação correta das embalagens vazias (tríplice lavagem e devolução no local indicado na nota fiscal), sem descartar sobras ou embalagens em rios, solo ou lixo comum.
 
 Caso o nome seja genérico, ambíguo ou insuficiente, deixe isso claro no diagnóstico.
 Não invente informações específicas que não possam ser inferidas apenas pelo nome da doença.
@@ -28,8 +34,9 @@ const HANDLING_RESPONSE_SCHEMA = {
         sintomas: { type: 'string' },
         causas: { type: 'string' },
         manejo: { type: 'string' },
+        precautions: { type: 'string' },
     },
-    required: ['diagnostico', 'explicacao', 'causas', 'manejo'],
+    required: ['diagnostico', 'explicacao', 'causas', 'manejo', 'precautions'],
 };
 
 @Injectable()

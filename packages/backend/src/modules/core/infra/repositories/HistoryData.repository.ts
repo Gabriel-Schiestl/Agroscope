@@ -46,6 +46,21 @@ export class HistoryRepositoryImpl implements HistoryRepository {
         }
     }
 
+    // history.user_id não tem FK para user, então a exclusão é explícita.
+    async deleteByUserId(
+        userId: string,
+    ): Promise<Result<HistoryExceptions, void>> {
+        try {
+            await HistoryModel.delete({ userId });
+
+            return Res.success();
+        } catch (error) {
+            return Res.failure(
+                new TechnicalException('Error on delete history ' + error),
+            );
+        }
+    }
+
     async getAll(): Promise<Result<HistoryExceptions, History[]>> {
         try {
             const models = await HistoryModel.find();

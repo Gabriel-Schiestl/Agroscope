@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { KeyRound, Monitor, Moon, Sun } from "lucide-react";
+import { KeyRound, Monitor, Moon, Sun, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
 import {
   Card,
   CardContent,
@@ -14,6 +15,18 @@ import {
 } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Label } from "../../../components/ui/label";
+import { Input } from "../../../components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../../components/ui/dialog";
+import UpdateProfileAPI from "@/api/user/UpdateProfile";
+import DeleteAccountAPI from "@/api/user/DeleteAccount";
+import { formatPersonName, NAME_MAX_LENGTH } from "@/lib/user-profile";
 import {
   Tabs,
   TabsContent,
@@ -64,7 +77,46 @@ function UsageBar({ label, used, total }: { label: string; used: number; total: 
 }
 
 export default function SettingsPage() {
-  const { auth } = useAuth();
+  const { auth, refreshAuth, logout } = useAuth();
+  const [name, setName] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (auth?.name) setName(auth.name);
+  }, [auth?.name]);
+
+  const nameChanged =
+    formatPersonName(name) !== (auth?.name ?? "") && formatPersonName(name).length >= 2;
+
+  const handleSaveName = async () => {
+    setSavingName(true);
+    const result = await UpdateProfileAPI(formatPersonName(name));
+    setSavingName(false);
+
+    if (!result.success) {
+      toast.error(result.message || "Não foi possível salvar o nome.");
+      return;
+    }
+    toast.success("Nome atualizado.");
+    await refreshAuth();
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    const ok = await DeleteAccountAPI();
+    setDeleting(false);
+
+    if (!ok) {
+      toast.error("Não foi possível excluir a conta. Tente novamente.");
+      return;
+    }
+    setDeleteOpen(false);
+    toast.success("Sua conta e seus dados foram excluídos.");
+    logout();
+  };
   const { limit } = useLimit();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -95,10 +147,29 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Minha Conta</CardTitle>
-              <CardDescription>Dados usados para acessar o AgroScope</CardDescription>
+              <CardDescription>Seus dados pessoais e de acesso ao AgroScope</CardDescription>
             </CardHeader>
-            <CardContent>
-              <InfoRow label="Nome" value={auth?.name || "—"} />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="settings-name">Nome completo</Label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    id="settings-name"
+                    value={name}
+                    maxLength={NAME_MAX_LENGTH}
+                    autoCapitalize="words"
+                    onChange={(e) => setName(e.target.value)}
+                    onBlur={() => setName(formatPersonName(name))}
+                  />
+                  <Button
+                    onClick={handleSaveName}
+                    disabled={!nameChanged || savingName}
+                    className="bg-primaryGreen hover:bg-lightGreen"
+                  >
+                    {savingName ? "Salvando..." : "Salvar"}
+                  </Button>
+                </div>
+              </div>
               <InfoRow label="E-mail" value={auth?.email || "—"} />
             </CardContent>
             <CardFooter>
@@ -110,6 +181,59 @@ export default function SettingsPage() {
               </Link>
             </CardFooter>
           </Card>
+
+          <Card className="mt-6 border-red-500/40">
+            <CardHeader>
+              <CardTitle className="text-red-600">Excluir conta</CardTitle>
+              <CardDescription>
+                Remove sua conta, o histórico de análises (com as imagens) e as
+                conversas com a Íris. Essa ação não pode ser desfeita.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button
+                variant="destructive"
+                className="gap-2"
+                onClick={() => {
+                  setDeleteConfirm("");
+                  setDeleteOpen(true);
+                }}
+              >
+                <Trash2 size={16} />
+                Excluir minha conta
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Excluir conta definitivamente?</DialogTitle>
+                <DialogDescription>
+                  Todos os seus dados serão apagados. Para confirmar, digite{" "}
+                  <span className="font-semibold">EXCLUIR</span> abaixo.
+                </DialogDescription>
+              </DialogHeader>
+              <Input
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                placeholder="EXCLUIR"
+                aria-label="Digite EXCLUIR para confirmar"
+              />
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={deleteConfirm.trim().toUpperCase() !== "EXCLUIR" || deleting}
+                  onClick={handleDeleteAccount}
+                >
+                  {deleting ? "Excluindo..." : "Excluir conta"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         <TabsContent value="plan">

@@ -21,7 +21,7 @@ const FAQ = [
   },
   {
     q: 'Quais formatos e tamanhos de imagem são aceitos?',
-    a: 'Fotos em JPG, PNG ou WEBP de até 5 MB.',
+    a: 'Fotos em JPG, PNG ou WEBP de até 5 MB, com pelo menos 300 px de largura e de altura. Fotos tiradas com o celular atendem a esse mínimo.',
   },
   {
     q: 'O que significa a porcentagem de confiança?',

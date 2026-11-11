@@ -77,6 +77,7 @@ describe('PredictUseCase', () => {
             getAll: jest.fn(),
             getById: jest.fn(),
             getByUserId: jest.fn(),
+            deleteByUserId: jest.fn(),
             getAnalyticsByUserId: jest.fn(),
         };
         planRepository = {
@@ -89,6 +90,7 @@ describe('PredictUseCase', () => {
             getAll: jest.fn(),
             getById: jest.fn().mockResolvedValue(Res.success(buildUser())),
             getByEmail: jest.fn(),
+            delete: jest.fn(),
             resetAllLimits: jest.fn(),
         };
         predictService = {

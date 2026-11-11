@@ -17,6 +17,7 @@ describe('GetHistoryUseCase', () => {
         getAll: jest.fn(),
         getById: jest.fn(),
         getByUserId: jest.fn().mockResolvedValue(Res.success([history])),
+        deleteByUserId: jest.fn(),
         getAnalyticsByUserId: jest.fn(),
     };
 

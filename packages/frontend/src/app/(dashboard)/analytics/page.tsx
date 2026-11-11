@@ -364,7 +364,7 @@ export default function AnalyticsPage() {
                   Selecionar Imagem
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB)
+                  Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB, mín. 300 px)
                 </p>
 
                 {file && (

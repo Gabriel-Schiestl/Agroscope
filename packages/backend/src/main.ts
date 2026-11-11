@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import helmet from 'helmet';
@@ -32,6 +33,21 @@ async function bootstrap() {
             crossOriginResourcePolicy: { policy: 'same-origin' },
             crossOriginOpenerPolicy: { policy: 'same-origin' },
         }),
+    );
+
+    // RNF09: documentação pública da API REST em /docs (JSON em /docs-json).
+    const swaggerConfig = new DocumentBuilder()
+        .setTitle('AgroScope API')
+        .setDescription(
+            'API REST do AgroScope: diagnóstico de doenças em folhas por imagem, histórico, chat com a Íris e planos. Autenticação via token JWT no cookie agroscope-authentication (obtido em POST /auth/login).',
+        )
+        .setVersion('1.0')
+        .addCookieAuth('agroscope-authentication')
+        .build();
+    SwaggerModule.setup(
+        'docs',
+        app,
+        SwaggerModule.createDocument(app, swaggerConfig),
     );
 
     app.useGlobalInterceptors(app.get(ResponseInterceptor));

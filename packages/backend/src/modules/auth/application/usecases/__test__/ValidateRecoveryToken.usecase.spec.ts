@@ -21,6 +21,7 @@ describe('ValidateRecoveryTokenUseCase', () => {
 
     beforeEach(() => {
         authenticationRepository = {
+            deleteByEmail: jest.fn(),
             findByEmail: jest
                 .fn()
                 .mockResolvedValue(Res.success(buildAuthenticationWithToken())),

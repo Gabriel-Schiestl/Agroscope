@@ -14,6 +14,7 @@ import {
     seedHistory,
     seedVictimAndAttacker,
 } from './security-helpers';
+import { formatPersonName } from 'src/modules/core/domain/models/UserProfileRules';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Segurança — Injeção de código
@@ -214,7 +215,9 @@ describe('Segurança — Injeção de código (e2e)', () => {
             expect(response.status).toBe(201);
             const user = await userRepository.getByEmail(email);
             if (user.isFailure()) throw user.error;
-            expect(user.value.name).toBe(payload);
+            // O nome só passa pela capitalização das iniciais (RF01); o conteúdo é
+            // guardado como texto, sem execução nem sanitização parcial.
+            expect(user.value.name).toBe(formatPersonName(payload));
             expect(await countRows('user')).toBe(1);
         });
     });
@@ -375,7 +378,9 @@ describe('Segurança — Injeção de código (e2e)', () => {
 
             // Texto literal, sem ser "meio sanitizado" (ex.: tag removida mas
             // atributo mantido), o que poderia gerar um bypass na renderização.
-            expect(user.value.name).toBe(payload);
+            // O nome só passa pela capitalização das iniciais (RF01); o conteúdo é
+            // guardado como texto, sem execução nem sanitização parcial.
+            expect(user.value.name).toBe(formatPersonName(payload));
         });
 
         it('respostas da API (sucesso, erro e 404) são sempre application/json, nunca text/html', async () => {

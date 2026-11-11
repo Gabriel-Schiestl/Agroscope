@@ -28,7 +28,7 @@ def png_bytes(img :Image.Image) -> bytes:
     return buf.getvalue()
 
 
-def solid_image(size=(256, 256), color=(120, 180, 90)) -> Image.Image:
+def solid_image(size=(320, 320), color=(120, 180, 90)) -> Image.Image:
     return Image.new("RGB", size, color)
 
 

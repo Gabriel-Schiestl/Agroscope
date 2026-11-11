@@ -20,6 +20,7 @@ import {
     X,
     CreditCard,
     LogOut,
+    UserCog,
     Camera,
     Image as ImageIcon,
     Search,
@@ -511,6 +512,18 @@ export default function AnalyticsScreen() {
                                 style={[styles.drawerItem, styles.drawerItemRow]}
                                 onPress={() => {
                                     setMenuOpen(false);
+                                    router.push('/account');
+                                }}
+                            >
+                                <UserCog size={16} color={colors.text} />
+                                <ThemedText style={styles.drawerItemText}>
+                                    Minha conta
+                                </ThemedText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.drawerItem, styles.drawerItemRow]}
+                                onPress={() => {
+                                    setMenuOpen(false);
                                     router.push('/plans');
                                 }}
                             >
@@ -753,7 +766,7 @@ export default function AnalyticsScreen() {
                                     { color: colors.textSecondary },
                                 ]}
                             >
-                                Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB)
+                                Formatos suportados: JPG, PNG ou WEBP (máx. 5 MB, mín. 300 px)
                             </ThemedText>
 
                             {/* Localização (validação climática) */}

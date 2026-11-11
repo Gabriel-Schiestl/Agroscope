@@ -89,6 +89,19 @@ export class UserDataRepository implements UserRepository {
         }
     }
 
+    // limit e chat_message saem junto via ON DELETE CASCADE.
+    async delete(id: string): Promise<Result<UserRepositoryExceptions, void>> {
+        try {
+            await UserModel.delete({ id });
+
+            return Res.success();
+        } catch (e) {
+            return Res.failure(
+                new TechnicalException(e.message ?? 'Erro ao excluir usuário.'),
+            );
+        }
+    }
+
     async resetAllLimits(): Promise<Result<UserRepositoryExceptions, void>> {
         try {
             await LimitModel.createQueryBuilder()

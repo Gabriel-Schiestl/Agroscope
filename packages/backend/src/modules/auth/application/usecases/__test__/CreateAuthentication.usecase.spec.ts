@@ -11,6 +11,7 @@ describe('CreateAuthenticationUseCase', () => {
 
     beforeEach(() => {
         authenticationRepository = {
+            deleteByEmail: jest.fn(),
             findByEmail: jest.fn(),
             save: jest.fn().mockResolvedValue(Res.success(undefined)),
         };

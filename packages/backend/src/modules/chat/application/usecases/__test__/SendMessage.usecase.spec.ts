@@ -285,9 +285,12 @@ describe('SendMessageUseCase', () => {
         expect(result.isFailure() && result.error).toBe(error);
     });
 
-    it('should fail when the AI agent fails to respond', async () => {
-        const error = new TechnicalException('ai error');
-        aiAgentService.sendMessage.mockResolvedValue(Res.failure(error));
+    it('should fail with a friendly message without persisting or counting usage when the AI agent fails', async () => {
+        aiAgentService.sendMessage.mockResolvedValue(
+            Res.failure(
+                new TechnicalException('connect ECONNREFUSED 127.0.0.1:5678'),
+            ),
+        );
 
         const result = await useCase.execute({
             content: 'Olá',
@@ -296,7 +299,14 @@ describe('SendMessageUseCase', () => {
         });
 
         expect(result.isFailure()).toBe(true);
-        expect(result.isFailure() && result.error).toBe(error);
+        expect(result.isFailure() && result.error).toBeInstanceOf(
+            TechnicalException,
+        );
+        expect(result.isFailure() && result.error.message).toBe(
+            'A Íris está indisponível no momento. Tente novamente em instantes.',
+        );
+        expect(chatMessageRepository.save).not.toHaveBeenCalled();
+        expect(userRepository.save).not.toHaveBeenCalled();
     });
 
     it('should fail when saving the AI message fails', async () => {

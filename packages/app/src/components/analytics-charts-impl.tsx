@@ -354,7 +354,7 @@ export function IncidenceChartCard({
                             {diseasePeakPeriods.map((peak) => (
                                 <View key={peak.sicknessId} style={styles.peakRow}>
                                     <ThemedText style={styles.peakName} numberOfLines={1}>
-                                        {sicknessLabel(peak.sicknessName)}
+                                        {sicknessLabel(peak.sicknessName, peak.crop)}
                                     </ThemedText>
                                     <ThemedText style={[styles.peakPeriod, { color: colors.textSecondary }]}>
                                         {formatPeriodLabel(peak.period, granularity)}

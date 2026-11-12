@@ -1,3 +1,4 @@
+import { INVALID_RECOVERY_CODE_MESSAGE } from '../../../domain/models/Authentication';
 import { Res } from 'src/shared/Result';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
@@ -51,7 +52,7 @@ describe('ChangePasswordUseCase', () => {
         expect(authenticationRepository.save).toHaveBeenCalled();
     });
 
-    it('should fail when the authentication is not found', async () => {
+    it('should fail with the same invalid code message when the email is unknown', async () => {
         authenticationRepository.findByEmail.mockResolvedValue(
             Res.failure(new RepositoryNoDataFound('not found')),
         );
@@ -63,8 +64,8 @@ describe('ChangePasswordUseCase', () => {
         });
 
         expect(result.isFailure()).toBe(true);
-        expect(result.isFailure() && result.error).toBeInstanceOf(
-            TechnicalException,
+        expect(result.isFailure() && result.error.message).toBe(
+            INVALID_RECOVERY_CODE_MESSAGE,
         );
     });
 

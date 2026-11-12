@@ -6,5 +6,6 @@ export interface HandlingLlmService {
     getHandling(
         prediction: string,
         crop: string,
+        description?: string,
     ): Promise<Result<TechnicalException, HandlingServiceResponse>>;
 }

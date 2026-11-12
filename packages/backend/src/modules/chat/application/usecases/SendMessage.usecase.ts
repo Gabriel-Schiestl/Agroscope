@@ -3,6 +3,7 @@ import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { Exception } from 'src/shared/Exception';
 import { Res, Result } from 'src/shared/Result';
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
+import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { ChatMessage } from '../../domain/models/ChatMessage';
 import { ChatMessageRepository } from '../../domain/repositories/ChatMessage.repository';
 import { ChatMessageAppMapper } from '../mappers/ChatMessage.mapper';
@@ -149,11 +150,6 @@ export class SendMessageUseCase extends AbstractUseCase<
 
         const humanMessage = humanMessageResult.value;
 
-        const saveResult = await this.chatMessageRepository.save(humanMessage);
-        if (saveResult.isFailure()) {
-            return Res.failure(saveResult.error);
-        }
-
         const historyResult = await this.chatMessageRepository.getLastBySession(
             sessionId,
             userId,
@@ -163,13 +159,11 @@ export class SendMessageUseCase extends AbstractUseCase<
             return Res.failure(historyResult.error);
         }
 
-        const history = historyResult.value
-            .filter((m) => m.id !== humanMessage.id)
-            .map((m) => ({
-                sender: m.sender,
-                content: m.content,
-                createdAt: m.createdAt,
-            }));
+        const history = historyResult.value.map((m) => ({
+            sender: m.sender,
+            content: m.content,
+            createdAt: m.createdAt,
+        }));
 
         let analysisContext: AnalysisContext | undefined;
         if (analysisResult.isSuccess()) {
@@ -193,7 +187,16 @@ export class SendMessageUseCase extends AbstractUseCase<
             history,
         });
         if (webhookResult.isFailure()) {
-            return Res.failure(webhookResult.error);
+            return Res.failure(
+                new TechnicalException(
+                    'A Íris está indisponível no momento. Tente novamente em instantes.',
+                ),
+            );
+        }
+
+        const saveResult = await this.chatMessageRepository.save(humanMessage);
+        if (saveResult.isFailure()) {
+            return Res.failure(saveResult.error);
         }
 
         const aiMessageResult = ChatMessage.create({

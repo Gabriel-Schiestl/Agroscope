@@ -119,7 +119,7 @@ export default function ResetPasswordScreen() {
                             ]}
                         >
                             {email
-                                ? `Digite o código enviado para ${email} e escolha uma nova senha`
+                                ? `Se ${email} estiver cadastrado, você receberá um código por email. Digite-o abaixo e escolha uma nova senha`
                                 : 'Digite o código recebido por email e escolha uma nova senha'}
                         </ThemedText>
 

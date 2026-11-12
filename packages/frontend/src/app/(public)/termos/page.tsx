@@ -23,7 +23,7 @@ export default function TermosPage() {
             Termos de Uso e Consentimento para Tratamento de Dados (LGPD)
           </CardTitle>
           <CardDescription className="text-center">
-            Última atualização: 01 de agosto de 2026
+            Última atualização: 11 de novembro de 2026
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 text-sm leading-relaxed text-darkGray">
@@ -90,6 +90,15 @@ export default function TermosPage() {
                 Cumprir obrigações legais e regulatórias, quando aplicável.
               </li>
             </ul>
+            <p>
+              Somente se você autorizar expressamente, em opção separada e não
+              obrigatória no cadastro, as imagens enviadas e o diagnóstico
+              correspondente também poderão ser usados para treinar e
+              aprimorar os modelos de inteligência artificial do AgroScope.
+              Sem essa autorização, suas imagens não são usadas para
+              treinamento. Você pode revogar a autorização a qualquer momento
+              entrando em contato com o suporte.
+            </p>
           </section>
 
           <section className="space-y-2">

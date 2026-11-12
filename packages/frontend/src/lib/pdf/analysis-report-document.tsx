@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { History } from "../../models/History";
 import { toImageSrc } from "../utils";
-import { cropLabel } from "../agro-labels";
+import { cropLabel, sicknessLabel } from "../agro-labels";
 import {
   climateValidationMessage,
   climateValidationTitle,
@@ -388,8 +388,10 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
                 <View style={styles.summaryValueRow}>
                   <Text style={styles.summaryValue}>
                     {isHealthy
-                      ? "Nenhuma doença identificada"
-                      : analysis.explanation || "Não identificado"}
+                      ? "Planta saudável"
+                      : analysis.sicknessName
+                      ? sicknessLabel(analysis.sicknessName, analysis.crop)
+                      : "Doença identificada"}
                   </Text>
                   {!isHealthy && analysis.sicknessConfidence != null && (
                     <View style={styles.badgeOutline}>
@@ -404,6 +406,8 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
           </View>
 
           <ClimateValidationSection analysis={analysis} />
+
+          <Section title="O que foi identificado" text={analysis.explanation} />
 
           <Section title="Causas / Sintomas" text={analysis.causes} />
 
@@ -420,7 +424,7 @@ export function AnalysisReportDocument({ analysis }: AnalysisReportDocumentProps
 
           <Section title="Precauções" text={analysis.precautions} />
 
-          <View style={styles.disclaimer}>
+          <View style={styles.disclaimer} wrap={false}>
             <Text style={styles.disclaimerText}>
               Este relatório foi gerado automaticamente por inteligência
               artificial e tem caráter meramente informativo. Consulte um

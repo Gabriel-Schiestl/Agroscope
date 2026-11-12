@@ -147,7 +147,9 @@ export class PredictUseCase extends AbstractUseCase<
             if (saveUserResult.isFailure())
                 return Res.failure(saveUserResult.error);
 
-            this.sendImage('saudavel', imageBase64.value);
+            if (user.hasImageTrainingConsent) {
+                this.sendImage('saudavel', imageBase64.value);
+            }
 
             return Res.success(HistoryAppMapper.toDto(history));
         }
@@ -157,14 +159,6 @@ export class PredictUseCase extends AbstractUseCase<
         const weatherPromise = location
             ? this.weatherService.getRecentWeather(location)
             : undefined;
-
-        const handling = await this.predictService.getHandling(
-            result.value.prediction,
-            crop,
-        );
-        if (handling.isFailure()) {
-            return Res.failure(handling.error);
-        }
 
         const sicknessResult = await this.sicknessRepository.getSicknessByName(
             result.value.prediction,
@@ -176,6 +170,15 @@ export class PredictUseCase extends AbstractUseCase<
         }
 
         const sickness = sicknessResult.value;
+
+        const handling = await this.predictService.getHandling(
+            result.value.prediction,
+            crop,
+            sickness.description,
+        );
+        if (handling.isFailure()) {
+            return Res.failure(handling.error);
+        }
 
         // Cruza o clima recente da região com as condições favoráveis à doença.
         // Não bloqueia o diagnóstico: o resultado fica salvo no histórico para
@@ -224,7 +227,9 @@ export class PredictUseCase extends AbstractUseCase<
         if (saveUserResult.isFailure())
             return Res.failure(saveUserResult.error);
 
-        this.sendImage(result.value.prediction, imageBase64.value);
+        if (user.hasImageTrainingConsent) {
+            this.sendImage(result.value.prediction, imageBase64.value);
+        }
 
         return Res.success(HistoryAppMapper.toDto(history));
     }

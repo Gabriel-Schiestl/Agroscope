@@ -25,6 +25,7 @@ import api from '@/shared/http/http.config';
 import { useAuth } from '@/contexts/auth-context';
 import type { History } from '@/models/History';
 import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
+import { renderChatText } from '@/lib/chat-format';
 
 interface ChatMessageDto {
     id: string;
@@ -72,7 +73,7 @@ function buildInitialMessage(analysis: History | null): ChatMessage {
 
     const content = isHealthy
         ? `Olá! Sou a Íris, sua assistente de análise da AgroScope. A planta ${crop} está saudável — nenhuma doença detectada.\n\nPosso ajudá-lo com dúvidas gerais sobre manejo preventivo ou outras questões. O que gostaria de saber?`
-        : `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei **${sicknessLabel(analysis?.sicknessName)}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
+        : `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei **${sicknessLabel(analysis?.sicknessName, analysis?.crop)}**${confidence} em **${crop}**.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
 
     return {
         id: 'init',
@@ -394,7 +395,7 @@ export function ChatModal({ visible, analysis, onClose, limit }: ChatModalProps)
                                                     msg.role === 'user' && styles.bubbleTextUser,
                                                 ]}
                                             >
-                                                {msg.content}
+                                                {renderChatText(msg.content)}
                                             </ThemedText>
                                             <ThemedText
                                                 style={[

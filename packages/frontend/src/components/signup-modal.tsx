@@ -44,6 +44,7 @@ export default function SignupModal({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedImageTraining, setAcceptedImageTraining] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -74,6 +75,7 @@ export default function SignupModal({
         email,
         password,
         acceptedTerms,
+        acceptedImageTraining,
       });
 
       if (!result.success) {
@@ -213,6 +215,23 @@ export default function SignupModal({
                 >
                   termos de uso e a política de privacidade
                 </Link>
+              </Label>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="acceptedImageTraining"
+                checked={acceptedImageTraining}
+                onCheckedChange={(checked) =>
+                  setAcceptedImageTraining(checked === true)
+                }
+                className="mt-0.5"
+              />
+              <Label
+                htmlFor="acceptedImageTraining"
+                className="text-sm font-normal leading-snug"
+              >
+                Autorizo, de forma opcional, o uso das imagens que eu enviar para treinar e aprimorar os modelos de IA do AgroScope. Posso deixar de autorizar a qualquer momento pelo suporte.
               </Label>
             </div>
 

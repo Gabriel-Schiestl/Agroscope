@@ -35,6 +35,12 @@ log = logging.getLogger("agroscope")
 REJECTION_MESSAGES = {
     "not_leaf": "A imagem não parece ser de uma folha. Envie uma foto de uma folha da planta.",
     "low_quality": "A imagem não tem qualidade suficiente para análise. Tire outra foto com boa luz, sem tremer e com a folha em foco.",
+    "too_small": "A imagem é muito pequena para análise. Envie uma foto com pelo menos 300 px de largura e de altura.",
+}
+
+INVALID_IMAGE_DETAIL = {
+    "reason": "invalid_image",
+    "message": "Não foi possível ler o arquivo. Envie uma imagem válida em JPG, PNG ou WEBP.",
 }
 
 
@@ -117,7 +123,7 @@ def create_app(settings :Settings=None) -> FastAPI:
     def run_prediction(state, data :bytes, culture_key :str, explain :bool, force :bool):
         up = Load_Image(data)
         gate = state.gate.check(up)
-        if gate["verdict"] == "not_leaf" or (gate["verdict"] == "low_quality" and not force):
+        if gate["verdict"] in ("not_leaf", "too_small") or (gate["verdict"] == "low_quality" and not force):
             return None, gate, up
 
         diagnosis = state.registry.experts[culture_key].predict(up, explain=explain)
@@ -141,18 +147,19 @@ def create_app(settings :Settings=None) -> FastAPI:
             raise HTTPException(400, {"message": f"Cultura '{culture}' não disponível.", "available": list(state.registry.experts)})
 
         if file.content_type and not (file.content_type.startswith("image/") or file.content_type == "application/octet-stream"):
-            raise HTTPException(400, "Only images are acceptable.")
+            raise HTTPException(400, INVALID_IMAGE_DETAIL)
 
         data = await file.read()
         if len(data) > settings.max_upload_bytes:
             raise HTTPException(413, f"File too large (máx. {settings.max_upload_bytes // 1024} KB).")
         if not data:
-            raise HTTPException(400, "Arquivo vazio.")
+            raise HTTPException(400, INVALID_IMAGE_DETAIL)
 
         try:
             diagnosis, gate, up = await run_in_threadpool(run_prediction, state, data, culture_key, explain, force)
         except InvalidImage as e:
-            raise HTTPException(400, str(e))
+            log.info("Imagem recusada por não poder ser lida: %s", e)
+            raise HTTPException(400, INVALID_IMAGE_DETAIL)
 
         common = {
             "culture": culture,             # como foi enviado (compatibilidade com o front antigo)

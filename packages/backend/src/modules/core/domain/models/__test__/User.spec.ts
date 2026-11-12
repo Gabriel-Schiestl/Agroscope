@@ -21,6 +21,37 @@ describe('User Domain', () => {
         }
     });
 
+    it('should not record image training consent unless explicitly accepted', () => {
+        const result = User.create({
+            name: 'John Doe',
+            email: 'john@example.com',
+            acceptedTerms: true,
+            termsVersion: '2026-08-01',
+        });
+        expect(result.isSuccess() && result.value.hasImageTrainingConsent).toBe(
+            false,
+        );
+        expect(
+            result.isSuccess() && result.value.imageTrainingConsentAt,
+        ).toBeUndefined();
+    });
+
+    it('should record image training consent when accepted', () => {
+        const result = User.create({
+            name: 'John Doe',
+            email: 'john@example.com',
+            acceptedTerms: true,
+            acceptedImageTraining: true,
+            termsVersion: '2026-08-01',
+        });
+        expect(result.isSuccess() && result.value.hasImageTrainingConsent).toBe(
+            true,
+        );
+        expect(
+            result.isSuccess() && result.value.imageTrainingConsentAt,
+        ).toBeInstanceOf(Date);
+    });
+
     it('should fail to create a user without name', () => {
         const result = User.create({
             name: '',

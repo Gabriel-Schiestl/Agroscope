@@ -76,6 +76,7 @@ export class GetHistoryAnalyticsQuery {
             byDisease: byDisease.map((row) => ({
                 sicknessId: row.sicknessId,
                 sicknessName: row.sicknessName,
+                crop: row.crop,
                 count: row.count,
                 percentage: this.percentage(row.count, totals.total),
             })),
@@ -98,6 +99,7 @@ export class GetHistoryAnalyticsQuery {
                 byDisease.map((row) => ({
                     sicknessId: row.sicknessId,
                     sicknessName: row.sicknessName,
+                    crop: row.crop,
                 })),
                 byDiseaseAndPeriod,
             ),
@@ -134,7 +136,11 @@ export class GetHistoryAnalyticsQuery {
 
         const seriesByDisease = new Map<
             string,
-            { sicknessName: string; countsByPeriod: Map<string, number> }
+            {
+                sicknessName: string;
+                crop?: string;
+                countsByPeriod: Map<string, number>;
+            }
         >();
 
         for (const row of byDiseaseAndPeriod) {
@@ -145,6 +151,7 @@ export class GetHistoryAnalyticsQuery {
             if (!seriesByDisease.has(key)) {
                 seriesByDisease.set(key, {
                     sicknessName: name,
+                    crop: isTop ? row.crop : undefined,
                     countsByPeriod: new Map(),
                 });
             }
@@ -168,6 +175,7 @@ export class GetHistoryAnalyticsQuery {
                 return {
                     sicknessId: key,
                     sicknessName: series.sicknessName,
+                    crop: series.crop,
                     points: periods.map((period) => ({
                         period,
                         count: series.countsByPeriod.get(period) ?? 0,
@@ -177,13 +185,17 @@ export class GetHistoryAnalyticsQuery {
     }
 
     private buildDiseasePeakPeriods(
-        diseasesRankedByVolume: { sicknessId: string; sicknessName: string }[],
+        diseasesRankedByVolume: {
+            sicknessId: string;
+            sicknessName: string;
+            crop?: string;
+        }[],
         byDiseaseAndPeriod: DiseasePeriodCountRow[],
     ): DiseasePeakDto[] {
         const topDiseases = diseasesRankedByVolume.slice(0, TOP_DISEASES_LIMIT);
 
         return topDiseases
-            .map((disease) => {
+            .map((disease): DiseasePeakDto | null => {
                 const rows = byDiseaseAndPeriod.filter(
                     (row) => row.sicknessId === disease.sicknessId,
                 );
@@ -196,6 +208,7 @@ export class GetHistoryAnalyticsQuery {
                 return {
                     sicknessId: disease.sicknessId,
                     sicknessName: disease.sicknessName,
+                    crop: disease.crop,
                     period: peak.period,
                     count: peak.count,
                 };

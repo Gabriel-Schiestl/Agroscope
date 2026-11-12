@@ -119,12 +119,14 @@ export default function PlansPage() {
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primaryGreen shrink-0" />
-                      Até {plan.imageLimit} diagnósticos de imagem por mês
+                      Até {plan.imageLimit}{" "}
+                      {plan.imageLimit === 1 ? "diagnóstico" : "diagnósticos"} de
+                      imagem por mês
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primaryGreen shrink-0" />
                       {plan.chatLimit > 0
-                        ? `Até ${plan.chatLimit} mensagens à Íris por análise`
+                        ? `Até ${plan.chatLimit} ${plan.chatLimit === 1 ? "mensagem" : "mensagens"} à Íris por análise`
                         : "Sem chat com a Íris"}
                     </li>
                     {plan.features.map((feature, index) => (

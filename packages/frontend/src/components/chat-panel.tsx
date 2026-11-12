@@ -21,6 +21,7 @@ import { ptBR } from 'date-fns/locale';
 import type { History } from '@/models/History';
 import api from '../../shared/http/http.config';
 import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
+import { ChatText } from '@/lib/chat-format';
 
 interface ChatMessageDto {
   id: string;
@@ -75,7 +76,7 @@ function buildInitialMessage(analysis: History | null): ChatMessage {
 
   const content = isHealthy
     ? `Olá! Sou a Íris, sua assistente de análise da AgroScope. A planta ${cropPT} está saudável — nenhuma doença detectada.\n\nPosso ajudá-lo com dúvidas gerais sobre manejo preventivo ou outras questões. O que gostaria de saber?`
-    : `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei ${sicknessLabel(analysis.sicknessName)}${confidence} em ${cropPT}.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
+    : `Olá! Sou a Íris, sua assistente de análise da AgroScope. Identifiquei ${sicknessLabel(analysis.sicknessName, analysis.crop)}${confidence} em ${cropPT}.\n\nPosso ajudá-lo com dúvidas sobre:\n• Manejo e controle da doença\n• Causas e condições favoráveis\n• Produtos e aplicações\n• Prevenção futura\n\nO que gostaria de saber?`;
 
   return {
     id: 'init',
@@ -108,7 +109,9 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             : 'bg-muted border rounded-bl-sm'
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className="whitespace-pre-wrap">
+          <ChatText text={message.content} />
+        </p>
         <p
           className={cn(
             'text-[10px] mt-1 text-right',
@@ -335,7 +338,7 @@ export function ChatPanel({ open, analysis, onClose }: ChatPanelProps) {
                     className="text-xs text-primaryGreen border-primaryGreen/40"
                   >
                     {analysis.sicknessName
-                      ? sicknessLabel(analysis.sicknessName)
+                      ? sicknessLabel(analysis.sicknessName, analysis.crop)
                       : 'Doença'}{' '}
                     · {(analysis.sicknessConfidence * 100).toFixed(1)}%
                   </Badge>

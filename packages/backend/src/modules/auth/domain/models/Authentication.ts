@@ -1,6 +1,10 @@
 import { BusinessException } from 'src/shared/exceptions/Business.exception';
 import { Res, Result } from 'src/shared/Result';
 
+export const INVALID_RECOVERY_CODE_MESSAGE = 'Código inválido ou expirado.';
+export const RECOVERY_ATTEMPTS_EXCEEDED_MESSAGE =
+    'Número máximo de tentativas excedido. Solicite um novo código.';
+
 export interface AuthenticationProps {
     email: string;
     password: string;
@@ -87,15 +91,19 @@ export class Authentication implements AuthenticationProps {
     validateRecoveryToken(token: string): Result<BusinessException, void> {
         if (this.#incorrectRecoveryAttempts > 4)
             return Res.failure(
-                new BusinessException('You exceed incorrect attempts limit'),
+                new BusinessException(RECOVERY_ATTEMPTS_EXCEEDED_MESSAGE),
             );
 
         if (new Date().getTime() > this.#recoveryCodeExpiration.getTime())
-            return Res.failure(new BusinessException('Invalid Token'));
+            return Res.failure(
+                new BusinessException(INVALID_RECOVERY_CODE_MESSAGE),
+            );
 
         if (this.#recoveryCode !== token) {
             this.incrementIncorrectRecoveryAttempts();
-            return Res.failure(new BusinessException('Invalid Token'));
+            return Res.failure(
+                new BusinessException(INVALID_RECOVERY_CODE_MESSAGE),
+            );
         }
 
         this.#incorrectRecoveryAttempts = 0;
@@ -112,12 +120,14 @@ export class Authentication implements AuthenticationProps {
     ): Result<BusinessException, void> {
         if (this.#incorrectRecoveryAttempts > 4)
             return Res.failure(
-                new BusinessException('You exceed incorrect attempts limit'),
+                new BusinessException(RECOVERY_ATTEMPTS_EXCEEDED_MESSAGE),
             );
 
         if (this.#recoveryCode !== token) {
             this.incrementIncorrectRecoveryAttempts();
-            return Res.failure(new BusinessException('Invalid token'));
+            return Res.failure(
+                new BusinessException(INVALID_RECOVERY_CODE_MESSAGE),
+            );
         }
         if (new Date().getTime() > this.#recoveryCodeExpiration.getTime())
             return Res.failure(

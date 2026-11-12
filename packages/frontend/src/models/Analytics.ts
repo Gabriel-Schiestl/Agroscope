@@ -3,6 +3,7 @@ export type AnalyticsGranularity = "day" | "week" | "month";
 export interface DiseaseCount {
   sicknessId: string;
   sicknessName: string;
+  crop?: string;
   count: number;
   percentage: number;
 }
@@ -21,12 +22,14 @@ export interface PeriodCount {
 export interface DiseasePeriodSeries {
   sicknessId: string;
   sicknessName: string;
+  crop?: string;
   points: PeriodCount[];
 }
 
 export interface DiseasePeak {
   sicknessId: string;
   sicknessName: string;
+  crop?: string;
   period: string;
   count: number;
 }

@@ -24,6 +24,8 @@ Regras obrigatórias sobre defensivos agrícolas (Lei nº 14.785/2023):
 Caso o nome seja genérico, ambíguo ou insuficiente, deixe isso claro no diagnóstico.
 Não invente informações específicas que não possam ser inferidas apenas pelo nome da doença.
 
+Quando uma "Descrição de referência" for informada, ela identifica a doença com precisão: use-a como fonte principal, chame a doença pelo nome popular em português e não comente nem traduza o nome técnico informado.
+
 Use linguagem técnica simples e direta. Não cite marcas comerciais nem dosagens químicas.`;
 
 const HANDLING_RESPONSE_SCHEMA = {
@@ -51,6 +53,7 @@ export class GeminiHandlingService implements HandlingLlmService {
     async getHandling(
         prediction: string,
         crop: string,
+        description?: string,
     ): Promise<Result<TechnicalException, HandlingServiceResponse>> {
         try {
             const text = await this.geminiClient.generateContent({
@@ -58,7 +61,9 @@ export class GeminiHandlingService implements HandlingLlmService {
                 contents: [
                     {
                         role: 'user',
-                        text: `Nome informado: ${prediction}\nPlanta: ${crop}`,
+                        text: description
+                            ? `Nome informado: ${prediction}\nPlanta: ${crop}\nDescrição de referência: ${description}`
+                            : `Nome informado: ${prediction}\nPlanta: ${crop}`,
                     },
                 ],
                 responseSchema: HANDLING_RESPONSE_SCHEMA,

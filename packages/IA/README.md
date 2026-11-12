@@ -142,8 +142,8 @@ Campos do `/predict`:
   "gate": { "verdict": "low_quality", "reasons": ["imagem sem qualidade para análise (desfoque, exposição ou compressão)"] }
 }
 ```
-- `reason` é `not_leaf` ou `low_quality`, e `message` já pode ser mostrada ao usuário.
-- Em `low_quality`, o front pode oferecer "analisar mesmo assim" (reenviar com `force=true`). Em `not_leaf`, não.
+- `reason` é `not_leaf`, `too_small` (menor lado abaixo de 300 px) ou `low_quality`, e `message` já pode ser mostrada ao usuário.
+- Em `low_quality`, o front pode oferecer "analisar mesmo assim" (reenviar com `force=true`). Em `not_leaf` e `too_small`, não.
 
 ### Outros erros
 | Código | Quando |

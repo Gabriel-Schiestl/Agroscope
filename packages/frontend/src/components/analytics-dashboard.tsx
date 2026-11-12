@@ -239,7 +239,7 @@ export function AnalyticsDashboard({
     if (!analytics) return [];
     return foldTopN(
       analytics.byDisease.map((d) => ({
-        name: sicknessLabel(d.sicknessName),
+        name: sicknessLabel(d.sicknessName, d.crop),
         count: d.count,
       })),
       BAR_CHART_DISPLAY_LIMIT
@@ -284,7 +284,7 @@ export function AnalyticsDashboard({
   const seriesNameById = useMemo(() => {
     const map = new Map<string, string>();
     analytics?.diseaseIncidenceByPeriod.forEach((s) =>
-      map.set(s.sicknessId, sicknessLabel(s.sicknessName))
+      map.set(s.sicknessId, sicknessLabel(s.sicknessName, s.crop))
     );
     return map;
   }, [analytics]);
@@ -408,11 +408,11 @@ export function AnalyticsDashboard({
           icon={TrendingUp}
           label="Confiança Média"
           value={
-            analytics.averageCropConfidence !== null
-              ? `${(analytics.averageCropConfidence * 100).toFixed(1)}%`
+            analytics.averageSicknessConfidence !== null
+              ? `${(analytics.averageSicknessConfidence * 100).toFixed(1)}%`
               : "—"
           }
-          hint="Confiança na identificação da cultura"
+          hint="Confiança média nos diagnósticos de doença"
         />
       </div>
 
@@ -592,7 +592,7 @@ export function AnalyticsDashboard({
                           key={peak.sicknessId}
                           className="border-b last:border-0"
                         >
-                          <td className="py-2">{sicknessLabel(peak.sicknessName)}</td>
+                          <td className="py-2">{sicknessLabel(peak.sicknessName, peak.crop)}</td>
                           <td className="py-2 text-muted-foreground">
                             {formatPeriodLabel(
                               peak.period,

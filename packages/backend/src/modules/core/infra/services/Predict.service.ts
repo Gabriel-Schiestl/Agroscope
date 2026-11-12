@@ -27,8 +27,17 @@ interface IaPredictResponse {
 // e uma mensagem já pronta para o usuário (ver packages/IA/README.md).
 interface IaRejectedResponse {
     status: 'rejected';
-    reason: 'not_leaf' | 'low_quality';
+    reason: 'not_leaf' | 'low_quality' | 'too_small';
     message: string;
+}
+
+const IA_UNAVAILABLE_MESSAGE =
+    'Não foi possível analisar a imagem agora. Tente novamente em instantes.';
+
+function invalidImageMessage(data: unknown): string | undefined {
+    const detail = (data as { detail?: { reason?: string; message?: string } })
+        ?.detail;
+    return detail?.reason === 'invalid_image' ? detail.message : undefined;
 }
 
 function describeIaError(data: unknown): string {
@@ -87,6 +96,14 @@ export class PredictServiceImpl implements PredictService {
                                 throw new BusinessException(body.message);
                             }
 
+                            const invalidImage =
+                                error.response?.status === 400
+                                    ? invalidImageMessage(error.response.data)
+                                    : undefined;
+                            if (invalidImage) {
+                                throw new BusinessException(invalidImage);
+                            }
+
                             const errorMessage = error.response
                                 ? describeIaError(error.response.data)
                                 : error.message;
@@ -122,9 +139,7 @@ export class PredictServiceImpl implements PredictService {
                 return Res.failure(error);
             }
             console.error('Erro ao processar predição:', error);
-            return Res.failure(
-                new TechnicalException(`Erro na predição: ${error.message}`),
-            );
+            return Res.failure(new TechnicalException(IA_UNAVAILABLE_MESSAGE));
         }
     }
 
@@ -147,10 +162,12 @@ export class PredictServiceImpl implements PredictService {
     async getHandling(
         prediction: string,
         crop: string,
+        description?: string,
     ): Promise<Result<TechnicalException, HandlingServiceResponse>> {
         const geminiResult = await this.handlingLlmService.getHandling(
             prediction,
             crop,
+            description,
         );
         if (geminiResult.isSuccess()) {
             return geminiResult;

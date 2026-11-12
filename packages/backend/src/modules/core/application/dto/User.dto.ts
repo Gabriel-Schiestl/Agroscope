@@ -73,6 +73,10 @@ export class CreateUserDto extends OmitType(UserDto, ['id']) {
             'É necessário aceitar os termos de uso e a política de privacidade para criar uma conta',
     })
     acceptedTerms: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    acceptedImageTraining?: boolean;
 }
 
 export class UpdateUserDto extends OmitType(UserDto, ['id']) {

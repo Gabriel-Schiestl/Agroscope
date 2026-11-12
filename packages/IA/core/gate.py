@@ -59,7 +59,8 @@ class Gate:
             verdict:
               ok          -> segue para o diagnóstico
               not_leaf    -> recusada (não parece uma folha)
-              low_quality -> recusada (borrada, escura, estourada ou pequena demais)
+              too_small   -> recusada (menor lado abaixo de MIN_SIDE_PX)
+              low_quality -> recusada (borrada, escura ou estourada)
         """
         t0 = time.perf_counter()
         metrics = Quality_Metrics(up.image)
@@ -70,7 +71,9 @@ class Gate:
             reasons.append(f"resolução muito baixa (menor lado < {MIN_SIDE_PX}px)")
 
         scores = None
-        if self.enabled:
+        if reasons:
+            verdict = "too_small"
+        elif self.enabled:
             with self._lock, torch.no_grad():
                 x = self.transform(up.image).unsqueeze(0).to(self.device)
                 p = F.softmax(self.net(x), dim=1)[0].cpu().numpy()
@@ -79,14 +82,13 @@ class Gate:
             scores = {"leaf": round(p_leaf, 4), "not_leaf": round(float(p[2]), 4), "poor_quality": round(p_poor, 4)}
             if p[2] >= self.not_leaf_threshold:
                 verdict = "not_leaf"
-            elif p_poor >= self.poor_threshold or reasons:
+            elif p_poor >= self.poor_threshold:
                 verdict = "low_quality"
-                if p_poor >= self.poor_threshold:
-                    reasons.append("imagem sem qualidade para análise (desfoque, exposição ou compressão)")
+                reasons.append("imagem sem qualidade para análise (desfoque, exposição ou compressão)")
             else:
                 verdict = "ok"
         else:
-            verdict = "low_quality" if reasons else "ok"
+            verdict = "ok"
 
         # Avisos leves (não bloqueiam): ajudam o usuário a tirar uma foto melhor
         if metrics["sharpness"] < 60:

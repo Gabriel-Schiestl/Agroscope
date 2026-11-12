@@ -87,7 +87,7 @@ Usam redes minúsculas no lugar dos modelos reais, com resposta fixa (ex.: sempr
 ### 1.5 `/predict`: triagem
 | ID | Caso | Esperado |
 |---|---|---|
-| API-40 | Sem modelo de triagem, imagem 32×32 | 422 `low_quality` (regra de resolução mínima: 300 px) |
+| API-40 | Sem modelo de triagem, imagem 32×32 | 422 `too_small` (regra de resolução mínima: 300 px) |
 | API-41 | Triagem diz "não é folha" | 422 `not_leaf`, com mensagem pronta para o usuário e **sem** diagnóstico |
 | API-42 | "Não é folha" + `force=true` | Continua 422 (o `force` nunca libera não-folha) |
 | API-43 | Triagem diz "qualidade ruim" | 422 `low_quality` |
@@ -125,7 +125,8 @@ API completa com os **modelos reais**, simulando o que o usuário faz no aplicat
 | UC-18 | Foto muito tremida/desfocada | 422 `low_quality`, mensagem pedindo nova foto |
 | UC-19 | Foto tremida + `force=true` | 200, marcada para revisão |
 | UC-20 | Foto escura | **Aceita**, com aviso "imagem escura" (medimos que escuridão não atrapalha o diagnóstico) |
-| UC-21 a 23 | Foto estourada, compressão extrema (JPEG qualidade 3) ou minúscula (64 px) | 422 `low_quality` |
+| UC-21 a 22 | Foto estourada ou compressão extrema (JPEG qualidade 3) | 422 `low_quality` |
+| UC-23 | Foto minúscula (64 px), mesmo com `force` | 422 `too_small` |
 | UC-24 e 25 | Desfoque leve ou resolução média (400 px) | Aceita (não atrapalha o diagnóstico) |
 | UC-26 | Cultura sem modelo carregado | 400 |
 | UC-27 | Arquivo de texto | 400 |

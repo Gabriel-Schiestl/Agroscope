@@ -17,6 +17,10 @@ export class DiseaseCountDto {
     @IsString()
     sicknessName: string;
 
+    @IsOptional()
+    @IsString()
+    crop?: string;
+
     @IsNumber()
     count: number;
 
@@ -58,6 +62,10 @@ export class DiseasePeriodSeriesDto {
     @IsString()
     sicknessName: string;
 
+    @IsOptional()
+    @IsString()
+    crop?: string;
+
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => DiseasePeriodPointDto)
@@ -70,6 +78,10 @@ export class DiseasePeakDto {
 
     @IsString()
     sicknessName: string;
+
+    @IsOptional()
+    @IsString()
+    crop?: string;
 
     @IsString()
     period: string;

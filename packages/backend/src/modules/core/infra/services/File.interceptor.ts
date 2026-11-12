@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
@@ -21,8 +22,13 @@ export const UseFileInterceptor = FileInterceptor('image', {
     },
   }),
   fileFilter: (req, file, callback) => {
-    if (!file.originalname.match(/\.(jpg|jpeg|png|webp|JPG|JPEG|PNG|WEBP)$/)) {
-      return callback(new Error('Formato inválido. Formatos aceitos: .jpg, .jpeg, .png, .webp'), false);
+    if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/i)) {
+      return callback(
+        new BadRequestException(
+          'Formato inválido. Formatos aceitos: .jpg, .jpeg, .png, .webp',
+        ),
+        false,
+      );
     }
     callback(null, true);
   },

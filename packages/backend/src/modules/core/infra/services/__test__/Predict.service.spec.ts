@@ -124,7 +124,34 @@ describe('PredictServiceImpl', () => {
             expect(result.isFailure() && result.error.message).toBe(message);
         });
 
-        it('should keep a readable technical message when the IA returns a structured error', async () => {
+        it('should return the IA message as a business failure when the file cannot be read', async () => {
+            httpService.post.mockReturnValue(
+                throwError(() => ({
+                    message: 'Request failed with status code 400',
+                    response: {
+                        status: 400,
+                        data: {
+                            detail: {
+                                reason: 'invalid_image',
+                                message:
+                                    'Não foi possível ler o arquivo. Envie uma imagem válida em JPG, PNG ou WEBP.',
+                            },
+                        },
+                    },
+                })) as any,
+            );
+
+            const result = await service.predict('/tmp/image.jpg', 'CORN');
+
+            expect(result.isFailure() && result.error).toBeInstanceOf(
+                BusinessException,
+            );
+            expect(result.isFailure() && result.error.message).toBe(
+                'Não foi possível ler o arquivo. Envie uma imagem válida em JPG, PNG ou WEBP.',
+            );
+        });
+
+        it('should hide technical IA details from the user on unexpected errors', async () => {
             httpService.post.mockReturnValue(
                 throwError(() => ({
                     message: 'Request failed with status code 400',
@@ -146,8 +173,8 @@ describe('PredictServiceImpl', () => {
             expect(result.isFailure() && result.error).toBeInstanceOf(
                 TechnicalException,
             );
-            expect(result.isFailure() && result.error.message).toContain(
-                "Cultura 'CORN' não disponível.",
+            expect(result.isFailure() && result.error.message).toBe(
+                'Não foi possível analisar a imagem agora. Tente novamente em instantes.',
             );
         });
     });

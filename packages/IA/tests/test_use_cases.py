@@ -133,12 +133,17 @@ def test_foto_escura_passa_com_aviso(real_api):
 @pytest.mark.parametrize("make", [
     lambda: jpeg_bytes(scale_brightness(fixture("coffee_rust.jpg"), 2.6)),
     lambda: jpeg_bytes(fixture("coffee_rust.jpg"), quality=3),
-    lambda: jpeg_bytes(fixture("coffee_rust.jpg").resize((64, 64))),
-], ids=["estourada", "compressao_extrema", "minuscula"])
+], ids=["estourada", "compressao_extrema"])
 def test_qualidade_inviavel_recusada(real_api, make):
     r = predict(real_api, "coffee", make())
     assert r.status_code == 422, r.text
     assert r.json()["reason"] == "low_quality"
+
+
+def test_foto_minuscula_recusada_por_resolucao(real_api):
+    r = predict(real_api, "coffee", jpeg_bytes(fixture("coffee_rust.jpg").resize((64, 64))), force=True)
+    assert r.status_code == 422, r.text
+    assert r.json()["reason"] == "too_small"
 
 
 @pytest.mark.parametrize("make", [

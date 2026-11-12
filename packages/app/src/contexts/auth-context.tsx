@@ -41,6 +41,7 @@ interface AuthContextType {
         email: string,
         password: string,
         acceptedTerms: boolean,
+        acceptedImageTraining?: boolean,
     ) => Promise<SignupResult>;
     logout: () => void;
     refreshAuth: () => Promise<void>;
@@ -125,10 +126,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: string,
         password: string,
         acceptedTerms: boolean,
+        acceptedImageTraining = false,
     ): Promise<SignupResult> => {
         setIsLoading(true);
         try {
-            await api.post('/user', { name, email, password, acceptedTerms });
+            await api.post('/user', {
+                name,
+                email,
+                password,
+                acceptedTerms,
+                acceptedImageTraining,
+            });
             // Após o cadastro, efetua login para obter o token da sessão.
             const loginResult = await login(email, password);
             return { success: loginResult.success };

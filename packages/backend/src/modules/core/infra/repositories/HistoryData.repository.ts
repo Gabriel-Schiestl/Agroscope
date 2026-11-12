@@ -161,9 +161,11 @@ export class HistoryRepositoryImpl implements HistoryRepository {
                         .innerJoin('history.sickness_relation', 'sickness')
                         .select('history.sicknessId', 'sicknessId')
                         .addSelect('sickness.name', 'sicknessName')
+                        .addSelect('sickness.crop', 'crop')
                         .addSelect('COUNT(*)', 'count')
                         .groupBy('history.sicknessId')
                         .addGroupBy('sickness.name')
+                        .addGroupBy('sickness.crop')
                         .orderBy('count', 'DESC')
                         .getRawMany(),
 
@@ -189,6 +191,7 @@ export class HistoryRepositoryImpl implements HistoryRepository {
                         .innerJoin('history.sickness_relation', 'sickness')
                         .select('history.sicknessId', 'sicknessId')
                         .addSelect('sickness.name', 'sicknessName')
+                        .addSelect('sickness.crop', 'crop')
                         .addSelect(
                             "TO_CHAR(DATE_TRUNC(:granularity, history.createdAt), 'YYYY-MM-DD')",
                             'period',
@@ -197,6 +200,7 @@ export class HistoryRepositoryImpl implements HistoryRepository {
                         .setParameter('granularity', granularity)
                         .groupBy('history.sicknessId')
                         .addGroupBy('sickness.name')
+                        .addGroupBy('sickness.crop')
                         .addGroupBy('period')
                         .orderBy('period', 'ASC')
                         .getRawMany(),
@@ -226,6 +230,7 @@ export class HistoryRepositoryImpl implements HistoryRepository {
                 byDisease: byDisease.map((row) => ({
                     sicknessId: row.sicknessId,
                     sicknessName: row.sicknessName,
+                    crop: row.crop,
                     count: Number(row.count),
                 })),
                 byCrop: byCrop.map((row) => ({
@@ -239,6 +244,7 @@ export class HistoryRepositoryImpl implements HistoryRepository {
                 byDiseaseAndPeriod: byDiseaseAndPeriod.map((row) => ({
                     sicknessId: row.sicknessId,
                     sicknessName: row.sicknessName,
+                    crop: row.crop,
                     period: row.period,
                     count: Number(row.count),
                 })),

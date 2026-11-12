@@ -224,6 +224,9 @@ def test_predict_rejects_non_image_content_type(fake_api):
 def test_predict_rejects_corrupted_image(fake_api):
     response = _post(fake_api, data=b"\x89PNGnot-a-real-png-body")
     assert response.status_code == 400
+    detail = response.json()["detail"]
+    assert detail["reason"] == "invalid_image"
+    assert "BytesIO" not in detail["message"]
 
 
 def test_predict_rejects_empty_file(fake_api):
@@ -250,7 +253,8 @@ def test_rules_gate_rejects_tiny_image(fake_api):
     """Sem modelo de triagem, ainda assim imagens pequenas (< 300px) são recusadas."""
     r = _post(fake_api, data=_image_bytes(size=(32, 32)))
     assert r.status_code == 422
-    assert r.json()["reason"] == "low_quality"
+    assert r.json()["reason"] == "too_small"
+    assert "300 px" in r.json()["message"]
 
 
 def test_gate_not_leaf_is_rejected(make_fake_api):

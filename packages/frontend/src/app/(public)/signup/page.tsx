@@ -36,6 +36,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedImageTraining, setAcceptedImageTraining] = useState(false);
   const [error, setError] = useState("");
   const { auth } = useAuth();
   const router = useRouter();
@@ -67,6 +68,7 @@ export default function SignupPage() {
         name: formatPersonName(name),
         password,
         acceptedTerms,
+        acceptedImageTraining,
       });
       if (result.success) {
         router.push("/login");
@@ -190,6 +192,21 @@ export default function SignupPage() {
                 </Link>{" "}
                 sobre o tratamento dos meus dados e das imagens enviadas para
                 análise.
+              </Label>
+            </div>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="acceptedImageTraining"
+                checked={acceptedImageTraining}
+                onCheckedChange={(checked) =>
+                  setAcceptedImageTraining(checked === true)
+                }
+              />
+              <Label
+                htmlFor="acceptedImageTraining"
+                className="font-normal leading-snug text-sm"
+              >
+                Autorizo, de forma opcional, o uso das imagens que eu enviar para treinar e aprimorar os modelos de IA do AgroScope. Posso deixar de autorizar a qualquer momento pelo suporte.
               </Label>
             </div>
             <Button

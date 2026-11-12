@@ -154,7 +154,7 @@ export default function AnalyticsScreen() {
     const diseaseBars = useMemo<RankedBar[]>(() => {
         if (!analytics) return [];
         return foldTopN(
-            analytics.byDisease.map((d) => ({ name: sicknessLabel(d.sicknessName), count: d.count })),
+            analytics.byDisease.map((d) => ({ name: sicknessLabel(d.sicknessName, d.crop), count: d.count })),
             BAR_CHART_DISPLAY_LIMIT,
         );
     }, [analytics]);
@@ -190,7 +190,7 @@ export default function AnalyticsScreen() {
 
     const seriesNameById = useMemo(() => {
         const map = new Map<string, string>();
-        analytics?.diseaseIncidenceByPeriod.forEach((s) => map.set(s.sicknessId, sicknessLabel(s.sicknessName)));
+        analytics?.diseaseIncidenceByPeriod.forEach((s) => map.set(s.sicknessId, sicknessLabel(s.sicknessName, s.crop)));
         return map;
     }, [analytics]);
 
@@ -301,6 +301,7 @@ export default function AnalyticsScreen() {
     };
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    const MIN_IMAGE_SIDE_PX = 300;
 
     const getMimeType = (uri: string): string => {
         const ext = uri.split('.').pop()?.toLowerCase();
@@ -320,6 +321,18 @@ export default function AnalyticsScreen() {
             showAlert(
                 'Imagem muito grande',
                 'O tamanho máximo permitido é 5 MB. Por favor, selecione uma imagem menor.',
+            );
+            return;
+        }
+
+        if (
+            file.width &&
+            file.height &&
+            Math.min(file.width, file.height) < MIN_IMAGE_SIDE_PX
+        ) {
+            showAlert(
+                'Imagem muito pequena',
+                'A imagem precisa ter pelo menos 300 px de largura e de altura. Por favor, selecione uma imagem maior.',
             );
             return;
         }
@@ -978,7 +991,7 @@ export default function AnalyticsScreen() {
                                             <>
                                                 {result.sicknessName && (
                                                     <ThemedText style={[styles.resultBody, { fontWeight: '600' }]}>
-                                                        {sicknessLabel(result.sicknessName)}
+                                                        {sicknessLabel(result.sicknessName, result.crop)}
                                                     </ThemedText>
                                                 )}
                                                 {result.explanation && (
@@ -1327,7 +1340,7 @@ export default function AnalyticsScreen() {
                                                 <View style={styles.historyMain}>
                                                     <ThemedText style={styles.historyTitle} numberOfLines={2}>
                                                         {item.sicknessName
-                                                            ? sicknessLabel(item.sicknessName)
+                                                            ? sicknessLabel(item.sicknessName, item.crop)
                                                             : item.sicknessId
                                                             ? 'Doença identificada'
                                                             : 'Planta saudável'}
@@ -1510,10 +1523,10 @@ export default function AnalyticsScreen() {
                                             },
                                             {
                                                 label: 'Confiança Média',
-                                                value: analytics.averageCropConfidence !== null
-                                                    ? `${(analytics.averageCropConfidence * 100).toFixed(1)}%`
+                                                value: analytics.averageSicknessConfidence !== null
+                                                    ? `${(analytics.averageSicknessConfidence * 100).toFixed(1)}%`
                                                     : '—',
-                                                change: 'Confiança na identificação da cultura',
+                                                change: 'Confiança média nos diagnósticos de doença',
                                             },
                                         ].map((stat) => (
                                             <ThemedView

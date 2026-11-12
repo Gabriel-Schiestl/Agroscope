@@ -39,20 +39,10 @@ export class PasswordRecoveryUseCase extends AbstractUseCase<
         const authentication = await this.authenticationRepository.findByEmail(
             props.email,
         );
-        if (authentication.isFailure())
-            return Res.failure(
-                new TechnicalException(
-                    'An error occurred while sending recovery token',
-                ),
-            );
+        if (authentication.isFailure()) return Res.success();
 
         const user = await this.userRepository.getByEmail(props.email);
-        if (user.isFailure())
-            return Res.failure(
-                new TechnicalException(
-                    'An error occurred while sending recovery token',
-                ),
-            );
+        if (user.isFailure()) return Res.success();
 
         const token = generateRandomNumber();
 
@@ -63,7 +53,7 @@ export class PasswordRecoveryUseCase extends AbstractUseCase<
         if (saveAuthenticationResult.isFailure())
             return Res.failure(
                 new TechnicalException(
-                    'An error occurred while sending recovery token',
+                    'Não foi possível enviar o código. Tente novamente.',
                 ),
             );
 

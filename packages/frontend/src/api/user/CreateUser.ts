@@ -5,6 +5,7 @@ interface CreateUserParams {
   email: string;
   password: string;
   acceptedTerms: boolean;
+  acceptedImageTraining?: boolean;
   planId?: string;
 }
 

@@ -11,6 +11,7 @@ export class UserMapper {
             planId: user.planId,
             termsAcceptedAt: user.termsAcceptedAt,
             termsVersion: user.termsVersion,
+            imageTrainingConsentAt: user.imageTrainingConsentAt,
             limit: undefined,
         });
 
@@ -29,6 +30,7 @@ export class UserMapper {
                 planId: user.planId,
                 termsAcceptedAt: user.termsAcceptedAt,
                 termsVersion: user.termsVersion,
+                imageTrainingConsentAt: user.imageTrainingConsentAt,
                 limit: LimitMapper.modelToDomain(user.limit),
             },
             user.id,

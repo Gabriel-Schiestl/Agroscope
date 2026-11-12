@@ -69,7 +69,7 @@ describe('PasswordRecoveryUseCase', () => {
         );
     });
 
-    it('should fail when authentication is not found', async () => {
+    it('should succeed without sending an email when the authentication is not found', async () => {
         authenticationRepository.findByEmail.mockResolvedValue(
             Res.failure(new RepositoryNoDataFound('not found')),
         );
@@ -78,14 +78,12 @@ describe('PasswordRecoveryUseCase', () => {
             email: 'unknown@example.com',
         });
 
-        expect(result.isFailure()).toBe(true);
-        expect(result.isFailure() && result.error).toBeInstanceOf(
-            TechnicalException,
-        );
+        expect(result.isSuccess()).toBe(true);
         expect(emailService.sendMessage).not.toHaveBeenCalled();
+        expect(authenticationRepository.save).not.toHaveBeenCalled();
     });
 
-    it('should fail when the user is not found', async () => {
+    it('should succeed without sending an email when the user is not found', async () => {
         userRepository.getByEmail.mockResolvedValue(
             Res.failure(new RepositoryNoDataFound('not found')),
         );
@@ -94,10 +92,7 @@ describe('PasswordRecoveryUseCase', () => {
             email: 'gabriel@example.com',
         });
 
-        expect(result.isFailure()).toBe(true);
-        expect(result.isFailure() && result.error).toBeInstanceOf(
-            TechnicalException,
-        );
+        expect(result.isSuccess()).toBe(true);
         expect(emailService.sendMessage).not.toHaveBeenCalled();
     });
 

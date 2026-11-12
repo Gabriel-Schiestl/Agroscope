@@ -104,6 +104,24 @@ const SORT_OPTIONS = [
 const ITEMS_PER_PAGE = 5;
 // Mesmo limite do app mobile, do backend e da IA.
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MIN_IMAGE_SIDE_PX = 300;
+
+function readImageSize(file: File): Promise<{ width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => {
+      resolve(null);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
 const ANALYSIS_STEPS = [
   'Identificando a cultura...',
   'Detectando sintomas...',
@@ -177,12 +195,30 @@ export default function AnalyticsPage() {
     router.replace(`/analytics?tab=${value}`, { scroll: false });
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
+    if (selectedFile && !ACCEPTED_IMAGE_TYPES.includes(selectedFile.type)) {
+      toast.error('Formato inválido. Envie uma imagem JPG, PNG ou WEBP.');
+      e.target.value = '';
+      return;
+    }
     if (selectedFile && selectedFile.size > MAX_FILE_SIZE) {
       toast.error('O tamanho máximo permitido é 5 MB. Por favor, selecione uma imagem menor.');
       e.target.value = '';
       return;
+    }
+    if (selectedFile) {
+      const size = await readImageSize(selectedFile);
+      if (!size) {
+        toast.error('Não foi possível ler o arquivo. Envie uma imagem válida em JPG, PNG ou WEBP.');
+        e.target.value = '';
+        return;
+      }
+      if (Math.min(size.width, size.height) < MIN_IMAGE_SIDE_PX) {
+        toast.error('A imagem precisa ter pelo menos 300 px de largura e de altura. Por favor, selecione uma imagem maior.');
+        e.target.value = '';
+        return;
+      }
     }
     if (selectedFile) {
       setFile(selectedFile);
@@ -266,7 +302,8 @@ export default function AnalyticsPage() {
         searchQuery === '' ||
         (h.explanation || '').toLowerCase().includes(searchText) ||
         (h.crop || '').toLowerCase().includes(searchText) ||
-        (h.sicknessName || '').toLowerCase().includes(searchText);
+        (h.sicknessName || '').toLowerCase().includes(searchText) ||
+        (h.sicknessName ? sicknessLabel(h.sicknessName, h.crop) : '').toLowerCase().includes(searchText);
       const matchesCrop = cropFilter === 'Todos' || cropLabel(h.crop) === cropFilter;
       const matchesDate =
         !dateFilter ||
@@ -353,7 +390,7 @@ export default function AnalyticsPage() {
 
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept={ACCEPTED_IMAGE_TYPES.join(',')}
                   onChange={handleFileChange}
                   ref={fileInputRef}
                   className="hidden"
@@ -740,7 +777,7 @@ export default function AnalyticsPage() {
                               <div>
                                 <h3 className="font-medium text-lg">
                                   {h.sicknessName
-                                    ? sicknessLabel(h.sicknessName)
+                                    ? sicknessLabel(h.sicknessName, h.crop)
                                     : h.sicknessId
                                     ? 'Doença identificada'
                                     : 'Planta saudável'}
@@ -830,7 +867,7 @@ export default function AnalyticsPage() {
                     <CardHeader className="p-4 pb-2">
                       <CardTitle className="text-base line-clamp-2">
                         {h.sicknessName
-                          ? sicknessLabel(h.sicknessName)
+                          ? sicknessLabel(h.sicknessName, h.crop)
                           : h.sicknessId
                           ? 'Doença identificada'
                           : 'Planta saudável'}

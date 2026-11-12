@@ -145,7 +145,7 @@ export default function PlansScreen() {
                                             <ThemedText
                                                 style={[styles.featureText, { color: colors.textSecondary }]}
                                             >
-                                                Até {plan.imageLimit} diagnósticos de imagem por mês
+                                                {`Até ${plan.imageLimit} ${plan.imageLimit === 1 ? 'diagnóstico' : 'diagnósticos'} de imagem por mês`}
                                             </ThemedText>
                                         </View>
                                         <View style={styles.featureRow}>
@@ -154,7 +154,7 @@ export default function PlansScreen() {
                                                 style={[styles.featureText, { color: colors.textSecondary }]}
                                             >
                                                 {plan.chatLimit > 0
-                                                    ? `Até ${plan.chatLimit} mensagens à Íris por análise`
+                                                    ? `Até ${plan.chatLimit} ${plan.chatLimit === 1 ? 'mensagem' : 'mensagens'} à Íris por análise`
                                                     : 'Sem chat com a Íris'}
                                             </ThemedText>
                                         </View>

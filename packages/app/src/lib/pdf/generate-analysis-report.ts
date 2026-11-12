@@ -3,7 +3,7 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { History } from '@/models/History';
 import { imageToDataUri } from '@/lib/utils';
-import { cropLabel } from '@/lib/agro-labels';
+import { cropLabel, sicknessLabel } from '@/lib/agro-labels';
 import {
     climateValidationMessage,
     climateValidationTitle,
@@ -117,8 +117,12 @@ function buildReportHtml(analysis: History): string {
         : `<div class="image-placeholder">Imagem não disponível</div>`;
 
     const diagnosisText = isHealthy
-        ? 'Nenhuma doença identificada'
-        : escapeHtml(analysis.explanation || 'Não identificado');
+        ? 'Planta saudável'
+        : escapeHtml(
+              analysis.sicknessName
+                  ? sicknessLabel(analysis.sicknessName, analysis.crop)
+                  : 'Doença identificada',
+          );
 
     const sicknessConfidenceBadge =
         !isHealthy && analysis.sicknessConfidence != null
@@ -224,6 +228,7 @@ function buildReportHtml(analysis: History): string {
                 </div>
             </div>
             ${climateValidationHtml(analysis)}
+            ${sectionHtml('O que foi identificado', analysis.explanation)}
             ${sectionHtml('Causas / Sintomas', analysis.causes)}
             ${handlingBlock}
             ${sectionHtml('Precauções', analysis.precautions)}

@@ -26,5 +26,6 @@ export interface PredictService {
     getHandling(
         prediction: string,
         crop: string,
+        description?: string,
     ): Promise<Result<TechnicalException, HandlingServiceResponse>>;
 }

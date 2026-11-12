@@ -3,6 +3,8 @@ import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/A
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
 import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
+import { INVALID_RECOVERY_CODE_MESSAGE } from '../../domain/models/Authentication';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 import { EncryptionService } from '../../domain/services/Encryption.service';
 
@@ -39,9 +41,7 @@ export class ChangePasswordUseCase extends AbstractUseCase<
         );
         if (authentication.isFailure())
             return Res.failure(
-                new TechnicalException(
-                    'An error occurred while changing password',
-                ),
+                new BusinessException(INVALID_RECOVERY_CODE_MESSAGE),
             );
 
         const hash = await this.encryptionService.encrypt(props.newPassword);
@@ -61,7 +61,7 @@ export class ChangePasswordUseCase extends AbstractUseCase<
         if (saveResult.isFailure())
             return Res.failure(
                 new TechnicalException(
-                    'An error occurred while changing password',
+                    'Não foi possível alterar a senha. Tente novamente.',
                 ),
             );
 

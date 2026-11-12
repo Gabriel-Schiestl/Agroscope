@@ -21,28 +21,43 @@ export function registerCropLabels(crops: CropOption[]): void {
     }
 }
 
-export const SICKNESS_LABELS: Record<string, string> = {
-    Rust_Blight: 'Ferrugem Polissora',
+const SICKNESS_LABELS_BY_CROP: Record<string, Record<string, string>> = {
+    CORN: {
+        BLIGHT: 'Helmintosporiose',
+        COMMON_RUST: 'Ferrugem Comum',
+    },
+    WHEAT: {
+        BLIGHT: 'Giberela',
+        RUST_COMMON: 'Ferrugem da Folha',
+    },
+    SOYBEAN: {
+        RUST: 'Ferrugem Asiática',
+        TARGET_SPOT: 'Mancha Alvo',
+        BACTERIAL_BLIGHT: 'Crestamento Bacteriano',
+    },
+    TOMATO: {
+        BACTERIAL_SPOT: 'Pinta Bacteriana',
+        LEAF_MOLD: 'Mofo das Folhas',
+    },
+    COFFEE: {
+        RUST: 'Ferrugem do Cafeeiro',
+        PHOMA: 'Mancha de Phoma',
+    },
+};
+
+const SICKNESS_LABELS: Record<string, string> = {
     RUST_BLIGHT: 'Ferrugem Polissora',
-    Rust_Common: 'Ferrugem Comum',
     RUST_COMMON: 'Ferrugem Comum',
-    Brown_Rust: 'Ferrugem Parda',
+    COMMON_RUST: 'Ferrugem Comum',
     BROWN_RUST: 'Ferrugem Parda',
-    Yellow_Rust: 'Ferrugem Amarela',
     YELLOW_RUST: 'Ferrugem Amarela',
-    Soybean_Rust: 'Ferrugem Asiática',
-    Bacterial_Blight: 'Crestamento Bacteriano',
-    BACTERIAL_BLIGHT: 'Crestamento Bacteriano',
     SOYBEAN_RUST: 'Ferrugem Asiática',
-    Target_Spot: 'Mancha Alvo',
+    BACTERIAL_BLIGHT: 'Crestamento Bacteriano',
     TARGET_SPOT: 'Mancha Alvo',
-    Bacterial_Spot: 'Pinta Bacteriana',
     BACTERIAL_SPOT: 'Pinta Bacteriana',
-    Leaf_Mold: 'Mofo das Folhas',
     LEAF_MOLD: 'Mofo das Folhas',
-    Rust: 'Ferrugem',
+    BLIGHT: 'Queima Foliar',
     RUST: 'Ferrugem',
-    Phoma: 'Mancha de Phoma',
     PHOMA: 'Mancha de Phoma',
 };
 
@@ -51,7 +66,9 @@ export function cropLabel(crop?: string): string {
     return CROP_LABELS[crop.toUpperCase()] ?? crop;
 }
 
-export function sicknessLabel(name?: string): string {
+export function sicknessLabel(name?: string, crop?: string): string {
     if (!name) return 'Não identificada';
-    return SICKNESS_LABELS[name] ?? name.replace(/_/g, ' ');
+    const key = name.toUpperCase();
+    const byCrop = crop ? SICKNESS_LABELS_BY_CROP[crop.toUpperCase()]?.[key] : undefined;
+    return byCrop ?? SICKNESS_LABELS[key] ?? name.replace(/_/g, ' ');
 }

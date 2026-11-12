@@ -45,7 +45,7 @@ export function DiagnosisResult({
   const headline = isHealthy
     ? "Planta Saudável"
     : sicknessName
-    ? sicknessLabel(sicknessName)
+    ? sicknessLabel(sicknessName, crop)
     : "Doença identificada";
 
   return (

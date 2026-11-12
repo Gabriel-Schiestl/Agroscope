@@ -28,7 +28,7 @@ import { SharedModule } from 'src/shared/shared.module';
         },
         {
             provide: 'TERMS_VERSION',
-            useValue: process.env.TERMS_VERSION || '2026-08-01',
+            useValue: process.env.TERMS_VERSION || '2026-11-11',
         },
     ],
     exports: [...repositories, ...services],

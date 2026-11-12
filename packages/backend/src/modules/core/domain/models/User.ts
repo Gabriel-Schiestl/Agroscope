@@ -17,6 +17,7 @@ export interface UserProps {
     planId?: string;
     termsAcceptedAt?: Date;
     termsVersion?: string;
+    imageTrainingConsentAt?: Date;
 }
 
 export interface CreateUserProps {
@@ -24,6 +25,7 @@ export interface CreateUserProps {
     email: string;
     planId?: string;
     acceptedTerms: boolean;
+    acceptedImageTraining?: boolean;
     termsVersion: string;
 }
 export interface LoadUserProps extends UserProps {}
@@ -36,6 +38,7 @@ export class User implements UserProps {
     #planId?: string;
     #termsAcceptedAt?: Date;
     #termsVersion?: string;
+    #imageTrainingConsentAt?: Date;
 
     private constructor(props: UserProps, id?: string) {
         this.#id = id || uuid();
@@ -45,6 +48,7 @@ export class User implements UserProps {
         this.#planId = props.planId;
         this.#termsAcceptedAt = props.termsAcceptedAt;
         this.#termsVersion = props.termsVersion;
+        this.#imageTrainingConsentAt = props.imageTrainingConsentAt;
     }
 
     static create(props: CreateUserProps): Result<BusinessException, User> {
@@ -74,12 +78,19 @@ export class User implements UserProps {
 
         const limit = Limit.create();
 
+        const now = new Date();
+
         return Res.success(
             new User({
-                ...props,
                 name,
+                email: props.email,
+                planId: props.planId,
+                termsVersion: props.termsVersion,
                 limit,
-                termsAcceptedAt: new Date(),
+                termsAcceptedAt: now,
+                imageTrainingConsentAt: props.acceptedImageTraining
+                    ? now
+                    : undefined,
             }),
         );
     }
@@ -114,6 +125,14 @@ export class User implements UserProps {
 
     get termsVersion() {
         return this.#termsVersion;
+    }
+
+    get imageTrainingConsentAt() {
+        return this.#imageTrainingConsentAt;
+    }
+
+    get hasImageTrainingConsent(): boolean {
+        return !!this.#imageTrainingConsentAt;
     }
 
     changeName(name: string): Result<BusinessException, void> {

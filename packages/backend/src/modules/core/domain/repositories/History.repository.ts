@@ -37,6 +37,7 @@ export interface HistoryAnalyticsTotals {
 export interface DiseaseCountRow {
     sicknessId: string;
     sicknessName: string;
+    crop?: string;
     count: number;
 }
 
@@ -53,6 +54,7 @@ export interface PeriodCountRow {
 export interface DiseasePeriodCountRow {
     sicknessId: string;
     sicknessName: string;
+    crop?: string;
     period: string;
     count: number;
 }

@@ -17,13 +17,16 @@ import { ProducerService } from 'src/shared/domain/services/Producer.service';
 import { PredictUseCase } from '../Predict.usecase';
 
 describe('PredictUseCase', () => {
-    const buildUser = (imageRequests = 0) =>
+    const buildUser = (imageRequests = 0, imageTrainingConsent = true) =>
         User.load(
             {
                 name: 'Gabriel',
                 email: 'gabriel@example.com',
                 limit: Limit.load({ imageRequests, chatRequests: 0 }, 'limit-1'),
                 planId: 'plan-1',
+                imageTrainingConsentAt: imageTrainingConsent
+                    ? new Date('2026-01-01')
+                    : undefined,
             },
             'user-1',
         );
@@ -45,6 +48,7 @@ describe('PredictUseCase', () => {
         Sickness.load(
             {
                 name: 'Requeima',
+                description: 'Requeima causada por Phytophthora infestans',
                 symptoms: ['manchas'],
                 climateConditions: {
                     temperatureMin: 15,
@@ -297,6 +301,7 @@ describe('PredictUseCase', () => {
         expect(predictService.getHandling).toHaveBeenCalledWith(
             'Requeima',
             'WHEAT',
+            'Requeima causada por Phytophthora infestans',
         );
         const savedHistory = historyRepository.save.mock.calls[0][0];
         expect(savedHistory.crop).toBe('WHEAT');
@@ -553,6 +558,22 @@ describe('PredictUseCase', () => {
                 prediction: 'Requeima',
                 image: 'base64-image',
             });
+        });
+
+        it('should not publish the image when the user did not consent to training use', async () => {
+            userRepository.getById.mockResolvedValue(
+                Res.success(buildUser(0, false)),
+            );
+
+            const result = await useCase.execute({
+                imagePath: '/tmp/image.jpg',
+                userId: 'user-1',
+                crop: 'SOYBEAN',
+            });
+
+            expect(result.isSuccess()).toBe(true);
+            expect(historyRepository.save).toHaveBeenCalled();
+            expect(producerService.sendMessage).not.toHaveBeenCalled();
         });
 
         it('should fail when saving the history fails', async () => {

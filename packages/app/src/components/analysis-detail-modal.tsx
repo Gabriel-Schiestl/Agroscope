@@ -134,7 +134,7 @@ export function AnalysisDetailModal({ visible, analysis, onClose }: AnalysisDeta
                                     <>
                                         <ThemedText style={[styles.value, { fontWeight: '600' }]}>
                                             {analysis.sicknessName
-                                                ? sicknessLabel(analysis.sicknessName)
+                                                ? sicknessLabel(analysis.sicknessName, analysis.crop)
                                                 : analysis.explanation || 'Doença identificada'}
                                         </ThemedText>
                                         {analysis.sicknessConfidence != null && (

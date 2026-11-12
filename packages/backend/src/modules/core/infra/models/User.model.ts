@@ -18,6 +18,7 @@ export interface UserModelProps {
     planId?: string;
     termsAcceptedAt?: Date;
     termsVersion?: string;
+    imageTrainingConsentAt?: Date;
 }
 
 @Entity('user')
@@ -64,6 +65,13 @@ export class UserModel extends BaseEntity implements UserModelProps {
 
     @Column({ nullable: true, name: 'terms_version' })
     termsVersion?: string;
+
+    @Column({
+        type: 'timestamp',
+        nullable: true,
+        name: 'image_training_consent_at',
+    })
+    imageTrainingConsentAt?: Date;
 
     setProps(props: UserModelProps): this {
         Object.assign(this, props);

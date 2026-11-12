@@ -27,7 +27,7 @@ import {
 
 const TERMS_TEXT = `Termos de Uso e Consentimento para Tratamento de Dados (LGPD)
 
-Última atualização: 01 de agosto de 2026
+Última atualização: 11 de novembro de 2026
 
 Este texto descreve, em linguagem acessível, como o AgroScope trata os dados pessoais e as imagens enviadas por seus usuários, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD). Este é um modelo de referência e deve ser revisado pelo setor jurídico responsável antes de sua utilização definitiva em produção.
 
@@ -46,6 +46,8 @@ Os dados e imagens informados acima são utilizados para:
 - Processar as imagens enviadas em nosso serviço de inteligência artificial, com a finalidade exclusiva de identificar doenças e gerar o diagnóstico solicitado por você.
 - Manter um histórico das análises realizadas, para que você possa consultá-las posteriormente.
 - Cumprir obrigações legais e regulatórias, quando aplicável.
+
+Somente se você autorizar expressamente, em opção separada e não obrigatória no cadastro, as imagens enviadas e o diagnóstico correspondente também poderão ser usados para treinar e aprimorar os modelos de inteligência artificial do AgroScope. Sem essa autorização, suas imagens não são usadas para treinamento. Você pode revogar a autorização a qualquer momento entrando em contato com o suporte.
 
 4. Compartilhamento de dados
 As imagens enviadas são compartilhadas apenas com o serviço interno de inteligência artificial do próprio AgroScope, responsável por processar o diagnóstico. Não vendemos, alugamos ou compartilhamos seus dados pessoais ou imagens com terceiros para fins comerciais ou publicitários.
@@ -91,6 +93,7 @@ export default function SignupScreen() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [acceptedImageTraining, setAcceptedImageTraining] = useState(false);
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [error, setError] = useState('');
 
@@ -116,7 +119,13 @@ export default function SignupScreen() {
         setError('');
         const formattedName = formatPersonName(name);
         setName(formattedName);
-        const result = await signup(formattedName, email, password, acceptedTerms);
+        const result = await signup(
+            formattedName,
+            email,
+            password,
+            acceptedTerms,
+            acceptedImageTraining,
+        );
         if (result.success) {
             router.replace('/analytics');
         } else {
@@ -334,6 +343,44 @@ export default function SignupScreen() {
                                     {' '}
                                     sobre o tratamento dos meus dados e
                                     imagens.
+                                </ThemedText>
+                            </View>
+                        </View>
+
+                        <View style={styles.termsRow}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.checkbox,
+                                    {
+                                        borderColor: colors.tint,
+                                        backgroundColor: acceptedImageTraining
+                                            ? colors.tint
+                                            : 'transparent',
+                                    },
+                                ]}
+                                onPress={() =>
+                                    setAcceptedImageTraining(!acceptedImageTraining)
+                                }
+                                accessibilityRole="checkbox"
+                                accessibilityState={{
+                                    checked: acceptedImageTraining,
+                                }}
+                            >
+                                {acceptedImageTraining && (
+                                    <Check size={13} color="#fff" strokeWidth={3} />
+                                )}
+                            </TouchableOpacity>
+                            <View style={styles.termsTextWrap}>
+                                <ThemedText
+                                    style={[
+                                        styles.termsText,
+                                        { color: colors.textSecondary },
+                                    ]}
+                                >
+                                    Autorizo, de forma opcional, o uso das imagens
+                                    que eu enviar para treinar e aprimorar os modelos
+                                    de IA do AgroScope. Posso deixar de autorizar a
+                                    qualquer momento pelo suporte.
                                 </ThemedText>
                             </View>
                         </View>

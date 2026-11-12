@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, CreditCard, Menu } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +18,14 @@ import { useAuth } from "../contexts/auth-context";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { User, LogOut, Settings } from "lucide-react";
+
+function userInitials(name?: string): string {
+  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "AG";
+  const first = parts[0][0];
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
 
 export default function Header() {
   const { auth, logout } = useAuth();
@@ -75,16 +83,8 @@ export default function Header() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={"https://placehold.co/32x32"}
-                    alt="Foto do usuário"
-                  />
-                  <AvatarFallback className="bg-primaryGreen text-white">
-                    {auth?.name
-                      ?.split(" ")
-                      .map((n: string) => n[0])
-                      .join("")
-                      .toUpperCase() || "AG"}
+                  <AvatarFallback className="bg-primaryGreen text-white text-xs font-semibold">
+                    {userInitials(auth?.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden md:block">

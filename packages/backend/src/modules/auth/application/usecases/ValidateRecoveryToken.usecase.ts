@@ -1,8 +1,9 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthenticationRepository } from 'src/modules/auth/domain/repositories/Authentication.repository';
 import { RepositoryNoDataFound } from 'src/shared/exceptions/RepositoryNoDataFound.exception';
-import { TechnicalException } from 'src/shared/exceptions/Technical.exception';
 import { Res, Result } from 'src/shared/Result';
+import { BusinessException } from 'src/shared/exceptions/Business.exception';
+import { INVALID_RECOVERY_CODE_MESSAGE } from '../../domain/models/Authentication';
 import { AbstractUseCase } from 'src/shared/AbstractUseCase';
 
 export interface ValidateRecoveryTokenUseCaseProps {
@@ -35,9 +36,7 @@ export class ValidateRecoveryTokenUseCase extends AbstractUseCase<
         );
         if (authentication.isFailure())
             return Res.failure(
-                new TechnicalException(
-                    'An error occurred while validating recovery token',
-                ),
+                new BusinessException(INVALID_RECOVERY_CODE_MESSAGE),
             );
 
         const validateToken = authentication.value.validateRecoveryToken(

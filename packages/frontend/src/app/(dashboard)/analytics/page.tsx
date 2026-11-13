@@ -107,6 +107,13 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MIN_IMAGE_SIDE_PX = 300;
 
+function normalizeSearch(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
 function readImageSize(file: File): Promise<{ width: number; height: number } | null> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
@@ -297,13 +304,16 @@ export default function AnalyticsPage() {
 
   const filteredHistories = analysisHistory
     .filter((h) => {
-      const searchText = searchQuery.toLowerCase();
+      const searchText = normalizeSearch(searchQuery.trim());
       const matchesSearch =
-        searchQuery === '' ||
-        (h.explanation || '').toLowerCase().includes(searchText) ||
-        (h.crop || '').toLowerCase().includes(searchText) ||
-        (h.sicknessName || '').toLowerCase().includes(searchText) ||
-        (h.sicknessName ? sicknessLabel(h.sicknessName, h.crop) : '').toLowerCase().includes(searchText);
+        searchText === '' ||
+        [
+          h.explanation,
+          h.crop,
+          h.crop ? cropLabel(h.crop) : undefined,
+          h.sicknessName,
+          h.sicknessName ? sicknessLabel(h.sicknessName, h.crop) : undefined,
+        ].some((field) => normalizeSearch(field ?? '').includes(searchText));
       const matchesCrop = cropFilter === 'Todos' || cropLabel(h.crop) === cropFilter;
       const matchesDate =
         !dateFilter ||

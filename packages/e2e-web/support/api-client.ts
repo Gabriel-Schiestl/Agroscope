@@ -128,7 +128,7 @@ export async function predictNTimes(
 
 export async function subscribePlan(
   request: APIRequestContext,
-  type: 'FREE' | 'PRO' | 'PREMIUM',
+  type: 'FREE' | 'PRO',
 ): Promise<void> {
   const plansResponse = await request.get(`${API_PREFIX}/plan`);
   if (!plansResponse.ok()) {

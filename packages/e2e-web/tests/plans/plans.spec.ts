@@ -28,8 +28,6 @@ test.describe('Módulo: Planos', () => {
     const pro = plansPage.limitsText(10, 10);
     await expect(pro.images).toBeVisible();
     await expect(pro.chat).toBeVisible();
-    const premium = plansPage.limitsText(30, 30);
-    await expect(premium.images).toBeVisible();
-    await expect(premium.chat).toBeVisible();
+    await expect(plansPage.planHeading('PREMIUM')).toHaveCount(0);
   });
 });

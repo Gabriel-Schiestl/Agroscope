@@ -85,7 +85,12 @@ export default function PlansPage() {
       {isLoading ? (
         <p className="text-mediumGray">Carregando planos...</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-6",
+            plans.length >= 3 ? "md:grid-cols-3" : "md:grid-cols-2 max-w-4xl"
+          )}
+        >
           {plans.map((plan) => {
             const isCurrentPlan = plan.id === auth?.planId;
 
